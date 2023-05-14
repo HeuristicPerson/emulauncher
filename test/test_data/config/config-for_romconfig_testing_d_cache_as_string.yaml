@@ -1,0 +1,37 @@
+#======================================================================================================================#
+# Test configuration to be used to validate that cache can be read when defined as a string                            #
+#======================================================================================================================#
+
+window:
+  # Resolution of the window
+  width: 800
+  height: 600
+  # Name of the theme to be used
+  theme: default
+  # Volume of sound effects in the menu (0.0-1.0)
+  volume: 0.4
+
+cache:
+  # Directory to store cached data (ROMs, dat files, savegames...)
+  dir:  /tmp/emulaunch_cache
+
+  # Size in MiB of the cache dir
+  size: '5000'
+
+data:
+  dats_dir: /tmp/dats
+
+roms:
+  # ROM directories for each platform
+  mdr-crt: /tmp/mdr-crt
+
+patches:
+  mdr-crt: /tmp/patches/mdr-crt
+
+users:
+  - 123456
+  - this user
+  - cañón
+
+retroarch:
+  cores_dir: /tmp/cores

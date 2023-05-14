@@ -1,0 +1,5 @@
+/resources/FreeSFX/
+/test/.pytest_cache/
+.idea
+*/__pychache__/*
+*.pyc

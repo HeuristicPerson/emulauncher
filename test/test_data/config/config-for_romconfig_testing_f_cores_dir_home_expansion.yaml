@@ -1,0 +1,35 @@
+#======================================================================================================================#
+# Test configuration to be used in the tests of for romconfig library to test home expansion in cores dir              #
+#======================================================================================================================#
+
+window:
+  # Resolution of the window
+  width: 800
+  height: 600
+  # Name of the theme to be used
+  theme: default
+  # Volume of sound effects in the menu (0.0-1.0)
+  volume: 0.4
+
+cache:
+  # Directory to store cached data (ROMs, dat files, savegames...)
+  dir:  /tmp/emulaunch_cache
+
+  # Size in MiB of the cache dir
+  size: 5000
+
+data:
+  dats_dir: ../dats
+
+roms:
+  # ROM directories for each platform
+  mdr-crt: ../roms/mdr-crt
+
+patches:
+  mdr-crt: ../patches/mdr-crt
+
+users:
+  - Guest
+
+retroarch:
+  cores_dir: ~/foo

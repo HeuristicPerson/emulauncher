@@ -1,0 +1,36 @@
+window:
+  # Resolution of the window
+  width: 800
+  height: 600
+  # Name of the theme to be used
+  theme: default
+  # Volume of sound effects in the menu (0.0-1.0)
+  volume: 0.4
+
+cache:
+  # Directory to store cached data (ROMs, dat files, savegames...)
+  dir:  /home/admin/emulaunch_cache
+
+  # Size in MiB of the cache dir
+  size: 5000
+
+data:
+  dats_dir: test/test_data/dats
+
+roms:
+  # ROM directories for each platform
+  mdr-crt: /mnt/jupiter.lan/ro_multimedia/videogames/mdr-crt/roms
+  snt-crt: /mnt/jupiter.lan/ro_multimedia/videogames/snt-crt/roms
+
+patches:
+  mdr-crt: /mnt/jupiter.lan/ro_multimedia/videogames/mdr-crt/patches
+  snt-crt: /mnt/jupiter.lan/ro_multimedia/videogames/snt-crt/patches
+
+users:
+  - Guest
+  - John
+  - Ann
+  - Zoe
+
+retroarch:
+  cores_dir: ~/.config/retroarch/cores

@@ -1,0 +1,80 @@
+# Main configuration of the theme
+window:
+  width:  1920
+  height: 1080
+
+header:
+  # ROM name
+  title:
+    color:    [255, 255, 255, 128]
+    position: [960, 900]
+    align:    ["center", "center"]
+    size:     16
+    font:     Emulogic
+    width:    960
+
+  # ROM full name
+  subtitle:
+    color:    [255, 255, 255, 128]
+    position: [960, 950]
+    align:    ["center", "center"]
+    size:     12
+    font:     Emulogic
+    width:    960
+
+
+menu:
+  # Style of the title of the menu
+  position: [960, 800]
+
+  title:
+    align:    ["center", "center"]
+    position: [0, 0]
+    color:    [255, 0, 0, 255]
+    size:     14
+    font:     Emulogic
+    width:    200
+
+  # Style of menu options
+  option:
+    align:        ["center", "center"]
+    color:        [107, 186, 148, 255]
+    color_active: [255, 255, 255, 255]
+    font:         Emulogic
+    position:     [0, -16]
+    size:         12
+    vert_spacing: 48
+
+
+# Progress bar (will be used during the installation and patching of games
+progress_bar:
+  background:   "#000000"
+  border_width: 2
+  foreground:   "#f0f0f0"
+  highlight:    "#ff8000"
+  size:    12
+  font:  Arial
+  width:        800
+
+# Status block with information about current options:
+status_block:
+  # background: (255, 255, 255, 255)
+  position: [480, 340]
+  vert_spacing: 40
+  #size: (400, 100)
+
+  field:
+    align: ['right', 'center']
+    color: [200, 200, 200, 255]
+    font: Emulogic
+    size: 10
+    position: [140, 100]  # With respect to the position of the block
+
+  value:
+    align: ['left', 'center']
+    color: [ 164, 164, 48, 255 ]
+    color_alt: [200, 200, 200, 128]
+    font: Emulogic
+    size: 10
+    position: [160, 100]  # With respect to the position of the block
+
