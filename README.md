@@ -1,3 +1,5 @@
+[![User menu](docs/images/menu-user-small.png)](docs/images/menu-user.png)
+
 # Emulauncher
 
 _Emulauncher_ is a simple emulator launcher GUI that allows the following
