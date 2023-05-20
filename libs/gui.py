@@ -144,11 +144,14 @@ class Theme:
         o_status_block.o_patch = None
         o_status_block.o_config_default = romconfig.generate_default_cfg(po_rom, pto_cores)
 
+        # We reset the configuration so every value will be set as the default config.
+        o_status_block.reset_config()
+
         # --- test code ---
         print('DEFAULT:')
         print(o_status_block.o_config_default.nice_format())
         print('CURRENT CONFIG:')
-        print(o_status_block.o_config.nice_format())
+        print(o_status_block._o_config.nice_format())
         # ------ end ------
 
         return o_status_block
@@ -445,7 +448,6 @@ class _Image(_GuiElement):
         :rtype: _Image
         """
         _GuiElement.__init__(self)
-        #pyglet.image.load(ps_file)
         self._i_x = pi_x
         self._i_y = pi_y
         self._lo_pyglet_elems = [pyglet.image.load(ps_file)]
@@ -650,7 +652,7 @@ class _StatusBlock(_GuiElement):
     """
     Class to store and show in the GUI the options selected by the user for the current ROM.
 
-    :ivar o_config: romconfig.RomConfig
+    :ivar _o_config: romconfig.RomConfig
     :ivar o_config_default: romconfig.RomConfig
     :ivar _o_theme: _StatusBlockTheme
     :ivar _o_field_rom: _FieldAndValue
@@ -669,8 +671,13 @@ class _StatusBlock(_GuiElement):
         _GuiElement.__init__(self)
 
         self._o_theme = po_theme
-        self.o_config = romconfig.RomConfig()          # Rom configuration
-        self.o_config_default = romconfig.RomConfig()  # Default configuration, used to show modified options with a different color
+
+        # We have wrapper methods to change the actual configuration, so we make the configuration private to avoid
+        # confusion. The default configuration shouldn't be modified during the use of the program, so for convenience I
+        # leave it as a public attribute.
+        self._o_config = romconfig.RomConfig()          # Rom configuration
+        self.o_config_default = romconfig.RomConfig()   # Default configuration for the ROM, used to initialize the
+                                                        # configuration and to show user changes with a different color.
 
         # Generation of base FieldAndTag theme from StatusBlockTheme
         #-----------------------------------------------------------
@@ -697,7 +704,7 @@ class _StatusBlock(_GuiElement):
         :return: The refresh rate in Hz
         :rtype: Float
         """
-        return self.o_config.f_refresh(self)
+        return self._o_config.f_refresh(self)
 
     def _set_f_refresh(self, pf_refresh):
         """
@@ -708,16 +715,16 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self.o_config.f_refresh = pf_refresh
+        self._o_config.f_refresh = pf_refresh
         self._o_field_refresh.set_value(f'{pf_refresh:.1f} Hz')
 
-        if self.o_config.f_refresh == self.o_config_default.f_refresh:
+        if self._o_config.f_refresh == self.o_config_default.f_refresh:
             self._o_field_refresh.set_alt()
         else:
             self._o_field_refresh.set_norm()
 
     def _get_o_core(self):
-        return self.o_config._o_core(self)
+        return self._o_config._o_core(self)
 
     def _set_o_core(self, po_core):
         """
@@ -728,16 +735,16 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self.o_config._o_core = po_core
+        self._o_config._o_core = po_core
         self._o_field_core.set_value(po_core.s_name)
 
-        if self.o_config._o_core == self.o_config_default._o_core:
+        if self._o_config._o_core == self.o_config_default._o_core:
             self._o_field_core.set_alt()
         else:
             self._o_field_core.set_norm()
 
     def _get_o_patch(self):
-        return self.o_config.o_patch
+        return self._o_config.o_patch
 
     def _set_o_patch(self, po_patch):
         """
@@ -748,7 +755,7 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self.o_config.o_patch = po_patch
+        self._o_config.o_patch = po_patch
 
         # Preparing the text to appear in the status block about the selected patch
         s_patch = 'None'
@@ -757,16 +764,16 @@ class _StatusBlock(_GuiElement):
 
         self._o_field_patch.set_value(s_patch)
 
-        if self.o_config.o_patch == self.o_config_default.o_patch:
+        if self._o_config.o_patch == self.o_config_default.o_patch:
             self._o_field_patch.set_alt()
         else:
             self._o_field_patch.set_norm()
 
     def _get_o_rom(self):
-        return self.o_config.o_rom
+        return self._o_config.o_rom
 
     def _set_o_rom(self, po_rom):
-        self.o_config.o_rom = po_rom
+        self._o_config.o_rom = po_rom
 
         # Preparing the text to appear in the status block about the selected ROM
         s_ccrc32 = '????????'
@@ -779,7 +786,7 @@ class _StatusBlock(_GuiElement):
         self._o_field_rom.set_alt()
 
     def _get_s_user(self):
-        return self.o_config.s_user
+        return self._o_config.s_user
 
     def _set_s_user(self, ps_value):
         """
@@ -790,15 +797,33 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self.o_config.s_user = ps_value
+        self._o_config.s_user = ps_value
         self._o_field_user.set_value(ps_value)
 
     def _get_s_region(self):
-        return self.o_config.s_region
+        return self._o_config.s_region
 
     def _set_s_region(self, ps_value):
-        self.o_config.s_region = ps_value
+        self._o_config.s_region = ps_value
         self._o_field_region.set_value(ps_value)
+
+        if self._o_config.s_region == self.o_config_default.s_region:
+            self._o_field_region.set_alt()
+        else:
+            self._o_field_region.set_norm()
+
+    def reset_config(self):
+        """
+        Method to reset the configuration to the default one.
+
+        :return: Nothing, the object will be modified in place.
+        """
+        self.o_patch = self.o_config_default.o_patch
+        self.s_region = self.o_config_default.s_region
+        self.s_user = self.o_config_default.s_user
+        self.f_refresh = self.o_config_default.f_refresh
+        self.o_core = self.o_config_default.o_core
+        self.o_rom = self.o_config_default.o_rom
 
     f_refresh = property(fset=_set_f_refresh, fget=_get_f_refresh)
     o_core = property(fset=_set_o_core, fget=_get_o_core)
