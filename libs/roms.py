@@ -77,16 +77,17 @@ class Rom:
 
     def __str__(self):
         s_out = '<Rom>\n'
-        s_out += f'  .s_name:     {self.s_name}\n'
-        s_out += f'  .s_path:     {self.s_path}\n'
-        s_out += f'  .s_dat:      {self.s_dat}\n'
-        s_out += f'  .s_dat_ver:  {self.s_dat_ver}\n'
-        s_out += f'  .i_dsize:    {self.i_dsize}\n'
-        s_out += f'  .i_csize:    {self.i_csize}\n'
-        s_out += f'  .s_dcrc32:   {self.s_dcrc32}\n'
-        s_out += f'  .s_ccrc32:   {self.s_ccrc32}\n'
+        s_out += f'  .s_name:        {self.s_name}\n'
+        s_out += f'  .s_path:        {self.s_path}\n'
+        s_out += f'  .s_dat:         {self.s_dat}\n'
+        s_out += f'  .s_dat_ver:     {self.s_dat_ver}\n'
+        s_out += f'  .i_dsize:       {self.i_dsize}\n'
+        s_out += f'  .i_csize:       {self.i_csize}\n'
+        s_out += f'  .s_dcrc32:      {self.s_dcrc32}\n'
+        s_out += f'  .s_ccrc32:      {self.s_ccrc32}\n'
+        s_out += f'  .s_dcrc32_safe: {self.s_dcrc32_safe}\n'  # Safe dirty CRC32 ('xxxxxxxx' when crc32 is empty)
+        s_out += f'  .s_ccrc32_safe: {self.s_ccrc32_safe}\n'  # Safe clean CRC32 ('xxxxxxxx' when crc32 is empty)
 
-        #s_out += f'  .o_platform: {self.o_platform}'
         s_out += string_helpers.section_generate('  .o_platform:', str(self.o_platform).splitlines(False))
         return s_out
 
@@ -184,5 +185,33 @@ class Rom:
 
         return f_def_freq
 
+    def _get_s_dcrc32_safe(self):
+        """
+        Method to obtain a "safe" value for dirty crc32, which uses 'xxxxxxxx' as default when no CRC32 is present. This
+        method is accessed through the attribute .s_dcrc32_safe for the times when a text CRC32 is required.
+
+        :return: A CRC32 string that uses 'xxxxxxxx' as default when there is no valid CRC32.
+        :rtype: Str
+        """
+        s_crc32 = 'xxxxxxxx'
+        if self.s_dcrc32:
+            s_crc32 = self.s_dcrc32
+        return s_crc32
+
+    def _get_s_ccrc32_safe(self):
+        """
+        Method to obtain a "safe" value for clean crc32, which uses 'xxxxxxxx' as default when no CRC32 is present. This
+        method is accessed through the attribute .s_ccrc32_safe for the times when a text CRC32 is required.
+
+        :return: A CRC32 string that uses 'xxxxxxxx' as default when there is no valid CRC32.
+        :rtype: Str
+        """
+        s_crc32 = 'xxxxxxxx'
+        if self.s_ccrc32:
+            s_crc32 = self.s_ccrc32
+        return s_crc32
+
     f_refresh_auto = property(fget=_get_f_refresh_auto, fset=None)
     s_region_auto = property(fget=_get_s_region_auto, fset=None)
+    s_dcrc32_safe = property(fget=_get_s_dcrc32_safe, fset=None)
+    s_ccrc32_safe = property(fget=_get_s_ccrc32_safe, fset=None)

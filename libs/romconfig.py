@@ -110,7 +110,9 @@ class RomConfig:
 
         else:
             if not _check_rom_and_ini_match(self.o_rom, o_ini):
-                s_msg = 'Rom and RomConfig don\'t match.'
+                s_rom_summary = f'[{self.o_rom.s_ccrc32}] {self.o_rom.s_name}'
+                s_ini_summary = f'[%s] %s' % (o_ini.get('rom', 'ccrc32'), o_ini.get('rom', 'name'))
+                s_msg = 'Rom (%s) and RomConfig (%s) don\'t match.' % (s_rom_summary, s_ini_summary)
                 raise ValueError(s_msg)
             else:
                 # Since saved configurations will be shared between users, we won't read the username from them.

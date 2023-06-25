@@ -12,6 +12,7 @@ import libs.cons as cons
 import libs.config as config
 import libs.cores as cores
 import libs.gui as gui_theme
+import libs.paths as paths
 import libs.patches as patches
 import libs.roms as roms
 import libs.romconfig as romconfig
@@ -275,6 +276,18 @@ class MainWindow(pyglet.window.Window):
 
         :return: Nothing.
         """
+        # --- test code ---
+        #s_save_file = '/tmp/foo.file'
+        #self._o_status_block.o_config.save_to_disk(s_save_file)
+
+        # When the user launches the game, the configuration is saved in the user's directory
+        s_user_save_file = paths.build_romconfig_save_file(po_romconfig=self._o_status_block.o_config,
+                                                           po_program_config=self.o_cfg)
+        #self._o_status_block.o_config.save_to_disk(s_user_save_file)
+        # ------ end ------
+
+
+
         # TODO: Replace pseudo-code below with real one.
         if b_game_installed:
             if chosen_config == saved_config:
@@ -306,7 +319,8 @@ class MainWindow(pyglet.window.Window):
 
         # TODO: Load existing configurations:
         #
-        #   0) Default configuration
+        #   0) Default configuration  <= NOT NEEDED, it's loaded when the program is initialised
+        #
         #   1) Installed game for the user (when we install, we save the configuration)
         #   2) User saved settings (Even when game is not installed, user has game settings saved
         #   3) Default settings for ROM

@@ -122,6 +122,74 @@ class TestClassRom(unittest.TestCase):
 
         self.assertNotEqual(o_rom_a, o_rom_b)
 
+    # Attribute tests
+    #----------------
+    def test_attribute_s_ccrc32_safe_populated(self):
+        """
+        Method to test that a "safe" clean CRC32 is produced when a valid clean CRC32 is present in the Rom.
+        :return: Nothing.
+        """
+        o_rom = _get_full_rom()
+
+        s_expect = 'd6cf8cdb'
+        s_actual = o_rom.s_ccrc32_safe
+        s_msg = 'Safe clean CRC32 value not matching when a ROM contains a valid clean CRC32.'
+        self.assertEqual(s_expect, s_actual, s_msg)
+
+    def test_attribute_s_ccrc32_safe_unpopulated(self):
+        """
+        Method to test that a "safe" clean CRC32 is produced when no valid clean CRC32 is present in the Rom.
+        :return: Nothing.
+        """
+        o_rom = _get_incomplete_rom()
+        s_expect = 'xxxxxxxx'
+        s_actual = o_rom.s_ccrc32_safe
+        s_msg = 'Safe clean CRC32 value not matching when a ROM does not contain a valid clean CRC32.'
+        self.assertEqual(s_expect, s_actual, s_msg)
+
+    def test_attribute_s_dcrc32_safe_populated(self):
+        """
+        Method to test that a "safe" clean CRC32 is produced when a valid clean CRC32 is present in the Rom.
+        :return: Nothing.
+        """
+        o_rom = _get_full_rom()
+        s_expect = 'd6cf8cdb'
+        s_actual = o_rom.s_dcrc32_safe
+        s_msg = 'Safe dirty CRC32 value not matching when a ROM contains a valid clean CRC32.'
+        self.assertEqual(s_expect, s_actual, s_msg)
+
+
+# Helping functions
+#=======================================================================================================================
+def _get_full_rom():
+    """
+    Function that returns a fully populated ROM (including dat information).
+    :return:
+    :rtype: roms.Rom
+    """
+    # Preparation of the ROMs to be used
+    #----------------------------------
+    s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
+                              'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
+    s_dat_file = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
+    o_rom = roms.Rom('mdr-crt', s_rom_file, ps_dat=s_dat_file)
+    return o_rom
+
+
+def _get_incomplete_rom():
+    """
+    Function that returns a fully populated ROM (including dat information).
+    :return:
+    :rtype: roms.Rom
+    """
+    # Preparation of the ROMs to be used
+    #----------------------------------
+    s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
+                              'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl) - fake.zip')
+    s_dat_file = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
+    o_rom = roms.Rom('mdr-crt', s_rom_file, ps_dat=s_dat_file)
+    return o_rom
+
 
 # Main code
 #=======================================================================================================================

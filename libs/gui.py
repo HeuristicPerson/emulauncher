@@ -151,7 +151,7 @@ class Theme:
         print('DEFAULT:')
         print(o_status_block.o_config_default.nice_format())
         print('CURRENT CONFIG:')
-        print(o_status_block._o_config.nice_format())
+        print(o_status_block.o_config.nice_format())
         # ------ end ------
 
         return o_status_block
@@ -163,7 +163,7 @@ class _MenuTheme:
     from a .yaml data chunk.
     """
     def __init__(self, po_navigate_sound=None):
-        # _Menu title
+        # Menu title
         self.ti_title_pos = (300, 250)
         self.i_vert_spacing = 24
         self.i_title_size = 24
@@ -171,7 +171,7 @@ class _MenuTheme:
         self.ti_title_color = (255, 255, 255, 255)
         self.ts_title_align = ('center', 'center')
 
-        # _Menu options
+        # Menu options
         self.ti_option_pos = (300, 220)  # Position of the first menu option
         self.i_option_size = 14
         self.s_option_font = 'Arial'
@@ -383,7 +383,7 @@ class _StatusBlockTheme:
         """
         Method to generate the theme for each of the FieldAndValueTheme included in the StatusBlock
 
-        :param pi_index: Number of the field (so we can generate proper coordinates for each of them.
+        :param pi_index: Number of the field , so we can generate proper coordinates for each of them.
         :type pi_index: Int
 
         :return: A FieldAndValueTheme object.
@@ -479,7 +479,7 @@ class _Label(_GuiElement):
 
 class _FieldAndValue(_GuiElement):
     """
-    Class to show Field and Value information. Useful, for example, when showing the current configuration (which
+    Class to show Field and Value information. Useful, for example, when showing the current configuration which
     contains fields as "User" with an example value as "John" which should be show in screen as "User: John" and
     probably we want to apply different styles to both parts.
     """
@@ -652,7 +652,7 @@ class _StatusBlock(_GuiElement):
     """
     Class to store and show in the GUI the options selected by the user for the current ROM.
 
-    :ivar _o_config: romconfig.RomConfig
+    :ivar o_config: romconfig.RomConfig
     :ivar o_config_default: romconfig.RomConfig
     :ivar _o_theme: _StatusBlockTheme
     :ivar _o_field_rom: _FieldAndValue
@@ -675,7 +675,7 @@ class _StatusBlock(_GuiElement):
         # We have wrapper methods to change the actual configuration, so we make the configuration private to avoid
         # confusion. The default configuration shouldn't be modified during the use of the program, so for convenience I
         # leave it as a public attribute.
-        self._o_config = romconfig.RomConfig()          # Rom configuration
+        self.o_config = romconfig.RomConfig()           # Rom configuration
         self.o_config_default = romconfig.RomConfig()   # Default configuration for the ROM, used to initialize the
                                                         # configuration and to show user changes with a different color.
 
@@ -704,7 +704,7 @@ class _StatusBlock(_GuiElement):
         :return: The refresh rate in Hz
         :rtype: Float
         """
-        return self._o_config.f_refresh(self)
+        return self.o_config.f_refresh(self)
 
     def _set_f_refresh(self, pf_refresh):
         """
@@ -715,16 +715,16 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self._o_config.f_refresh = pf_refresh
+        self.o_config.f_refresh = pf_refresh
         self._o_field_refresh.set_value(f'{pf_refresh:.1f} Hz')
 
-        if self._o_config.f_refresh == self.o_config_default.f_refresh:
+        if self.o_config.f_refresh == self.o_config_default.f_refresh:
             self._o_field_refresh.set_alt()
         else:
             self._o_field_refresh.set_norm()
 
     def _get_o_core(self):
-        return self._o_config._o_core(self)
+        return self.o_config._o_core(self)
 
     def _set_o_core(self, po_core):
         """
@@ -735,16 +735,16 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self._o_config._o_core = po_core
+        self.o_config._o_core = po_core
         self._o_field_core.set_value(po_core.s_name)
 
-        if self._o_config._o_core == self.o_config_default._o_core:
+        if self.o_config._o_core == self.o_config_default._o_core:
             self._o_field_core.set_alt()
         else:
             self._o_field_core.set_norm()
 
     def _get_o_patch(self):
-        return self._o_config.o_patch
+        return self.o_config.o_patch
 
     def _set_o_patch(self, po_patch):
         """
@@ -755,7 +755,7 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self._o_config.o_patch = po_patch
+        self.o_config.o_patch = po_patch
 
         # Preparing the text to appear in the status block about the selected patch
         s_patch = 'None'
@@ -764,16 +764,16 @@ class _StatusBlock(_GuiElement):
 
         self._o_field_patch.set_value(s_patch)
 
-        if self._o_config.o_patch == self.o_config_default.o_patch:
+        if self.o_config.o_patch == self.o_config_default.o_patch:
             self._o_field_patch.set_alt()
         else:
             self._o_field_patch.set_norm()
 
     def _get_o_rom(self):
-        return self._o_config.o_rom
+        return self.o_config.o_rom
 
     def _set_o_rom(self, po_rom):
-        self._o_config.o_rom = po_rom
+        self.o_config.o_rom = po_rom
 
         # Preparing the text to appear in the status block about the selected ROM
         s_ccrc32 = '????????'
@@ -786,7 +786,7 @@ class _StatusBlock(_GuiElement):
         self._o_field_rom.set_alt()
 
     def _get_s_user(self):
-        return self._o_config.s_user
+        return self.o_config.s_user
 
     def _set_s_user(self, ps_value):
         """
@@ -797,17 +797,17 @@ class _StatusBlock(_GuiElement):
 
         :return: Nothing
         """
-        self._o_config.s_user = ps_value
+        self.o_config.s_user = ps_value
         self._o_field_user.set_value(ps_value)
 
     def _get_s_region(self):
-        return self._o_config.s_region
+        return self.o_config.s_region
 
     def _set_s_region(self, ps_value):
-        self._o_config.s_region = ps_value
+        self.o_config.s_region = ps_value
         self._o_field_region.set_value(ps_value)
 
-        if self._o_config.s_region == self.o_config_default.s_region:
+        if self.o_config.s_region == self.o_config_default.s_region:
             self._o_field_region.set_alt()
         else:
             self._o_field_region.set_norm()
