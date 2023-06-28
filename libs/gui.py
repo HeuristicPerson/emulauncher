@@ -3,7 +3,6 @@ import yaml
 
 import pyglet
 
-from . import cons
 from . import menu
 from . import romconfig
 from . import roms
@@ -60,13 +59,6 @@ class Theme:
         self.o_menu_theme.read_yaml(dx_yaml['menu'])
         self.o_prog_bar_theme.read_yaml(dx_yaml['progress_bar'])
         self.o_status_block_theme.read_yaml(dx_yaml['status_block'])
-
-        # --- test code ---
-        # print(self.o_header_theme)
-        # print(self.o_menu_theme)
-        # print(self.o_prog_bar_theme)
-        # print(self.o_status_block_theme)
-        # ------ emd ------
 
     def build_background_image(self, po_rom=''):
         """
@@ -146,13 +138,6 @@ class Theme:
 
         # We reset the configuration so every value will be set as the default config.
         o_status_block.reset_config()
-
-        # --- test code ---
-        print('DEFAULT:')
-        print(o_status_block.o_config_default.nice_format())
-        print('CURRENT CONFIG:')
-        print(o_status_block.o_config.nice_format())
-        # ------ end ------
 
         return o_status_block
 

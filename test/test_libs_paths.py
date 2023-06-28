@@ -13,7 +13,7 @@ import libs.romconfig as romconfig
 
 
 # Test data preparation
-#=======================================================================================================================
+# =======================================================================================================================
 def _build_prog_and_rom_configs_with_patch():
     """
     Function to build a valid romconfig
@@ -97,7 +97,7 @@ def _build_prog_and_rom_configs_without_dat():
 
 
 # Test cases
-#=======================================================================================================================
+# =======================================================================================================================
 @unittest.SkipTest
 class TestFunctionBuildRomconfigSaveFile(unittest.TestCase):
     def test_full_romconfig_and_full_programconfig(self):
@@ -112,6 +112,7 @@ class TestFunctionBuildRomInstallDirPath(unittest.TestCase):
     """
     Class to test the build_rom_install_dir_path function.
     """
+
     def test_full_romconfig_and_full_program_config(self):
         """
         Test for the dir path when all the data is provided.
@@ -164,9 +165,7 @@ class TestFunctionBuildUserGameDirPath(unittest.TestCase):
         """
         o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_with_patch()
         s_actual_dir = paths.build_user_game_dir_path(o_rom_cfg, o_prog_cfg)
-        s_expect_dir = '/tmp/emulaunch_cache/users/joe/' \
-                       'mdr-crt - d6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl)'
-
+        s_expect_dir = '/tmp/emulaunch_cache/users/joe/mdr-crt'
         s_msg = 'Installation dir different from what was expected for rom with patch applied'
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
@@ -178,14 +177,42 @@ class TestFunctionBuildUserGameDirPath(unittest.TestCase):
         """
         o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_dat()
         s_actual_dir = paths.build_user_game_dir_path(o_rom_cfg, o_prog_cfg)
-        s_expect_dir = '/tmp/emulaunch_cache/users/joe/' \
-                       'mdr-crt - xxxxxxxx - phantom gear (world) (v0.2) (demo) (aftermarket) (unl)'
-
+        s_expect_dir = '/tmp/emulaunch_cache/users/joe/mdr-crt'
         s_msg = 'Installation dir different from what was expected for rom with patch applied'
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
 
+class TestFunctionBuildUserGameSettings(unittest.TestCase):
+    def test_full_romconfig_and_full_program_config(self):
+        o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_patch()
+        s_actual_file = paths.build_user_game_settings(o_rom_cfg, o_prog_cfg)
+        s_expect_file = '/tmp/emulaunch_cache/users/joe/mdr-crt/d6cf8cdb - phantom gear (world) (v0.2) (demo) ' \
+                        '(aftermarket) (unl).ini'
+        s_msg = 'The user settings file is different from the expected result.'
+        self.assertEqual(s_expect_file, s_actual_file, s_msg)
+
+
+class TestFunctionBuildRomInstallGameSettings(unittest.TestCase):
+    def test_full_romconfig_and_full_program_config(self):
+        o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_patch()
+        s_actual_file = paths.build_rom_install_game_settings(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
+        s_expect_file = '/tmp/emulaunch_cache/games/mdr-crt - d6cf8cdb+xxxxxxxx - phantom gear (world) (v0.2) (demo) ' \
+                        '(aftermarket) (unl)/settings.ini'
+        s_msg = 'The install settings file path is different from the expected result.'
+        self.assertEqual(s_expect_file, s_actual_file, s_msg)
+
+
+class TestFunctionBuildRomInstalledFlagFilePath(unittest.TestCase):
+    def test_full_romconfig_and_full_program_config(self):
+        o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_patch()
+        s_actual_file = paths.build_rom_installed_flag_file_path(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
+        s_expect_file = '/tmp/emulaunch_cache/games/mdr-crt - d6cf8cdb+xxxxxxxx - phantom gear (world) (v0.2) (demo) ' \
+                        '(aftermarket) (unl)/installed.txt'
+        s_msg = 'The installed flag file path is different from the expected result.'
+        self.assertEqual(s_expect_file, s_actual_file, s_msg)
+
+
 # Main code
-#=======================================================================================================================
+# =======================================================================================================================
 if __name__ == '__main__':
     unittest.main()

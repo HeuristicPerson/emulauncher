@@ -9,7 +9,7 @@ window:
 
 cache:
   # Directory to store cached data (ROMs, dat files, savegames...)
-  dir:  /home/admin/emulaunch_cache
+  dir:  /tmp/emulaunch_cache
 
   # Size in MiB of the cache dir
   size: 5000

@@ -183,6 +183,13 @@ class RomConfig:
         o_config.set('settings', 'region', self.s_region)
         o_config.set('settings', 'refresh', str(self.f_refresh))
 
+        # Before saving, we need to check/create the output directory if needed
+        s_dir = os.path.dirname(ps_file)
+
+        if not os.path.isdir(s_dir):
+            os.makedirs(s_dir)
+
+        # Then, we can actually save the file
         with codecs.open(ps_file, 'w') as o_file:
             o_config.write(o_file)
 

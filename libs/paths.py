@@ -5,6 +5,7 @@ Library to create and manipulate emulauncher paths.
 import os
 import zlib
 
+from . import config
 from . import romconfig
 
 
@@ -51,14 +52,80 @@ def build_user_game_dir_path(po_rom_config, po_program_config):
     :return: The full absolute path of user data dir
     :rtype: Str
     """
-    # Building the dir to store the data for the game
-    s_platform = po_rom_config.o_rom.o_platform.s_alias
-    s_title = po_rom_config.o_rom.s_name.lower()
-    s_crc32 = po_rom_config.o_rom.s_ccrc32_safe
-    s_dir = f'{s_platform} - {s_crc32} - {s_title}'
-
-    s_full_path = os.path.join(po_program_config.s_cache_dir, 'users', po_rom_config.s_user, s_dir)
+    s_full_path = os.path.join(po_program_config.s_cache_dir,
+                               'users',
+                               po_rom_config.s_user,
+                               po_rom_config.o_rom.o_platform.s_alias)
     return s_full_path
+
+
+def build_user_game_settings(po_rom_config, po_program_config):
+    """
+    Function to build the settings file path for a user.
+
+    :param po_rom_config:
+    :type po_rom_config: romconfig.RomConfig
+
+    :param po_program_config:
+    :type po_program_config: config.Config
+
+    :return:
+    :rtype: Str
+    """
+    s_dir = build_user_game_dir_path(po_rom_config=po_rom_config, po_program_config=po_program_config)
+    o_rom = po_rom_config.o_rom
+    s_file = f'{o_rom.s_ccrc32_safe} - {o_rom.s_name.lower()}.ini'
+    return os.path.join(s_dir, s_file)
+
+
+def build_rom_install_game_settings(po_rom_config, po_program_config):
+    """
+    Function to build the settings file path for an installed game.
+
+    :param po_rom_config:
+    :type po_rom_config: romconfig.RomConfig
+
+    :param po_program_config:
+    :type po_program_config: config.Config
+
+    :return:
+    :rtype: Str
+    """
+    s_dir = build_rom_install_dir_path(po_rom_config=po_rom_config, po_program_config=po_program_config)
+    s_file = 'settings.ini'
+    return os.path.join(s_dir, s_file)
+
+
+def build_rom_installed_flag_file_path(po_rom_config, po_program_config):
+    """
+    Empty text file created in the installation directory of ROM+Patch indicating the installation was successful.
+
+    :param po_rom_config:
+    :type po_rom_config: romconfig.RomConfig
+
+    :param po_program_config:
+    :type po_program_config: config.Config
+
+    :return:
+    :rtype: Str
+    """
+    s_dir = build_rom_install_dir_path(po_rom_config=po_rom_config, po_program_config=po_program_config)
+    s_file = 'installed.txt'
+    return os.path.join(s_dir, s_file)
+
+
+def is_rom_installed(po_rom_config, po_program_config):
+    """
+    Function to check whether a ROM+Patch is installed or not.
+
+    Two tests are performed: a) whether the installation directory of the ROM exists, b) whether a game
+    :param po_rom_config:
+    :param po_program_config:
+    :return:
+    """
+    s_install_flag_file = build_rom_installed_flag_file_path(po_rom_config=po_rom_config,
+                                                             po_program_config=po_program_config)
+    return os.path.isfile(s_install_flag_file)
 
 
 # Helper functions

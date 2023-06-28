@@ -4,6 +4,7 @@ Script to launch a ROM from certain platform.
 
 import argparse
 import os
+import shutil
 import time
 
 import pyglet
@@ -276,27 +277,31 @@ class MainWindow(pyglet.window.Window):
 
         :return: Nothing.
         """
-        # --- test code ---
-        #s_save_file = '/tmp/foo.file'
-        #self._o_status_block.o_config.save_to_disk(s_save_file)
+        _register_action('play')
+        # TODO: print output to terminal
+        o_romconfig = self._o_status_block.o_config
 
-        # When the user launches the game, the configuration is saved in the user's directory
-        s_user_save_file = paths.build_romconfig_save_file(po_romconfig=self._o_status_block.o_config,
-                                                           po_program_config=self.o_cfg)
-        #self._o_status_block.o_config.save_to_disk(s_user_save_file)
-        # ------ end ------
+        # When the user launches the game, the configuration is saved in the user's directory. It will overwrite
+        # anything already existing with no questions.
+        s_user_settings_file = paths.build_user_game_settings(po_rom_config=o_romconfig,
+                                                              po_program_config=self.o_cfg)
+        self._o_status_block.o_config.save_to_disk(s_user_settings_file)
 
+        # Then we check whether the game is already installed and, in that case, whether it has the same configuration
+        b_installed = paths.is_rom_installed(po_rom_config=o_romconfig,
+                                             po_program_config=self.o_cfg)
 
+        # If the game is installed including the wanted patch, we simply need to replace the settings file for the user
+        # settings
+        if b_installed:
+            s_install_settings_file = paths.build_rom_install_game_settings(po_rom_config=o_romconfig,
+                                                                            po_program_config=self.o_cfg)
+            shutil.copyfile(s_user_settings_file, s_install_settings_file)
 
-        # TODO: Replace pseudo-code below with real one.
-        if b_game_installed:
-            if chosen_config == saved_config:
-                pass
-                #-> LAUNCH GAME
-            else:
-                pass
-                # -> RE-INSTALL GAME
-                # -> LAUNCH GAME
+        # If it's not installed, we have to install it
+        else:
+            # INSTALL THE GAME (external function)
+            pass
 
         # --- test code ---
         print('--- LAUNCHING GAME ---')
@@ -314,6 +319,8 @@ class MainWindow(pyglet.window.Window):
         """
         Callback function for 1st menu user selection.
         """
+        _register_action(f'user: {ps_user}')
+
         self._o_status_block.s_user = ps_user
         self.create_menu_rom_options()
 
@@ -334,6 +341,16 @@ class MainWindow(pyglet.window.Window):
 
         :return: Nothing
         """
+        # Registering the action
+        #-----------------------
+        if po_patch is None:
+            s_patch = 'none'
+        else:
+            s_patch = po_patch.s_title
+        _register_action(f'patch: {s_patch}')
+
+        # Storing the selected patch information
+        #---------------------------------------
         self._o_status_block.o_patch = po_patch
         self.create_menu_rom_options()
 
@@ -346,6 +363,7 @@ class MainWindow(pyglet.window.Window):
 
         :return: Nothing
         """
+        _register_action(f'region: {ps_region}')
         self._o_status_block.s_region = ps_region
 
     def callback_menu_3_choose_frequency(self, pf_refresh):
@@ -357,6 +375,8 @@ class MainWindow(pyglet.window.Window):
 
         :return: Nothing
         """
+        _register_action(f'refresh: {pf_refresh}')
+
         self._o_status_block.f_refresh = pf_refresh
         self.create_menu_rom_options()
 
@@ -369,7 +389,22 @@ class MainWindow(pyglet.window.Window):
 
         :return: Nothing.
         """
+        _register_action(f'core: {po_core.s_name}')
         self._o_status_block.o_core = po_core
+
+
+# Helper functions
+#=======================================================================================================================
+def _register_action(ps_action):
+    """
+    Function to print info about the selected menu items to the terminal
+    :param ps_action:
+    :type ps_action: Str
+
+    :return: Nothing, output will be printed.
+    """
+    s_msg = f'>>> {ps_action}'
+    print(s_msg)
 
 
 # Main code
