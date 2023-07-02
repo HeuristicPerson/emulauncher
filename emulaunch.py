@@ -104,6 +104,12 @@ class MainWindow(pyglet.window.Window):
 
         self._o_status_block = self._o_theme.build_status_block(po_rom, self._to_available_cores)
 
+        # --- test code ---
+        # Adding a progress bar
+        o_progress_bar = gui_theme._ProgressBar(None)
+        self._lo_items.append(o_progress_bar)
+        # ------ end ------
+
         self._lo_items += [self._o_theme.build_title(po_rom.s_name),
                            self._o_theme.build_subtitle(po_rom.o_platform.s_name),
                            self._o_status_block]
@@ -278,8 +284,11 @@ class MainWindow(pyglet.window.Window):
         :return: Nothing.
         """
         _register_action('play')
-        # TODO: print output to terminal
         o_romconfig = self._o_status_block.o_config
+
+        # Printing the settings to the terminal
+        for s_line in o_romconfig.nice_format().splitlines(False):
+            print(f'  < {s_line}')
 
         # When the user launches the game, the configuration is saved in the user's directory. It will overwrite
         # anything already existing with no questions.
@@ -291,21 +300,22 @@ class MainWindow(pyglet.window.Window):
         b_installed = paths.is_rom_installed(po_rom_config=o_romconfig,
                                              po_program_config=self.o_cfg)
 
+        # If the games is not installed, we install it
+        if not b_installed:
+            pass
+            # TODO: Install the game (external function)
+            #  --- PSEUDO-CODE ---
+            #  1. disable controls
+            #  2. install the game
+            #  3. activate controls (actually, not needed, because we're just running the game after
+            #  ------- end -------
+
         # If the game is installed including the wanted patch, we simply need to replace the settings file for the user
         # settings
-        if b_installed:
-            s_install_settings_file = paths.build_rom_install_game_settings(po_rom_config=o_romconfig,
-                                                                            po_program_config=self.o_cfg)
-            shutil.copyfile(s_user_settings_file, s_install_settings_file)
+        s_install_settings_file = paths.build_rom_install_game_settings(po_rom_config=o_romconfig,
+                                                                        po_program_config=self.o_cfg)
+        shutil.copyfile(s_user_settings_file, s_install_settings_file)
 
-        # If it's not installed, we have to install it
-        else:
-            # INSTALL THE GAME (external function)
-            pass
-
-        # --- test code ---
-        print('--- LAUNCHING GAME ---')
-        # ------ end ------
 
     @staticmethod
     def callback_menu_1_exit():
@@ -322,15 +332,20 @@ class MainWindow(pyglet.window.Window):
         _register_action(f'user: {ps_user}')
 
         self._o_status_block.s_user = ps_user
-        self.create_menu_rom_options()
 
-        # TODO: Load existing configurations:
-        #
-        #   0) Default configuration  <= NOT NEEDED, it's loaded when the program is initialised
-        #
-        #   1) Installed game for the user (when we install, we save the configuration)
-        #   2) User saved settings (Even when game is not installed, user has game settings saved
-        #   3) Default settings for ROM
+        # When the user is selected, we check whether it already had a configuration created for the game and load it.
+        s_user_saved_settings = paths.build_user_game_settings(po_rom_config=self._o_status_block.o_config,
+                                                               po_program_config=self.o_cfg)
+
+        if os.path.isfile(s_user_saved_settings):
+            print('  < User config found, loading')
+            ls_errors = self._o_status_block.o_config.load_from_disk(ps_file=s_user_saved_settings,
+                                                                     po_prog_cfg=self.o_cfg)
+            if ls_errors:
+                for s_error in ls_errors:
+                    print(f'  < {s_error}')
+
+        self.create_menu_rom_options()
 
     def callback_menu_3_choose_patch(self, po_patch):
         """

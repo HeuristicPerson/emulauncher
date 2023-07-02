@@ -657,6 +657,7 @@ class _StatusBlock(_GuiElement):
 
         self._o_theme = po_theme
 
+        # TODO: Fix comments below, because the actual strategy is almost the opposite.
         # We have wrapper methods to change the actual configuration, so we make the configuration private to avoid
         # confusion. The default configuration shouldn't be modified during the use of the program, so for convenience I
         # leave it as a public attribute.
@@ -816,6 +817,38 @@ class _StatusBlock(_GuiElement):
     o_rom = property(fset=_set_o_rom, fget=_get_o_rom)
     s_region = property(fset=_set_s_region, fget=_get_s_region)
     s_user = property(fset=_set_s_user, fget=_get_s_user)
+
+
+class _ProgressBar(_GuiElement):
+    """
+    Class to define a progress bar with messages.
+    """
+    def __init__(self, po_theme):
+        """
+        :param po_theme:
+        :type po_theme: _StatusBlockTheme
+        """
+        # Parent classes initialization
+        #------------------------------
+        _GuiElement.__init__(self)
+        self._o_theme = None
+        self._s_message = ''
+        self._f_progress = 0.0
+
+        # The progress bar will have a status message
+        #self._o_msg =
+        # The progress bar will have two rectangles, one showing the outside border, and one for the content which will
+        # vary in width
+        #Rectangle(x, y, width, height, color=(255, 255, 255, 255), batch=None, group=None)
+        #BorderedRectangle(x, y, width, height, border=1, color=(255, 255, 255), border_color=(100, 100, 100),
+        #                  batch=None, group=None)
+        self._o_border = pyglet.shapes.BorderedRectangle(x=300, y=300,
+                                                         width=400, height=16,
+                                                         border=2,
+                                                         color=(0, 255, 0, 128),
+                                                         border_color=(255, 0, 0))
+        self._lo_pyglet_elems.append(self._o_border)
+        #self._o_progress =
 
 
 class _SoundBank:

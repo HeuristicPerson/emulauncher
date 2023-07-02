@@ -89,8 +89,14 @@ class RomConfig:
         :param po_prog_cfg: Program configuration object.
         :type po_prog_cfg: config.ProgramCfg
 
-        :return: Nothing, the object will be populated in place.
+        :return: A list with error messages.
+        :rtype: List[Str]
         """
+
+        # TODO: Replace some load errors by default values so the program is not interrupted.
+
+        ls_errors = []
+
         # Interestingly, config parser read doesn't raise an exception when the file doesn't exist, so we have to raise
         # it manually.
         if not os.path.isfile(ps_file):
@@ -116,10 +122,10 @@ class RomConfig:
                 raise ValueError(s_msg)
             else:
                 # Since saved configurations will be shared between users, we won't read the username from them.
-                # TODO: add extra parameter to ignore attributes during the loading
+                # TODO: add extra parameter to ignore attributes during the loading. Maybe better having the option to
+                # reset them afterward with another method?
 
                 self.s_user = o_ini.get('meta', 'user')
-
                 self.s_region = o_ini.get('settings', 'region')
                 self.f_refresh = o_ini.getfloat('settings', 'refresh')
 
@@ -135,8 +141,8 @@ class RomConfig:
                             self.o_patch = o_patch
                             break
                     else:
-                        # TODO: Rather than printing, add logger object and/or maybe print info to gui
-                        print(f'ERROR: patch "{s_ini_patch}" not found')
+                        s_error = f'ERROR: patch "{s_ini_patch}" not found'
+                        ls_errors.append(s_error)
 
                 # Getting the core object from the core name saved in the file. We will check that a) the core is valid
                 # for the current platform, and the core is available in the system.
@@ -147,8 +153,10 @@ class RomConfig:
                 if (s_ini_core in self.o_rom.o_platform.ls_cores) and (s_ini_core in do_cores):
                     self.o_core = do_cores[s_ini_core]
                 else:
-                    # TODO: Rather than printing, add logger object and/or maybe print info to the gui
-                    print(f'ERROR: core "{s_ini_core}" not found')
+                    s_error = f'ERROR: core "{s_ini_core}" not found'
+                    ls_errors.append(s_error)
+
+        return ls_errors
 
     def save_to_disk(self, ps_file):
         """
@@ -168,6 +176,11 @@ class RomConfig:
         except AttributeError:
             s_core = ''
 
+        try:
+            s_patch = self.o_patch.s_title
+        except AttributeError:
+            s_patch = ''
+
         o_config = configparser.ConfigParser()
         o_config.add_section('meta')
         o_config.set('meta', 'builder', cons.s_PRG)
@@ -177,7 +190,7 @@ class RomConfig:
         o_config.set('rom', 'name', self.o_rom.s_name)
         o_config.set('rom', 'ccrc32', self.o_rom.s_ccrc32)
         o_config.set('rom', 'platform', self.o_rom.o_platform.s_alias)
-        o_config.set('rom', 'patch', 'foo')
+        o_config.set('rom', 'patch', s_patch)  # TODO: Save name of the patch
         o_config.add_section('settings')
         o_config.set('settings', 'core', s_core)
         o_config.set('settings', 'region', self.s_region)
