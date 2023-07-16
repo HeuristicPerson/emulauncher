@@ -46,8 +46,8 @@ class Filter:
         # TODO: Create a check for x_values to avoid the case when you create a wrong filter with a tuple (123, 145)
 
     def __str__(self):
-        s_out = ''
-        s_out += '<Filter>\n'
+        # TODO: replace with my str method from class_to_string
+        s_out = '<Filter>\n'
         s_out += '  .s_attribute: %s\n' % self.s_attribute
         s_out += '  .s_method:    %s\n' % self.s_method
         s_out += '  .lx_values:   %s' % str(self.lx_values)
@@ -122,6 +122,7 @@ class Dat(object):
             self.read_from_dat(ps_file)
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<Dat>\n'
         s_out += '  ._db_flags:  %s\n' % str(self._db_flags)
         s_out += '  .s_name:     %s\n' % self.s_name
@@ -878,8 +879,8 @@ class RomSet(object):
         return iter(self._lo_roms)
 
     def __str__(self):
-        s_output = ''
-        s_output += '<RomSet>\n'
+        # TODO: replace with my str method from class_to_string
+        s_output = '<RomSet>\n'
         s_output += '  .b_baddump: %s\n' % self.b_baddump
         s_output += '  .b_device:  %s\n' % self.b_device
         s_output += '  .b_nodump:  %s\n' % self.b_nodump
@@ -1190,6 +1191,7 @@ class Rom:
                                 # ROM file.
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<Rom>\n'
         s_out += '  .b_baddump: %s\n' % self.b_baddump
         s_out += '  .b_nodump:  %s\n' % self.b_nodump
@@ -1229,6 +1231,7 @@ class CatVer:
         return iter(self._do_entries.values())
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<CatVer>\n'
         s_out += '  .s_version: %s\n' % self.s_version
         s_out += '  .s_date:    %s\n' % self.s_date
@@ -1322,6 +1325,7 @@ class _CatVerEntry:
         self.s_cat_2nd = ps_cat_2nd  # Secondary category of the ROMset.
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<_CatVerEntry>\n'
         s_out += '  .s_romset:  %s\n' % self.s_romset
         s_out += '  .s_version: %s\n' % self.s_version

@@ -1,0 +1,17 @@
+progress_bar:
+  background:   [0, 1, 2, 3]
+
+  bar:
+    color:        [40, 41, 42, 43]      # Color of the bar (the same for the border and the bar)
+    border_width: 2                     # Width of the border around the bar in pixels
+    width:        800                   # Width of the solid progress bar
+    height:       16                    # Height of the solid progress bar
+    position:     [940, 900]            # Position of the progress bar
+    align:        ['left', 'top']  # Alignment of the progress bar
+
+  message:
+    color:        [255, 255, 255, 128]
+    position:     [960, 950]
+    align:        ['right', 'bottom']
+    size:         10
+    font:         Arial

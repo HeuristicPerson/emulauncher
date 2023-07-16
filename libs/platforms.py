@@ -28,6 +28,7 @@ class PlatformCfg:
             self._from_json_chunk(pdx_json)
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<_PlatformCfg>\n'
         s_out += f'  .s_alias:        {self.s_alias}\n'
         s_out += f'  .s_name:         {self.s_name}\n'

@@ -52,9 +52,9 @@ progress_bar:
   border_width: 2
   foreground:   "#f0f0f0"
   highlight:    "#ff8000"
-  size:         12
-  font:         Arial
+  font:         Verdana
   position:     [960, 490]
+  height:       16
   width:        800
 
   message:

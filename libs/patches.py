@@ -27,6 +27,7 @@ class Patch:
             self.load_from_file(ps_file)
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<Patch>\n'
         s_out += f'  .s_path:   {self.s_path}\n'
         s_out += f'  .s_ccrc32: {self.s_ccrc32}\n'

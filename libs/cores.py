@@ -37,6 +37,7 @@ class Core:
         return self.s_path == po_other.s_path
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<Core>\n'
         s_out += f'  .s_path: {self.s_path}\n'
         s_out += f'  .s_name: {self.s_name}\n'

@@ -176,6 +176,7 @@ class FilePath(object):
         return b_equal
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         u_out = '<FilePath>\n'
         u_out += '  .s_path: %s\n' % self.u_path
         u_out += '  .u_root: %s\n' % self.u_root

@@ -41,6 +41,7 @@ class ProgramCfg:
             self.read_yaml(ps_file)
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<ProgramCfg>\n'
 
         s_out += f'  .s_cache_dir:   {self.s_cache_dir}\n'

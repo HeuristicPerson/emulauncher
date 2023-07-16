@@ -38,6 +38,7 @@ class RomConfig:
         :return: A string representing the object.
         :rtype: Str
         """
+        # TODO: replace with my str method from class_to_string
         s_out = '<RomConfig>\n'
         s_out += f'  .s_user:    {self.s_user}\n'
         s_out += f'  .s_region:  {self.s_region}\n'

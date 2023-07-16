@@ -1,8 +1,10 @@
 import os
 import yaml
+import sys
 
 import pyglet
 
+from . import class_to_string
 from . import menu
 from . import romconfig
 from . import roms
@@ -22,6 +24,7 @@ class Theme:
         self._s_root_dir = os.path.dirname(ps_yaml)
         self.i_width = 640
         self.i_height = 480
+
         self.o_menu_theme = _MenuTheme()
         self.o_header_theme = _HeaderTheme()
         self.o_prog_bar_theme = _ProgBarTheme()
@@ -35,6 +38,13 @@ class Theme:
 
         # Loading of theme sounds
         self._o_sound_bank = _SoundBank(self._s_root_dir)
+
+    def __str__(self):
+        # TODO: replace with my str method from class_to_string
+        s_out = '<Theme>\n'
+        s_out += f'  .i_width:  {self.i_width}\n'
+        s_out += f'  .i_height: {self.i_height}\n'
+        return s_out
 
     def read_yaml(self, ps_file):
         """
@@ -50,15 +60,39 @@ class Theme:
                 dx_yaml = yaml.safe_load(o_file)
             except yaml.YAMLError as o_exception:
                 print(o_exception)
-                quit()
+                sys.exit(1)
 
-        self.i_width = dx_yaml['window']['width']
-        self.i_height = dx_yaml['window']['height']
+        # TODO: Move this reading of global options to a different function with a try/except so we can code easy testunits
+        # TODO: Improve these try/excepts below so I'm able to catpure errors, but also being able to ignore them for
+        # debugging reasons and unit tests.
+        try:
+            self.i_width = dx_yaml['window']['width']
+            self.i_height = dx_yaml['window']['height']
+        except KeyError:
+            pass
 
-        self.o_header_theme.read_yaml(dx_yaml['header'])
-        self.o_menu_theme.read_yaml(dx_yaml['menu'])
-        self.o_prog_bar_theme.read_yaml(dx_yaml['progress_bar'])
-        self.o_status_block_theme.read_yaml(dx_yaml['status_block'])
+        try:
+            self.o_header_theme.read_yaml(dx_yaml['header'])
+        except KeyError:
+            pass
+
+        try:
+            self.o_menu_theme.read_yaml(dx_yaml['menu'])
+        except KeyError:
+            pass
+
+        try:
+            self.o_prog_bar_theme.read_yaml(dx_yaml['progress_bar'])
+            self.o_prog_bar_theme.i_bg_width = self.i_width
+            self.o_prog_bar_theme.i_bg_height = self.i_height
+
+        except KeyError:
+            pass
+
+        try:
+            self.o_status_block_theme.read_yaml(dx_yaml['status_block'])
+        except KeyError:
+            pass
 
     def build_background_image(self, po_rom=''):
         """
@@ -120,6 +154,14 @@ class Theme:
         o_menu = _Menu(self.o_menu_theme, po_sound_bank=self._o_sound_bank)
         return o_menu
 
+    def build_progress_bar(self):
+        """
+        Method to build and return a progress bar object.
+        :return:
+        """
+        o_progress_bar = _ProgressBar(po_theme=self.o_prog_bar_theme)
+        return o_progress_bar
+
     def build_status_block(self, po_rom=None, pto_cores=()):
         """
         Method to build the status block.
@@ -170,6 +212,7 @@ class _MenuTheme:
         # ------ end ------
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<_MenuTheme>\n'
         s_out += f'  .ti_title_pos:           {self.ti_title_pos}\n'
         s_out += f'  .ti_title_size:          {self.i_title_size}\n'
@@ -262,6 +305,7 @@ class _HeaderTheme:
         self.i_subtitle_width = 640
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<_HeaderTheme>\n'
         s_out += f'  .ti_title_pos:         {self.ti_title_pos}\n'
         s_out += f'  .ts_title_align:       {self.ts_title_align}\n'
@@ -300,10 +344,58 @@ class _HeaderTheme:
 
 class _ProgBarTheme:
     def __init__(self):
-        pass
+        self.i_bg_width = 0                     # Width of the background (same as the screen width)
+        self.i_bg_height = 0                    # Height of the background (same as the screen height)
+        self.ti_bg_color = (0, 0, 0, 0)         # Background color
+
+        # Bar parameters
+        self.ti_bar_color = (255, 255, 0, 200)  # Color of the progress bar
+        self.i_bar_width = 400
+        self.i_bar_height = 20
+        self.ti_bar_position = (100, 100)
+        self.ts_bar_align = ('center', 'center')
+        self.i_bar_border = 2
+
+        # Label parameters
+        self.s_msg_font = 'arial'
+        self.i_msg_size = 12
+        self.ts_msg_align = ['center', 'center']
+        self.ti_msg_color = (255, 255, 255, 255)
+        self.ti_msg_position = (0, 0)
+
+    def __str__(self):
+        """
+        :return: Method to represent the instances as strings.
+        :rtype: Str
+        """
+        return class_to_string.class_to_string(self)
 
     def read_yaml(self, pdx_yaml):
-        pass
+        """
+        Method to populate the object from a piece of yaml information.
+
+        :param pdx_yaml:
+        :type pdx_yaml: Dict[Str:]
+
+        :return: Nothing, the object will be populated in place.
+        """
+        # General properties
+        self.ti_bg_color = _int_tuple(pdx_yaml['background'])
+
+        # Message attributes
+        self.s_msg_font = pdx_yaml['message']['font']
+        self.i_msg_size = pdx_yaml['message']['size']
+        self.ts_msg_align = tuple(pdx_yaml['message']['align'])
+        self.ti_msg_color = _int_tuple(pdx_yaml['message']['color'])
+        self.ti_msg_position = _int_tuple(pdx_yaml['message']['position'])
+
+        # Progress bar itself attributes
+        self.ti_bar_color = _int_tuple(pdx_yaml['bar']['color'])
+        self.ti_bar_position = _int_tuple(pdx_yaml['bar']['position'])
+        self.i_bar_width = int(pdx_yaml['bar']['width'])
+        self.i_bar_height = int(pdx_yaml['bar']['height'])
+        self.i_bar_border = int(pdx_yaml['bar']['border_width'])
+        self.ts_bar_align = tuple(pdx_yaml['bar']['align'])
 
 
 class _StatusBlockTheme:
@@ -327,6 +419,7 @@ class _StatusBlockTheme:
         self.ts_value_align = ('left', 'center')
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<_StatusBlockTheme>\n'
         s_out += f'  .ti_position:     {self.ti_position}\n'
         s_out += f'  .i_vert_spacing:  {self.i_vert_spacing}\n'

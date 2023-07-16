@@ -76,6 +76,7 @@ class Rom:
         return b_equal
 
     def __str__(self):
+        # TODO: replace with my str method from class_to_string
         s_out = '<Rom>\n'
         s_out += f'  .s_name:        {self.s_name}\n'
         s_out += f'  .s_path:        {self.s_path}\n'
