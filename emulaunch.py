@@ -69,6 +69,7 @@ class MainWindow(pyglet.window.Window):
         :param po_cfg:
         :type po_cfg: config.ProgramCfg
         """
+
         s_theme_yaml = os.path.join(cons.s_SCRIPT_ROOT, 'themes', o_main_cfg.s_theme, 'theme.yaml')
         self._o_theme = gui_theme.Theme(s_theme_yaml, po_rom)
         pyglet.window.Window.__init__(self,
@@ -100,15 +101,9 @@ class MainWindow(pyglet.window.Window):
             self._lo_items.append(o_bg_img)
 
         self.create_menu_users()
-        self.o_pbar = None
+        self._o_pbar = None
 
         self._o_status_block = self._o_theme.build_status_block(po_rom, self._to_available_cores)
-
-        # --- test code ---
-        # Adding a progress bar
-        o_progress_bar = gui_theme._ProgressBar(None)
-        self._lo_items.append(o_progress_bar)
-        # ------ end ------
 
         self._lo_items += [self._o_theme.build_title(po_rom.s_name),
                            self._o_theme.build_subtitle(po_rom.o_platform.s_name),
@@ -302,7 +297,15 @@ class MainWindow(pyglet.window.Window):
 
         # If the games is not installed, we install it
         if not b_installed:
-            pass
+            self._o_menu.kill()
+            self._o_pbar = self._o_theme.build_progress_bar()
+            self._lo_items.append(self._o_pbar)
+
+            # --- test code ---
+            print(self._o_pbar)
+            #quit()
+            # ------ end ------
+
             # TODO: Install the game (external function)
             #  --- PSEUDO-CODE ---
             #  1. disable controls
@@ -312,9 +315,9 @@ class MainWindow(pyglet.window.Window):
 
         # If the game is installed including the wanted patch, we simply need to replace the settings file for the user
         # settings
-        s_install_settings_file = paths.build_rom_install_game_settings(po_rom_config=o_romconfig,
-                                                                        po_program_config=self.o_cfg)
-        shutil.copyfile(s_user_settings_file, s_install_settings_file)
+        #s_install_settings_file = paths.build_rom_install_game_settings(po_rom_config=o_romconfig,
+        #                                                                po_program_config=self.o_cfg)
+        #shutil.copyfile(s_user_settings_file, s_install_settings_file)
 
 
     @staticmethod

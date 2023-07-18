@@ -46,23 +46,26 @@ menu:
     vert_spacing: 48
 
 
-# Progress bar (will be used during the installation and patching of games
+#======================================================================================================================#
+# Progress bar (will be used during the installation and patching of games                                             #
+#======================================================================================================================#
 progress_bar:
-  background:   [0, 1, 2, 3]
-  border_width: 2
-  foreground:   "#f0f0f0"
-  highlight:    "#ff8000"
-  size:         12
-  font:         Arial
-  position:     [960, 490]
-  width:        800
+  background:     [0, 0, 0, 255]        # Background color for the progress screen.
+
+  bar:
+    color:        [214, 214, 214, 255]  # Color of the bar (the same for the border and the bar)
+    border_width: 4                     # Width of the border around the bar in pixels
+    width:        800                   # Width of the solid progress bar
+    height:       24                    # Height of the solid progress bar
+    position:     [960, 300]            # Position of the progress bar
+    anchor:       [400, 12]             # Grab position of the progress bar
 
   message:
-    color: [ 255, 255, 255, 128 ]
-    position: [ 960, 950 ]
-    align: [ 'right', 'bottom' ]
-    size: 10
-    font: Emulogic
+    color:        [255, 255, 255, 128]
+    position:     [960, 950]
+    align:        ['right', 'bottom']
+    size:         12
+    font:         Emulogic
 
 # Status block with information about current options:
 status_block:

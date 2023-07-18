@@ -4,6 +4,7 @@ import sys
 
 import pyglet
 
+import libs.class_to_string
 from . import class_to_string
 from . import menu
 from . import romconfig
@@ -40,10 +41,12 @@ class Theme:
         self._o_sound_bank = _SoundBank(self._s_root_dir)
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<Theme>\n'
-        s_out += f'  .i_width:  {self.i_width}\n'
-        s_out += f'  .i_height: {self.i_height}\n'
+        """
+        :return: A text representation of the theme object.
+        :rtype: Str
+        """
+
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
     def read_yaml(self, ps_file):
@@ -343,6 +346,10 @@ class _HeaderTheme:
 
 
 class _ProgBarTheme:
+    """
+    :ivar ti_bar_position: Tuple[Int]
+    :ivar ti_bar_anchor: Tuple[Int]
+    """
     def __init__(self):
         self.i_bg_width = 0                     # Width of the background (same as the screen width)
         self.i_bg_height = 0                    # Height of the background (same as the screen height)
@@ -353,7 +360,7 @@ class _ProgBarTheme:
         self.i_bar_width = 400
         self.i_bar_height = 20
         self.ti_bar_position = (100, 100)
-        self.ts_bar_align = ('center', 'center')
+        self.ti_bar_anchor = (200, 10)          # Grab position of the progress bar
         self.i_bar_border = 2
 
         # Label parameters
@@ -395,7 +402,7 @@ class _ProgBarTheme:
         self.i_bar_width = int(pdx_yaml['bar']['width'])
         self.i_bar_height = int(pdx_yaml['bar']['height'])
         self.i_bar_border = int(pdx_yaml['bar']['border_width'])
-        self.ts_bar_align = tuple(pdx_yaml['bar']['align'])
+        self.ti_bar_anchor = _int_tuple(pdx_yaml['bar']['anchor'])
 
 
 class _StatusBlockTheme:
@@ -919,12 +926,12 @@ class _ProgressBar(_GuiElement):
     def __init__(self, po_theme):
         """
         :param po_theme:
-        :type po_theme: _StatusBlockTheme
+        :type po_theme: _ProgBarTheme
         """
         # Parent classes initialization
         #------------------------------
         _GuiElement.__init__(self)
-        self._o_theme = None
+        self._o_theme = po_theme
         self._s_message = ''
         self._f_progress = 0.0
 
@@ -932,16 +939,58 @@ class _ProgressBar(_GuiElement):
         #self._o_msg =
         # The progress bar will have two rectangles, one showing the outside border, and one for the content which will
         # vary in width
-        #Rectangle(x, y, width, height, color=(255, 255, 255, 255), batch=None, group=None)
-        #BorderedRectangle(x, y, width, height, border=1, color=(255, 255, 255), border_color=(100, 100, 100),
-        #                  batch=None, group=None)
-        self._o_border = pyglet.shapes.BorderedRectangle(x=300, y=300,
-                                                         width=400, height=16,
-                                                         border=2,
-                                                         color=(0, 255, 0, 128),
-                                                         border_color=(255, 0, 0))
-        self._lo_pyglet_elems.append(self._o_border)
-        #self._o_progress =
+
+        # Progres bar itself
+        #-------------------
+        # Due to a limitation in pyglet, it's not possible to create a bordered rectangle. So, to create a frame around
+        # the actual progress bar with some separation, I have to create two solid rectangles, one on top of another.
+
+        # Progress bar background
+        self._o_bar_frame_bg = pyglet.shapes.Rectangle(x=self._o_theme.ti_bar_position[0],
+                                                       y=self._o_theme.ti_bar_position[1],
+                                                       width=self._o_theme.i_bar_width,
+                                                       height=self._o_theme.i_bar_height,
+                                                       color=self._o_theme.ti_bar_color)
+        self._o_bar_frame_bg.anchor_position = self._o_theme.ti_bar_anchor
+        self._lo_pyglet_elems.append(self._o_bar_frame_bg)
+
+        # Progress bar foreground
+        self._o_bar_frame_fg = pyglet.shapes.Rectangle(x=self._o_theme.ti_bar_position[0] + self._o_theme.i_bar_border,
+                                                       y=self._o_theme.ti_bar_position[1]+self._o_theme.i_bar_border,
+                                                       width=self._o_theme.i_bar_width-2*self._o_theme.i_bar_border,
+                                                       height=self._o_theme.i_bar_height-2*self._o_theme.i_bar_border,
+                                                       color=self._o_theme.ti_bg_color)
+        self._o_bar_frame_fg.anchor_position = self._o_theme.ti_bar_anchor
+        self._lo_pyglet_elems.append(self._o_bar_frame_fg)
+
+        # Actual progress bar
+        i_bar_x = self._o_theme.ti_bar_position[0] + 2 * self._o_theme.i_bar_border - self._o_theme.ti_bar_anchor[0]
+        i_bar_y = self._o_theme.ti_bar_position[1] + 2 * self._o_theme.i_bar_border - self._o_theme.ti_bar_anchor[1]
+        self._o_bar = pyglet.shapes.Rectangle(x=i_bar_x,
+                                              y=i_bar_y,
+                                              width=128,
+                                              height=self._o_theme.i_bar_height-4*self._o_theme.i_bar_border,
+                                              color=self._o_theme.ti_bar_color)
+        self._lo_pyglet_elems.append(self._o_bar)
+
+        # Message
+        #--------
+        self._o_message = _Label(text='16% decrunching trocola gasket',
+                                 font_name=self._o_theme.s_msg_font,
+                                 font_size=12,
+                                 color=self._o_theme.ti_msg_color,
+                                 x=960,
+                                 y=340,
+                                 anchor_x='center',
+                                 anchor_y='center')
+        self._lo_pyglet_elems.append(self._o_message)
+
+    def __str__(self):
+        """
+        :return: A text representation of the object.
+        :rtype: Str
+        """
+        return class_to_string.class_to_string(self)
 
 
 class _SoundBank:

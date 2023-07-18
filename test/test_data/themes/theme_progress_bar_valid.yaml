@@ -1,3 +1,6 @@
+#======================================================================================================================#
+# Partial test configuration to be used in the tests of the progress bar theming.                                      #
+#======================================================================================================================#
 progress_bar:
   background:   [0, 1, 2, 3]
 
@@ -7,7 +10,7 @@ progress_bar:
     width:        800                   # Width of the solid progress bar
     height:       16                    # Height of the solid progress bar
     position:     [940, 900]            # Position of the progress bar
-    align:        ['left', 'top']  # Alignment of the progress bar
+    anchor:       [400, 8]              # Alignment of the progress bar
 
   message:
     color:        [255, 255, 255, 128]

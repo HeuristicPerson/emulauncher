@@ -94,10 +94,16 @@ def class_to_string(po_instance, pb_privates=False):
         i_max_length = 2 + i_prefix_max_length + i_type_max_length + i_name_max_length
         s_attr_name = s_attr_name.ljust(i_max_length, ' ')
 
+        # Finally, we create the text representation of the value, and we split it into multiple lines when required.
         s_attr_value = str(x_value)
 
-        s_attribute_repr = f'  {s_attr_name} {s_attr_value}'
-        ls_attributes.append(s_attribute_repr)
+        s_attr_value_padding = ' ' * len(s_attr_name)
+        for i_line, s_line in enumerate(s_attr_value.splitlines(False)):
+            if i_line == 0:
+                s_new_line = f'  {s_attr_name} {s_line}'
+            else:
+                s_new_line = f'  {s_attr_value_padding} {s_line}'
+            ls_attributes.append(s_new_line)
 
     s_out += '\n'.join(ls_attributes)
 
