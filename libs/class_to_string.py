@@ -69,7 +69,7 @@ def class_to_string(po_instance, pb_privates=False):
     :rtype: Str
     """
     # Header
-    s_out = '<%s>\n' % type(po_instance).__name__
+    ls_out = ['<%s>' % type(po_instance).__name__]
     lo_attributes_and_values = [(AttributeName(s_key), x_value) for s_key, x_value in vars(po_instance).items()]
 
     li_prefix_lengths = [len(o_entry[0].s_prefix) for o_entry in lo_attributes_and_values]
@@ -84,30 +84,31 @@ def class_to_string(po_instance, pb_privates=False):
     for o_attribute, x_value in sorted(lo_attributes_and_values, key=lambda tx_entry: (tx_entry[0].s_prefix,
                                                                                        tx_entry[0].s_name,
                                                                                        tx_entry[0].s_type)):
-        s_attr_name = '.%s:' % o_attribute
+        if (not o_attribute.s_prefix.startswith('_')) or pb_privates:
+            s_attr_name = '.%s:' % o_attribute
 
-        # First, we left pad the attribute name so the variable names are vertically aligned
-        i_left_pad = (i_prefix_max_length + i_type_max_length) - (len(o_attribute.s_prefix) + len(o_attribute.s_type))
-        s_attr_name = '%s%s' % (' ' * i_left_pad, s_attr_name)
+            # First, we left pad the attribute name so the variable names are vertically aligned
+            i_left_pad = i_prefix_max_length + i_type_max_length - len(o_attribute.s_prefix) - len(o_attribute.s_type)
+            s_attr_name = '%s%s' % (' ' * i_left_pad, s_attr_name)
 
-        # Then, we pad the attribute name to the right so the values will be vertically aligned
-        i_max_length = 2 + i_prefix_max_length + i_type_max_length + i_name_max_length
-        s_attr_name = s_attr_name.ljust(i_max_length, ' ')
+            # Then, we pad the attribute name to the right so the values will be vertically aligned
+            i_max_length = 2 + i_prefix_max_length + i_type_max_length + i_name_max_length
+            s_attr_name = s_attr_name.ljust(i_max_length, ' ')
 
-        # Finally, we create the text representation of the value, and we split it into multiple lines when required.
-        s_attr_value = str(x_value)
+            # Finally, we create the text representation of the value, splitting into multiple lines when required.
+            s_attr_value = str(x_value)
 
-        s_attr_value_padding = ' ' * len(s_attr_name)
-        for i_line, s_line in enumerate(s_attr_value.splitlines(False)):
-            if i_line == 0:
-                s_new_line = f'  {s_attr_name} {s_line}'
-            else:
-                s_new_line = f'  {s_attr_value_padding} {s_line}'
-            ls_attributes.append(s_new_line)
+            s_attr_value_padding = ' ' * len(s_attr_name)
+            for i_line, s_line in enumerate(s_attr_value.splitlines(False)):
+                if i_line == 0:
+                    s_new_line = f'  {s_attr_name} {s_line}'
+                else:
+                    s_new_line = f'  {s_attr_value_padding} {s_line}'
+                ls_attributes.append(s_new_line)
 
-    s_out += '\n'.join(ls_attributes)
+    ls_out += ls_attributes
 
-    return s_out
+    return '\n'.join(ls_out)
 
 
 def _my_compare(ps_item_a, ps_item_b):

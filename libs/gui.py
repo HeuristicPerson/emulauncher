@@ -558,8 +558,8 @@ class _Label(_GuiElement):
         except KeyError:
             pass
 
-    def set_text(self, pu_text):
-        self._o_label.text = pu_text
+    def set_text(self, ps_text):
+        self._o_label.text = ps_text
 
 
 class _FieldAndValue(_GuiElement):
@@ -932,13 +932,7 @@ class _ProgressBar(_GuiElement):
         #------------------------------
         _GuiElement.__init__(self)
         self._o_theme = po_theme
-        self._s_message = ''
         self._f_progress = 0.0
-
-        # The progress bar will have a status message
-        #self._o_msg =
-        # The progress bar will have two rectangles, one showing the outside border, and one for the content which will
-        # vary in width
 
         # Progres bar itself
         #-------------------
@@ -990,7 +984,33 @@ class _ProgressBar(_GuiElement):
         :return: A text representation of the object.
         :rtype: Str
         """
-        return class_to_string.class_to_string(self)
+        s_out = class_to_string.class_to_string(self)
+        return s_out
+
+    def _set_s_message(self, ps_value):
+        """
+        Method to set the message value.
+
+        :param ps_value:
+        :type ps_value: Str
+        :return: Nothing.
+        """
+        self._o_message.set_text(ps_value)
+
+    def _set_f_progress(self, pf_value):
+        """
+        Method to set the progress value.
+
+        :param pf_value:
+        :type pf_value: Float
+
+        :return: Nothing.
+        """
+        self._f_progress = pf_value
+        self._o_bar.width = pf_value / 100.0 * (self._o_theme.i_bar_width - 4 * self._o_theme.i_bar_border)
+
+    f_progress = property(fset=_set_f_progress, fget=None)
+    s_message = property(fset=_set_s_message, fget=None)
 
 
 class _SoundBank:

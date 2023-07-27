@@ -71,7 +71,7 @@ class FunctionClassToString(unittest.TestCase):
         s_msg = 'String representation of class with "untyped" attributes is wrong.'
         self.assertEqual(s_expect, s_actual, s_msg)
 
-    def test_class_only_private_attributes_no_type(self):
+    def test_class_only_private_attributes_no_type_privates_shown(self):
         class Foo:
             def __init__(self):
                 self._year = 2020
@@ -84,7 +84,22 @@ class FunctionClassToString(unittest.TestCase):
                    '  ._day:   27\n' \
                    '  ._month: 10\n' \
                    '  ._year:  2020'
-        s_actual = class_to_string.class_to_string(o_instance)
+        s_actual = class_to_string.class_to_string(o_instance, pb_privates=True)
+        s_msg = 'String representation of class with "untyped" attributes is wrong.'
+        self.assertEqual(s_expect, s_actual, s_msg)
+
+    def test_class_only_private_attributes_no_type_privates_hidden(self):
+        class Foo:
+            def __init__(self):
+                self._year = 2020
+                self._month = 10
+                self._day = 27
+
+        o_instance = Foo()
+
+        s_expect = '<Foo>' \
+
+        s_actual = class_to_string.class_to_string(o_instance, pb_privates=False)
         s_msg = 'String representation of class with "untyped" attributes is wrong.'
         self.assertEqual(s_expect, s_actual, s_msg)
 
