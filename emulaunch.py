@@ -276,23 +276,12 @@ class MainWindow(pyglet.window.Window):
             self._o_pbar = None
 
         if self._o_pbar is not None:
-            # lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
+            lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
             ls_messages = [o_task.s_status for o_task in self._lo_parallel_tasks]
+            s_message = ', '.join(ls_messages)
 
-
-            #print(self._lo_parallel_tasks)
-            for o_task in self._lo_parallel_tasks:
-                print(f'>> {o_task.s_status} <<')
-            # --- test code ---
-
-            #print(ls_messages)
-            # ------ end ------
-
-            # self._o_pbar.s_message = ','.join(ls_messages)
-            # self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
-
-        #for o_task in self._lo_parallel_tasks:
-        #    print(o_task)
+            self._o_pbar.s_message = s_message
+            self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
 
         # Then, we update all objects
         # --- nothing yet ---
@@ -363,7 +352,7 @@ class MainWindow(pyglet.window.Window):
             # pyglet objects (Label, rectangles, background color...) that are not compatible with threading. Instead,
             # we pass a pure text Status object that will be updated by the installation process.
             o_parallel_task_definition = ParallelTask(po_callback=install.install,
-                                                      plx_args=('romconfig_here',))
+                                                      plx_args=['romconfig_here'])
             self._lo_parallel_tasks.append(o_parallel_task_definition)
 
             # TODO: Install the game (external function)

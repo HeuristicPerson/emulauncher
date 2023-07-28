@@ -1007,7 +1007,7 @@ class _ProgressBar(_GuiElement):
         :return: Nothing.
         """
         self._f_progress = pf_value
-        self._o_bar.width = pf_value / 100.0 * (self._o_theme.i_bar_width - 4 * self._o_theme.i_bar_border)
+        self._o_bar.width = pf_value * (self._o_theme.i_bar_width - 4 * self._o_theme.i_bar_border)
 
     f_progress = property(fset=_set_f_progress, fget=None)
     s_message = property(fset=_set_s_message, fget=None)
