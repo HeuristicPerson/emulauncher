@@ -248,8 +248,15 @@ class MainWindow(pyglet.window.Window):
         self._lo_items.append(o_menu)
 
     def on_draw(self, **px_args):
-        # First, we remove items that are not alive
+        # First, we remove items that are not alive (we do this on every cycle)
         self._lo_items = [o_item for o_item in self._lo_items if o_item.b_alive]
+
+        # --- test code ---
+        self._lo_parallel_tasks = [o_task for o_task in self._lo_parallel_tasks if not o_task.b_completed]
+        for o_task in self._lo_parallel_tasks:
+            if not o_task.b_started:
+                o_task.start()
+        # ------ end ------
 
         # If there is any parallel task running:
         #
@@ -269,10 +276,20 @@ class MainWindow(pyglet.window.Window):
             self._o_pbar = None
 
         if self._o_pbar is not None:
-            lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
-            ls_messages = [o_task.s_message for o_task in self._lo_parallel_tasks]
-            self._o_pbar.s_message = ','.join(ls_messages)
-            self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
+            # lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
+            ls_messages = [o_task.s_status for o_task in self._lo_parallel_tasks]
+
+
+            #print(self._lo_parallel_tasks)
+            for o_task in self._lo_parallel_tasks:
+                print(f'>> {o_task.s_status} <<')
+            # --- test code ---
+
+            #print(ls_messages)
+            # ------ end ------
+
+            # self._o_pbar.s_message = ','.join(ls_messages)
+            # self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
 
         #for o_task in self._lo_parallel_tasks:
         #    print(o_task)
@@ -346,22 +363,8 @@ class MainWindow(pyglet.window.Window):
             # pyglet objects (Label, rectangles, background color...) that are not compatible with threading. Instead,
             # we pass a pure text Status object that will be updated by the installation process.
             o_parallel_task_definition = ParallelTask(po_callback=install.install,
-                                                      ptx_args=('romconfig_here',))
+                                                      plx_args=('romconfig_here',))
             self._lo_parallel_tasks.append(o_parallel_task_definition)
-            #o_parallel_task_definition
-            #_o_status = install.Status()
-            #o_thread = threading.Thread(target=install.install,
-            #                            args=['romconfig_here'],
-            #                            kwargs={'po_status': _o_status})
-            # ------ end ------
-            #o_thread.start()
-
-            #while o_thread.is_alive():
-            #    print('tic')
-            #    time.sleep(0.5)
-            #pyglet.app.exit()
-            #print('AFTER CLOSING PYGLET APP BUT STILL INSIDE FROM MAIN LOOP')
-            # ------ end ------
 
             # TODO: Install the game (external function)
             #  --- PSEUDO-CODE ---
