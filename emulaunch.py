@@ -114,6 +114,9 @@ class MainWindow(pyglet.window.Window):
         # List to store tasks to be running in the background. Used, for example to run installation of games.
         self._lo_parallel_tasks = []
 
+        # Defining schedules
+        # pyglet.clock.schedule_interval(self._schedule_create_destroy_progress_bar, 1.0)
+
     def create_menu_patch(self):
         # Sending kill "signal" to already existing menu
         if self._o_menu is not None:
@@ -252,6 +255,7 @@ class MainWindow(pyglet.window.Window):
         self._lo_items = [o_item for o_item in self._lo_items if o_item.b_alive]
 
         # --- test code ---
+
         self._lo_parallel_tasks = [o_task for o_task in self._lo_parallel_tasks if not o_task.b_completed]
         for o_task in self._lo_parallel_tasks:
             if not o_task.b_started:
@@ -266,14 +270,14 @@ class MainWindow(pyglet.window.Window):
         #   4. We make the progress bar to show that information.
 
         # Progress bar is created when parallel task are defined, or destroyed when there are no parallel tasks.
-        if (self._o_pbar is None) and self._lo_parallel_tasks:
-            print('  < Creating progress bar...')
-            self._o_pbar = self._o_theme.build_progress_bar()
-            self._lo_items.append(self._o_pbar)
-        elif (self._o_pbar is not None) and not self._lo_parallel_tasks:
-            print('  < Destroying progress bar...')
-            self._o_pbar.kill()
-            self._o_pbar = None
+        #if (self._o_pbar is None) and self._lo_parallel_tasks:
+        #    print('  < Creating progress bar...')
+        #    self._o_pbar = self._o_theme.build_progress_bar()
+        #    self._lo_items.append(self._o_pbar)
+        #elif (self._o_pbar is not None) and not self._lo_parallel_tasks:
+        #    print('  < Destroying progress bar...')
+        #    self._o_pbar.kill()
+        #    self._o_pbar = None
 
         if self._o_pbar is not None:
             lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
@@ -458,6 +462,19 @@ class MainWindow(pyglet.window.Window):
         _register_action(f'core: {po_core.s_name}')
         self._o_status_block.o_core = po_core
 
+    def _schedule_create_destroy_progress_bar(self, pf_delta_t):
+        # --- test code ---
+        # ------ end ------
+        # Progress bar is created when parallel task are defined, or destroyed when there are no parallel tasks.
+        if (self._o_pbar is None) and self._lo_parallel_tasks:
+            print('  < Creating progress bar...')
+            self._o_pbar = self._o_theme.build_progress_bar()
+            self._lo_items.append(self._o_pbar)
+        elif (self._o_pbar is not None) and not self._lo_parallel_tasks:
+            print('  < Destroying progress bar...')
+            self._o_pbar.kill()
+            self._o_pbar = None
+
 
 # Helper functions
 #=======================================================================================================================
@@ -491,6 +508,7 @@ if __name__ == '__main__':
     print(o_rom.nice_format())
 
     o_window = MainWindow(po_rom=o_rom, po_cfg=o_main_cfg)
+    pyglet.clock.schedule_interval(o_window._schedule_create_destroy_progress_bar, 1.0)
     pyglet.app.run(1/30)
 
     print('AFTER CLOSING PYGLET')
