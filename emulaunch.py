@@ -115,7 +115,7 @@ class MainWindow(pyglet.window.Window):
         self._lo_parallel_tasks = []
 
         # Defining schedules
-        # pyglet.clock.schedule_interval(self._schedule_create_destroy_progress_bar, 1.0)
+        # pyglet.clock.schedule_interval(self.schedule_create_destroy_progress_bar, 1.0)
 
     def create_menu_patch(self):
         # Sending kill "signal" to already existing menu
@@ -254,13 +254,7 @@ class MainWindow(pyglet.window.Window):
         # First, we remove items that are not alive (we do this on every cycle)
         self._lo_items = [o_item for o_item in self._lo_items if o_item.b_alive]
 
-        # --- test code ---
 
-        self._lo_parallel_tasks = [o_task for o_task in self._lo_parallel_tasks if not o_task.b_completed]
-        for o_task in self._lo_parallel_tasks:
-            if not o_task.b_started:
-                o_task.start()
-        # ------ end ------
 
         # If there is any parallel task running:
         #
@@ -268,27 +262,6 @@ class MainWindow(pyglet.window.Window):
         #   2. We create a progress bar object
         #   3. We obtain the progress of each task and their status message. With them, we build global progress and msg
         #   4. We make the progress bar to show that information.
-
-        # Progress bar is created when parallel task are defined, or destroyed when there are no parallel tasks.
-        #if (self._o_pbar is None) and self._lo_parallel_tasks:
-        #    print('  < Creating progress bar...')
-        #    self._o_pbar = self._o_theme.build_progress_bar()
-        #    self._lo_items.append(self._o_pbar)
-        #elif (self._o_pbar is not None) and not self._lo_parallel_tasks:
-        #    print('  < Destroying progress bar...')
-        #    self._o_pbar.kill()
-        #    self._o_pbar = None
-
-        if self._o_pbar is not None:
-            lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
-            ls_messages = [o_task.s_status for o_task in self._lo_parallel_tasks]
-            s_message = ', '.join(ls_messages)
-
-            self._o_pbar.s_message = s_message
-            self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
-
-        # Then, we update all objects
-        # --- nothing yet ---
 
         # Finally, we draw everything
         self.clear()
@@ -336,19 +309,13 @@ class MainWindow(pyglet.window.Window):
         b_installed = paths.is_rom_installed(po_rom_config=o_romconfig,
                                              po_program_config=self.o_cfg)
 
-        # TODO: Installation process is long, so it shouldn't be done here but added to a parallel execution queue.
         # TODO: Probably the same applies to running the game but that queue is ran out of the menu system.
         # If the games is not installed, we install it
         if not b_installed:
+            print(f'  < Installing...')
             # We killed the active menu (if any, so it'll be removed in the next loop).
             if self._o_menu is not None:
                 self._o_menu.kill()
-
-            # TODO: Probably it's a good idea to remove the progress bar creation from here and do it when we start the
-            # parallel task.
-            # We create a progress bar
-            #self._o_pbar = self._o_theme.build_progress_bar()
-            #self._lo_items.append(self._o_pbar)
 
             # --- test code ---
             # We need to create a thread where the actual installation is happening. We can't directly pass the progress
@@ -462,19 +429,56 @@ class MainWindow(pyglet.window.Window):
         _register_action(f'core: {po_core.s_name}')
         self._o_status_block.o_core = po_core
 
-    def _schedule_create_destroy_progress_bar(self, pf_delta_t):
-        # --- test code ---
-        # ------ end ------
+    def schedule_updater(self, pf_delta_t):
+        """
+        Method to run the update of the progress bar.
+
+        :param pf_delta_t: Delta time since last run of the scheduler. Required by pyglet but not used in this program.
+        :type pf_delta_t: Float
+
+        :return: Nothing.
+        """
+        self._update_parallel_tasks()
+        self._update_progress_bar()
+
+    def _update_progress_bar(self):
+        """
+        Method to create/destroy/manage the progress bar.
+        :return: Nothing.
+        """
+        # Creation and destruction of the progress bar
+        #---------------------------------------------
         # Progress bar is created when parallel task are defined, or destroyed when there are no parallel tasks.
         if (self._o_pbar is None) and self._lo_parallel_tasks:
-            print('  < Creating progress bar...')
+            # print('  < Creating progress bar...')
             self._o_pbar = self._o_theme.build_progress_bar()
             self._lo_items.append(self._o_pbar)
         elif (self._o_pbar is not None) and not self._lo_parallel_tasks:
-            print('  < Destroying progress bar...')
+            # print('  < Destroying progress bar...')
             self._o_pbar.kill()
             self._o_pbar = None
 
+        # Updating the progress bar
+        #--------------------------
+        if (self._o_pbar is not None) and self._lo_parallel_tasks:
+            lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
+            ls_messages = [o_task.s_status for o_task in self._lo_parallel_tasks]
+            s_message = ', '.join(ls_messages)
+
+            self._o_pbar.s_message = s_message
+            self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
+
+    def _update_parallel_tasks(self):
+        """
+        Method to process parallel tasks.
+
+        :return: Nothing.
+        """
+        # TODO: Add extra parameter to parallel tasks so they can close the window if required
+        self._lo_parallel_tasks = [o_task for o_task in self._lo_parallel_tasks if not o_task.b_completed]
+        for o_task in self._lo_parallel_tasks:
+            if not o_task.b_started:
+                o_task.start()
 
 # Helper functions
 #=======================================================================================================================
@@ -507,8 +511,12 @@ if __name__ == '__main__':
     o_rom = roms.Rom(ps_platform=o_cmd_args.s_system, ps_path=o_cmd_args.s_rom, ps_dat=s_dat_path)
     print(o_rom.nice_format())
 
+    # TODO: Add an output object to be updated with the info for the rom to be launched.
     o_window = MainWindow(po_rom=o_rom, po_cfg=o_main_cfg)
-    pyglet.clock.schedule_interval(o_window._schedule_create_destroy_progress_bar, 1.0)
+
+    # TODO: Maybe it's better to simply have one update schedule and from it, calling other methods for cleaner code.
+    pyglet.clock.schedule_interval(o_window.schedule_updater, 0.2)
     pyglet.app.run(1/30)
 
+    # TODO: Run launching of the installed ROM here.
     print('AFTER CLOSING PYGLET')
