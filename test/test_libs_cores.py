@@ -68,14 +68,48 @@ class TestClassCores(unittest.TestCase):
         self.assertRaises(ValueError, cores.Core, s_core_file)
 
 
-
 class TestFunctionGetCores(unittest.TestCase):
+    # TODO: get existing core
+    # TODO: try to get non existing core
     def test_get_cores_valid_folder(self):
         """
         Test to read the cores available in a dir with some cores.
+
         :return: Nothing.
         """
-        pass
+        s_cores_dir = os.path.join(cons.s_TEST_DATA_DIR, 'cores')
+        lo_cores = cores.get_cores(ps_dir=s_cores_dir, pls_cores_wanted=['picodrive'])
+
+        lx_expect = [1,            # Number of cores
+                     True,         # Instance of cores.Core
+                     'picodrive',  # Name of the core
+                     ]
+        lx_actual = [len(lo_cores),
+                     isinstance(lo_cores[0], cores.Core),
+                     lo_cores[0].s_name]
+
+        s_msg = 'The obtained core is not what was expected.'
+        self.assertEqual(lx_expect, lx_actual, s_msg)
+
+    def test_get_cores_non_existing_core(self):
+        """
+        Test for trying to get a non-existing core.
+
+        :return:  Nothing.
+        """
+        s_cores_dir = os.path.join(cons.s_TEST_DATA_DIR, 'cores')
+        lo_cores = cores.get_cores(ps_dir=s_cores_dir, pls_cores_wanted=['picodrive', 'foo'])
+
+        lx_expect = [1,            # Number of cores
+                     True,         # Instance of cores.Core
+                     'picodrive',  # Name of the core
+                     ]
+        lx_actual = [len(lo_cores),
+                     isinstance(lo_cores[0], cores.Core),
+                     lo_cores[0].s_name]
+
+        s_msg = 'The obtained cores is not what was expected.'
+        self.assertEqual(lx_expect, lx_actual, s_msg)
 
 
 # Main code

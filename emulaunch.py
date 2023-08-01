@@ -38,7 +38,8 @@ class _CmdArgs:
                               help='Platform of the ROM to be executed.')
         o_parser.add_argument('rom',
                               action='store',
-                              help='Full path of the ROM to be executed')
+                              help='Full path of the ROM to be executed',
+                              type=os.path.abspath)
 
         o_args = o_parser.parse_args()
 
@@ -56,8 +57,8 @@ class _CmdArgs:
         s_system_desc = cons.do_PLATFORMS[self.s_system].s_name
         s_out = ''
         s_out += f'┌[Arguments]─────────────\n'
-        s_out += f'├      System: {self.s_system} - {s_system_desc}\n'
-        s_out += f'├         ROM: {self.s_rom}\n'
+        s_out += f'├ System: ...... {self.s_system} - {s_system_desc}\n'
+        s_out += f'├ ROM: ......... {self.s_rom}\n'
         s_out += f'└────────────────────────'
         return s_out
 
@@ -295,10 +296,6 @@ class MainWindow(pyglet.window.Window):
         _register_action('play')
         o_romconfig = self._o_status_block.o_config
 
-        # Printing the settings to the terminal
-        for s_line in o_romconfig.nice_format().splitlines(False):
-            print(f'  < {s_line}')
-
         # When the user launches the game, the configuration is saved in the user's directory. It will overwrite
         # anything already existing with no questions.
         s_user_settings_file = paths.build_user_game_settings(po_rom_config=o_romconfig,
@@ -312,7 +309,10 @@ class MainWindow(pyglet.window.Window):
         # TODO: Probably the same applies to running the game but that queue is ran out of the menu system.
         # If the games is not installed, we install it
         if not b_installed:
-            print(f'  < Installing...')
+            print(f'  < Installing with options')
+            for s_line in o_romconfig.nice_format().splitlines(False):
+                print(f'  <   {s_line}')
+
             # We killed the active menu (if any, so it'll be removed in the next loop).
             if self._o_menu is not None:
                 self._o_menu.kill()
@@ -322,8 +322,14 @@ class MainWindow(pyglet.window.Window):
             # object, so the installation can update the progress and message because the progress bar contains some
             # pyglet objects (Label, rectangles, background color...) that are not compatible with threading. Instead,
             # we pass a pure text Status object that will be updated by the installation process.
+            s_install_dir = paths.build_rom_install_dir_path(po_rom_config=o_romconfig,
+                                                             po_program_config=self.o_cfg)
+            # TODO: We need to create the install directory
+            # TODO: We
+
             o_parallel_task_definition = ParallelTask(po_callback=install.install,
-                                                      plx_args=['romconfig_here'])
+                                                      plx_args=[self._o_status_block.o_config, s_install_dir],
+                                                      pb_close_gui=True)
             self._lo_parallel_tasks.append(o_parallel_task_definition)
 
             # TODO: Install the game (external function)
@@ -474,11 +480,20 @@ class MainWindow(pyglet.window.Window):
 
         :return: Nothing.
         """
-        # TODO: Add extra parameter to parallel tasks so they can close the window if required
+        # Checking for completed tasks that require the gui to be closed
+        for o_task in self._lo_parallel_tasks:
+            if o_task.b_close_gui and o_task.b_completed:
+                print('  < Closing GUI')
+                self.close()
+
+        # Removing completed tasks
         self._lo_parallel_tasks = [o_task for o_task in self._lo_parallel_tasks if not o_task.b_completed]
+
+        # Starting tasks that need it
         for o_task in self._lo_parallel_tasks:
             if not o_task.b_started:
                 o_task.start()
+
 
 # Helper functions
 #=======================================================================================================================

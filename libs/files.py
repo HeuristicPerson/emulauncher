@@ -251,7 +251,7 @@ class FilePath(object):
         Method to get the file size in human readable format.
         :return:
         """
-        return _sizeof_fmt(self.i_size, pi_jump=1024, pu_suffix=u'B')
+        return file_size_format(self.i_size, pi_jump=1024, pu_suffix=u'B')
 
     def _get_mod_time(self):
         """
@@ -544,11 +544,14 @@ class FilePath(object):
 
 
 # Functions
-# =======================================================================================================================
-def _sizeof_fmt(i_number, pi_jump=1024, pu_suffix=u'B'):
+#=======================================================================================================================
+def file_size_format(pi_bytes, pi_jump=1024, pu_suffix=u'B'):
     """
-    Function to convert integer numbers to human readable format
-    :param i_number: Value you want to convert to human readable format. e.g. 1545167316
+    Function to convert integer numbers to human-readable format
+    
+    :param pi_bytes: Value you want to convert to human-readable format. e.g. 1545167316
+    :type pi_bytes: Int
+
     :param pi_jump: Whether 1K equals to 1000 units or 1024. You could use any other number but... WHY?
     :param pu_suffix: Name of the unit, u'B' stands for Bytes, but you could use any other unit.
     :return:
@@ -570,16 +573,16 @@ def _sizeof_fmt(i_number, pi_jump=1024, pu_suffix=u'B'):
     # [1/?] Finally we build the output string
     # -----------------------------------------
     for u_unit in lu_units:
-        if abs(i_number) < float(pi_jump):
-            u_out = u'%3.1f %s%s' % (i_number, u_unit, pu_suffix)
+        if abs(pi_bytes) < float(pi_jump):
+            u_out = u'%3.1f %s%s' % (pi_bytes, u_unit, pu_suffix)
             break
 
-        i_number /= float(pi_jump)
+        pi_bytes /= float(pi_jump)
 
     # If the loop finished, the number is already divided by pi_jump but we don't have any bigger unit, so...
     else:
-        i_number *= float(pi_jump)
-        u_out = u'%3.1f %s%s' % (i_number, lu_units[-1], pu_suffix)
+        pi_bytes *= float(pi_jump)
+        u_out = u'%3.1f %s%s' % (pi_bytes, lu_units[-1], pu_suffix)
 
     return u_out
 

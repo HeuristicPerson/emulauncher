@@ -7,15 +7,8 @@ import re
 
 from . import cons
 from . import dat_files
+from . import files
 from . import string_helpers
-
-
-# Initialization
-#=======================================================================================================================
-#_lo_platforms = platforms.read_platforms_file(cons._s_platforms_file)
-
-# TODO: Read available cores.
-# I think this is not needed anymore, functionality added somewhere else
 
 
 # Classes
@@ -36,15 +29,15 @@ class Rom:
         :param ps_dat: Path of a dat file to get more information from
         :type ps_dat: Str
         """
-
-        self.s_path = ps_path
-        self.s_ccrc32 = ''
-        self.s_dcrc32 = ''
-        self.s_name = ''
-        self.i_csize = 0
-        self.i_dsize = 0
-        self.s_dat = ''
-        self.s_dat_ver = ''
+        self.s_path = ps_path  # Full path of the ROM.
+        self.s_ccrc32 = ''     # Clean additive CRC32 of the ROM.
+        self.s_dcrc32 = ''     # Dirty additive CRC32 of the ROM.
+        self.s_name = ''       # Name of the ROM.
+        self.i_csize = 0       # Clean size of the ROM.
+        self.i_dsize = 0       # Dirty size of the ROM.
+        self.i_psize = 0       # Path-size of the ROM.
+        self.s_dat = ''        # Dat file the ROM is matched against.
+        self.s_dat_ver = ''    # Version of the dat file the ROM is matched against.
 
         try:
             self.o_platform = cons.do_PLATFORMS[ps_platform]
@@ -84,6 +77,7 @@ class Rom:
         s_out += f'  .s_dat_ver:     {self.s_dat_ver}\n'
         s_out += f'  .i_dsize:       {self.i_dsize}\n'
         s_out += f'  .i_csize:       {self.i_csize}\n'
+        s_out += f'  .i_psize:       {self.i_psize}\n'
         s_out += f'  .s_dcrc32:      {self.s_dcrc32}\n'
         s_out += f'  .s_ccrc32:      {self.s_ccrc32}\n'
         s_out += f'  .s_dcrc32_safe: {self.s_dcrc32_safe}\n'  # Safe dirty CRC32 ('xxxxxxxx' when crc32 is empty)
@@ -99,20 +93,26 @@ class Rom:
         :Return: A text summary with ROM information.
         :rtype: Str
         """
+
+        s_file_size = files.file_size_format(self.i_psize)
+        s_rom_csize = files.file_size_format(self.i_csize)
+        s_rom_dsize = files.file_size_format(self.i_dsize)
+
         s_out = ''
         s_out += f'┌[ROM Information]───────\n'
         s_out += f'├ From file \n'
-        s_out += f'│   Name:        {self.s_name}\n'
-        s_out += f'│   System:      {self.o_platform.s_name}\n'
+        s_out += f'│   Name: ...... {self.s_name}\n'
+        s_out += f'│   System: .... {self.o_platform.s_name}\n'
+        s_out += f'│   Size: ...... {self.i_psize} ({s_file_size})\n'
         s_out += f'├ From .dat\n'
-        s_out += f'│   Dat:         {self.s_dat} - {self.s_dat_ver}\n'
-        s_out += f'│   Size:        dirty={self.i_dsize}, clean={self.i_csize}\n'
-        s_out += f'│   CRC32:       dirty={self.s_dcrc32}, clean={self.s_ccrc32}\n'
+        s_out += f'│   Dat: ....... {self.s_dat} - {self.s_dat_ver}\n'
+        s_out += f'│   Size: ...... dirty={self.i_dsize} ({s_rom_dsize}), clean={self.i_csize} ({s_rom_csize})\n'
+        s_out += f'│   CRC32: ..... dirty={self.s_dcrc32}, clean={self.s_ccrc32}\n'
         s_out += f'├ From platform\n'
-        s_out += f'│   Cores:       %s\n' % ', '.join(self.o_platform.ls_cores)
-        s_out += f'│   Aspect:      {self.o_platform.f_aspect:.3f}\n'
-        s_out += f'│   Regions:     %s\n' % ', '.join([str(s_region) for s_region in self.o_platform.ls_regions])
-        s_out += f'│   Refresh:     %s\n' % ', '.join([str(f_freq) for f_freq in self.o_platform.lf_freqs])
+        s_out += f'│   Cores: ..... %s\n' % ', '.join(self.o_platform.ls_cores)
+        s_out += f'│   Aspect: .... {self.o_platform.f_aspect:.3f}\n'
+        s_out += f'│   Regions: ... %s\n' % ', '.join([str(s_region) for s_region in self.o_platform.ls_regions])
+        s_out += f'│   Refresh: ... %s\n' % ', '.join([str(f_freq) for f_freq in self.o_platform.lf_freqs])
         s_out += f'│   R. patterns: %s\n' % ', '.join(self.o_platform.ls_region_pats)
         s_out += f'└────────────────────────'
         return s_out
@@ -153,6 +153,7 @@ class Rom:
         s_file_name = os.path.basename(ps_file)
         s_name, _, s_ext = s_file_name.rpartition('.')
         self.s_name = s_name
+        self.i_psize = os.stat(self.s_path).st_size
 
     def _get_s_region_auto(self):
         """

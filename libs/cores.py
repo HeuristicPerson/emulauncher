@@ -91,7 +91,7 @@ def get_cores(ps_dir, pls_cores_wanted):
     :type pls_cores_wanted: List[Str]
 
     :return:
-    :rtype:
+    :rtype: Tuple[Core]
     """
     # First we get all the cores
     do_cores_available = _get_cores_all(ps_dir)
@@ -99,7 +99,10 @@ def get_cores(ps_dir, pls_cores_wanted):
     # ...then we get the ones we want in the order required
     lo_cores_wanted = []
     for s_core_wanted in pls_cores_wanted:
-        o_core = do_cores_available[s_core_wanted]
-        lo_cores_wanted.append(o_core)
+        try:
+            o_core = do_cores_available[s_core_wanted]
+            lo_cores_wanted.append(o_core)
+        except KeyError:
+            pass
 
     return tuple(lo_cores_wanted)
