@@ -1,6 +1,5 @@
 import os
 import unittest
-import zlib
 
 import libs.cons as cons
 import libs.cores as cores
@@ -8,6 +7,7 @@ import libs.install as install
 import libs.patches as patches
 import libs.roms as roms
 import libs.romconfig as romconfig
+from libs.files import compute_crc
 
 
 class FunctionInstall(unittest.TestCase):
@@ -31,7 +31,7 @@ class FunctionInstall(unittest.TestCase):
         for s_elem in os.listdir(s_out_dir):
             s_full_path = os.path.join(s_out_dir, s_elem)
             if os.path.isfile(s_full_path):
-                ds_actual[s_elem] = _compute_crc(s_full_path)
+                ds_actual[s_elem] = compute_crc(s_full_path)
 
         s_msg = 'The file(s) contained in the install dir is not what was expected.'
         self.assertEqual(ds_expect, ds_actual, s_msg)
@@ -54,7 +54,7 @@ class FunctionInstall(unittest.TestCase):
         install.install(po_rom_cfg=o_rom_cfg,
                         ps_dir=s_out_dir)
 
-        # If the patching is correct, we will obtain the original ROM name (because patching won't change the name at
+        # If the patching is correct, we will obtain the original ROM ps_name (because patching won't change the ps_name at
         # all) with the CRC32 of the v0.9 because that's the intent of the applied patch.
         ds_expect = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': '3df43d25'}
 
@@ -62,7 +62,7 @@ class FunctionInstall(unittest.TestCase):
         for s_elem in os.listdir(s_out_dir):
             s_full_path = os.path.join(s_out_dir, s_elem)
             if os.path.isfile(s_full_path):
-                ds_actual[s_elem] = _compute_crc(s_full_path)
+                ds_actual[s_elem] = compute_crc(s_full_path)
 
         s_msg = 'The file(s) contained in the install dir is not what was expected.'
         self.assertEqual(ds_expect, ds_actual, s_msg)
@@ -88,14 +88,6 @@ def _get_plain_rom_config_small():
 
     o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=to_cores)
     return o_rom_cfg
-
-
-def _compute_crc(ps_file):
-    prev = 0
-    for chunk in open(ps_file, "rb"):
-        prev = zlib.crc32(chunk, prev)
-    s_crc32 = "%X" % (prev & 0xFFFFFFFF)
-    return s_crc32.lower()
 
 
 # Main code

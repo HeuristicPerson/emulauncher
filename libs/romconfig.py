@@ -29,7 +29,7 @@ class RomConfig:
         self._o_core = None    # Retroarch core to be used
         self.o_patch = None    # Patch applied/to be applied
         self.o_rom = None      # ROM object to be launched
-        self.s_user = ''       # Name of de user (machine name) launching the ROM
+        self.s_user = ''       # Name of de user (machine ps_name) launching the ROM
 
     def __str__(self):
         """
@@ -118,7 +118,7 @@ class RomConfig:
         else:
             if not _check_rom_and_ini_match(self.o_rom, o_ini):
                 s_rom_summary = f'[{self.o_rom.s_ccrc32}] {self.o_rom.s_name}'
-                s_ini_summary = f'[%s] %s' % (o_ini.get('rom', 'ccrc32'), o_ini.get('rom', 'name'))
+                s_ini_summary = f'[%s] %s' % (o_ini.get('rom', 'ccrc32'), o_ini.get('rom', 'ps_name'))
                 s_msg = 'Rom (%s) and RomConfig (%s) don\'t match.' % (s_rom_summary, s_ini_summary)
                 raise ValueError(s_msg)
             else:
@@ -131,7 +131,7 @@ class RomConfig:
                 self.f_refresh = o_ini.getfloat('settings', 'refresh')
 
                 # To get the patch, we first find all the patches available for the Rom object, and then we identify the
-                # one with the right name.
+                # one with the right ps_name.
                 s_ini_patch = o_ini.get('rom', 'patch')
                 if s_ini_patch:
                     s_patches_dir = po_prog_cfg.ds_patch_dirs[self.o_rom.o_platform.s_alias]
@@ -145,7 +145,7 @@ class RomConfig:
                         s_error = f'ERROR: patch "{s_ini_patch}" not found'
                         ls_errors.append(s_error)
 
-                # Getting the core object from the core name saved in the file. We will check that a) the core is valid
+                # Getting the core object from the core ps_name saved in the file. We will check that a) the core is valid
                 # for the current platform, and the core is available in the system.
                 s_ini_core = o_ini.get('settings', 'core')
                 s_cores_dir = po_prog_cfg.s_cores_dir
@@ -171,7 +171,7 @@ class RomConfig:
 
         :return: Nothing.
         """
-        # Core name
+        # Core ps_name
         try:
             s_core = self._o_core.s_name
         except AttributeError:
@@ -188,10 +188,10 @@ class RomConfig:
         o_config.set('meta', 'date', str(datetime.datetime.now()))
         o_config.set('meta', 'user', self.s_user)
         o_config.add_section('rom')
-        o_config.set('rom', 'name', self.o_rom.s_name)
+        o_config.set('rom', 'ps_name', self.o_rom.s_name)
         o_config.set('rom', 'ccrc32', self.o_rom.s_ccrc32)
         o_config.set('rom', 'platform', self.o_rom.o_platform.s_alias)
-        o_config.set('rom', 'patch', s_patch)  # TODO: Save name of the patch
+        o_config.set('rom', 'patch', s_patch)  # TODO: Save ps_name of the patch
         o_config.add_section('settings')
         o_config.set('settings', 'core', s_core)
         o_config.set('settings', 'region', self.s_region)
@@ -301,7 +301,7 @@ def _return_priority_core(po_rom, pto_cores_available):
 def _check_rom_and_ini_match(po_rom, po_ini):
     """
     Function to check that a Rom object and a RomConfig object contain information for the same Rom file. When possible,
-    the clean CRC32 (CCRC32) of both objects will be compared, otherwise, the rom name will be used.
+    the clean CRC32 (CCRC32) of both objects will be compared, otherwise, the rom ps_name will be used.
 
     :param po_rom: Rom object we want to check.
     :type po_rom: roms.Rom
@@ -312,7 +312,7 @@ def _check_rom_and_ini_match(po_rom, po_ini):
     :return:
     :rtype: Bool
     """
-    # It's not needed to lowercase the CCRC32 because it should be already lowercase, but the ROM name has to in order
+    # It's not needed to lowercase the CCRC32 because it should be already lowercase, but the ROM ps_name has to in order
     # to add a bit of robustness. I'm not planning to keep non-dated ROMs' saved configs,
     s_rom_ccrc32 = po_rom.s_ccrc32.lower()
     s_ini_ccrc32 = po_ini['rom']['ccrc32'].lower()

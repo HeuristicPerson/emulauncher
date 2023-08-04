@@ -86,8 +86,8 @@ class Dat(object):
         #   -A author                                   <- s_author
         #   -V version                                  <- s_version
         #   -C category
-        #   -R ref name                                 <- s_name
-        #   -F full name (i.e. description)             <- s_description
+        #   -R ref ps_name                                 <- s_name
+        #   -F full ps_name (i.e. description)             <- s_description
         #   -T date
         #   -E e-mail
         #   -H homepage                                 <- s_homepage
@@ -97,7 +97,7 @@ class Dat(object):
         #   -P packing (zip or unzip)
         #   -N nodump (obsolete, required or ignore)
 
-        self.s_name = ''         # internal name of the dat file.
+        self.s_name = ''         # internal ps_name of the dat file.
         self.s_description = ''  # description of the dat file.
         self.s_version = ''      # version of the dat file (usually a date).
         self.s_comment = ''      # extra comment for the dat file.
@@ -165,7 +165,7 @@ class Dat(object):
         """
         Method to remove a ROMset from the container.
 
-        :param ps_name: The name of the romset to be deleted.
+        :param ps_name: The ps_name of the romset to be deleted.
         :type ps_name: Str
         
         :return: True if a matching ROMset was found and deleted.
@@ -274,7 +274,7 @@ class Dat(object):
 
     def filter(self, o_filter):
         """
-        Method to filter in/out games depending on a field name and allowed/disallowed values for that field.
+        Method to filter in/out games depending on a field ps_name and allowed/disallowed values for that field.
 
         :param o_filter: Filter object.
         :type o_filter Filter
@@ -312,7 +312,7 @@ class Dat(object):
 
     def get_romset_by_name(self, ps_name):
         """
-        Method to find and return a ROMset by its name. This method will be much quicker than using get_romsets_by_field
+        Method to find and return a ROMset by its ps_name. This method will be much quicker than using get_romsets_by_field
         since it doesn't go through all the ROMsets contained in self._do_romsets.
 
         :param ps_name:
@@ -470,7 +470,7 @@ class Dat(object):
             # If we are in "head-mode" and the first character of the line is ")", it means we have reached the end of
             # the heading (so we have all its lines) and we can parse them.
             if b_head_mode and s_line.find(')') == 0:
-                self.s_name = _dat_vertical_parse(ls_head_strings, 'name')
+                self.s_name = _dat_vertical_parse(ls_head_strings, 'ps_name')
                 self.s_description = _dat_vertical_parse(ls_head_strings, 'description')
                 self.s_version = _dat_vertical_parse(ls_head_strings, 'version')
                 self.s_comment = _dat_vertical_parse(ls_head_strings, 'comment')
@@ -491,7 +491,7 @@ class Dat(object):
                 continue
 
             if b_game_mode and s_line.find(')') == 0:
-                s_romset_name = _dat_vertical_parse(ls_game_strings, 'name')
+                s_romset_name = _dat_vertical_parse(ls_game_strings, 'ps_name')
                 s_romset_description = _dat_vertical_parse(ls_game_strings, 'description')
                 s_romset_author = _dat_vertical_parse(ls_game_strings, 'manufacturer')
                 s_game_year = _dat_vertical_parse(ls_game_strings, 'year')
@@ -505,8 +505,8 @@ class Dat(object):
                 o_dat_romset.s_auth = s_romset_author
 
                 for s_game_rom in ls_game_roms:
-                    # sometimes name has quotes " around and sometimes not, so it's safer to use size as end.
-                    s_rom_name = _dat_horizontal_parse(s_game_rom, 'name ', 'size')
+                    # sometimes ps_name has quotes " around and sometimes not, so it's safer to use size as end.
+                    s_rom_name = _dat_horizontal_parse(s_game_rom, 'ps_name ', 'size')
 
                     s_rom_size = _dat_horizontal_parse(s_game_rom, 'size ', ' ')
                     s_rom_crc = _dat_horizontal_parse(s_game_rom, 'crc ', ' ')
@@ -592,7 +592,7 @@ class Dat(object):
             for o_xelem_rom in o_xelem_game.findall('rom'):
                     o_rom = Rom()
                     try:
-                        o_rom.s_name = o_xelem_rom.attrib['name']
+                        o_rom.s_name = o_xelem_rom.attrib['ps_name']
                     except KeyError:
                         pass
 
@@ -646,14 +646,14 @@ class Dat(object):
         A sample xml would be something like:
 
             <mame build="0.238 (mame0238)" debug="no" mameconfig="10">
-              <machine name="005" sourcefile="segag80r.cpp" sampleof="005">
+              <machine ps_name="005" sourcefile="segag80r.cpp" sampleof="005">
                 <description>005</description>
                 <year>1981</year>
                 <manufacturer>Sega</manufacturer>
-                <rom name="1346b.cpu-u25" size="2048" crc="8e68533e" sha1="a257c..." region="maincpu" offset="0"/>
-                <rom name="5092.prom-u1" size="2048" crc="29e10a81" sha1="c4b4e6..." region="maincpu" offset="800"/>
-                <rom name="5093.prom-u2" size="2048" crc="e1edc3df" sha1="4f5935..." region="maincpu" offset="1000"/>
-                <rom name="5094.prom-u3" size="2048" crc="995773bb" sha1="98dd82..." region="maincpu" offset="1800"/>
+                <rom ps_name="1346b.cpu-u25" size="2048" crc="8e68533e" sha1="a257c..." region="maincpu" offset="0"/>
+                <rom ps_name="5092.prom-u1" size="2048" crc="29e10a81" sha1="c4b4e6..." region="maincpu" offset="800"/>
+                <rom ps_name="5093.prom-u2" size="2048" crc="e1edc3df" sha1="4f5935..." region="maincpu" offset="1000"/>
+                <rom ps_name="5094.prom-u3" size="2048" crc="995773bb" sha1="98dd82..." region="maincpu" offset="1800"/>
               </machine>
             </mame>
 
@@ -675,7 +675,7 @@ class Dat(object):
         # ROMsets information
         #--------------------
         for o_xmachine in o_xml_root.findall('machine'):
-            s_name = o_xmachine.get('name')
+            s_name = o_xmachine.get('ps_name')
             s_desc = o_xmachine.find('description').text
 
             b_device = False
@@ -690,7 +690,7 @@ class Dat(object):
 
             for o_xrom in o_xmachine.findall('rom'):
                 o_rom = Rom()
-                o_rom.s_name = o_xrom.get('name')
+                o_rom.s_name = o_xrom.get('ps_name')
                 o_rom.i_size = int(o_xrom.get('size'))
 
                 try:
@@ -734,7 +734,7 @@ class Dat(object):
         #-------
         s_header = ''
         s_header += 'clrmamepro (\n'
-        s_header += '\tname "%s"\n' % self.s_name
+        s_header += '\tps_name "%s"\n' % self.s_name
         s_header += '\tdescription "%s"\n' % self.s_description
         s_header += '\tversion "%s"\n' % self.s_version
         s_header += '\tcomment "%s"\n' % self.s_comment
@@ -747,10 +747,10 @@ class Dat(object):
             # Output generation
             #------------------
             s_romset = 'game (\n'
-            s_romset += '\tname "%s"\n' % o_romset.s_name
+            s_romset += '\tps_name "%s"\n' % o_romset.s_name
             s_romset += '\tdescription "%s"\n' % o_romset.s_desc
             for o_rom in o_romset:
-                ls_rom_data = ['name "%s"' % o_rom.s_name]
+                ls_rom_data = ['ps_name "%s"' % o_rom.s_name]
 
                 i_size = 0
                 if o_rom.i_size:
@@ -860,15 +860,15 @@ class RomSet(object):
         :type pb_device: Bool
         """
         # Properties: Basic ones
-        self.s_name = ps_name         # Usually, the file name for the game. MAME uses a short 8 char or fewer name here.
-        self.s_desc = ps_description  # Usually, the full and long name of the game i.e. 'Super Mario World (Europe)'.
+        self.s_name = ps_name         # Usually, the file ps_name for the game. MAME uses a short 8 char or fewer ps_name here.
+        self.s_desc = ps_description  # Usually, the full and long ps_name of the game i.e. 'Super Mario World (Europe)'.
         self.b_device = pb_device     # MAME .dat includes ROMsets for devices (which some times don't contain any ROM).
                                       # An example of this are DACs (digital to analog converters) which are emulated
                                       # using pure code (so no ROMs involved) and are incorporated or referenced by
                                       # some videogames.
 
         # Properties: The rest
-        self._lo_roms = []            # Somehow, ROMsets *CAN* have "duplicated" ROMs with the same name, so a list.
+        self._lo_roms = []            # Somehow, ROMsets *CAN* have "duplicated" ROMs with the same ps_name, so a list.
         self.s_auth = ''              # Author, company that programmed the game (MAME dat support only, AFAIK).
 
     def __iter__(self):
@@ -1163,7 +1163,7 @@ class RomSet(object):
 
 class Rom:
     """
-    Class to store all the information for a ROM file contained in a DAT file. Typically, that information is the name
+    Class to store all the information for a ROM file contained in a DAT file. Typically, that information is the ps_name
     of the ROM, the description, CRC-MD5-SHA1 check-sums...
 
     NOTE ABOUT self.b_bios: In each "game", mame .xml includes all the files (ROMs) that are part of the bios of the
@@ -1180,14 +1180,14 @@ class Rom:
         self.b_baddump = False  # Whether it's a bad-dump. So far, MAME is the only one to indicate it.
         self.b_nodump = False   # Whether it's a no-dump. So far, MAME is the only dats that cover this information.
         self.b_bios = False     # Whether it's actually part of the bios. So far, MAME is the only one to indicate it.
-        self.s_name = ''        # name of the ROM. i.e. 'Super Mario World.sfc'
+        self.s_name = ''        # ps_name of the ROM. i.e. 'Super Mario World.sfc'
         self.s_crc32 = ''       # crc32 checksum of the file data i.e. 'a209fe80'
         self.s_md5 = ''         # md5 checksum of the file data
         self.s_sha1 = ''        # sha1 checksum of the file data
         self.i_size = 0         # file size in bytes
         self.s_merge = ''       # In some formats, a ROM file is used in different ROMsets and the .dat file adds extra
                                 # information under "merge" field. Not sure how it's exactly used to locate the ROM
-                                # since so far I've always seen the value of "merge" field is exactly the name of the
+                                # since so far I've always seen the value of "merge" field is exactly the ps_name of the
                                 # ROM file.
 
     def __str__(self):
@@ -1217,7 +1217,7 @@ class CatVer:
         self.s_version = ''    # Version of the catver.ini
         self.s_date = ''       # Date of the catver.ini
         self.s_mame = ''       # MAME version for the catver.ini (typically the same as the version of catver.ini)
-        self._do_entries = {}  # Dictionary with all CatVer entries. Key is ROMset name.
+        self._do_entries = {}  # Dictionary with all CatVer entries. Key is ROMset ps_name.
 
         if ps_file:
             self.read_from_file(ps_file)
@@ -1241,7 +1241,7 @@ class CatVer:
 
     def get_entry(self, ps_rom):
         """
-        Method to get the entry for a given ROMset name.
+        Method to get the entry for a given ROMset ps_name.
 
         :param ps_rom:
         :type ps_rom: Unicode
@@ -1319,7 +1319,7 @@ class _CatVerEntry:
     Class to store information about each of the catver.ini file entries.
     """
     def __init__(self, ps_romset='', ps_cat_1st='', ps_cat_2nd='', ps_version=''):
-        self.s_romset = ps_romset    # ROMset name.
+        self.s_romset = ps_romset    # ROMset ps_name.
         self.s_version = ps_version  # MAME version when the ROMset was first introduced.
         self.s_cat_1st = ps_cat_1st  # Main category of the ROMset.
         self.s_cat_2nd = ps_cat_2nd  # Secondary category of the ROMset.
@@ -1411,7 +1411,7 @@ def _dat_vertical_parse(ls_lines, s_section, s_mode='single'):
 
         ls_lines: a list containing the individual lines as strings.
 
-        s_section: name of the section (in the above example s_section = field_1, for example).
+        s_section: ps_name of the section (in the above example s_section = field_1, for example).
 
         s_mode: 'single', each field exists once and the function returns its data as a string.
                 'multi', each field exists several times and the function returns its data as a list of strings.

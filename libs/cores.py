@@ -45,8 +45,8 @@ class Core:
 
     def _get_s_name(self):
         """
-        Method to get the name of the core without all the extra text added to the core files. e.g. for core file
-        "genesis_plus_gx_libretro.so", the name of the core name should be "genesis_plus_gx".
+        Method to get the ps_name of the core without all the extra text added to the core files. e.g. for core file
+        "genesis_plus_gx_libretro.so", the ps_name of the core ps_name should be "genesis_plus_gx".
 
         :return:
         :rtype: Str
@@ -66,7 +66,7 @@ def _get_cores_all(ps_dir):
     :param ps_dir: Path of the directory with RetroArch cores.
     :type ps_dir: Str
 
-    :return: A dictionary with all the cores where key = core name, and value = core object.
+    :return: A dictionary with all the cores where key = core ps_name, and value = core object.
     :rtype: Dict[Str:Core]
     """
     do_cores_available = {}

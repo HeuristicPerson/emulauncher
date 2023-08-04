@@ -16,9 +16,9 @@ class PlatformCfg:
     """
     def __init__(self, pdx_json={}):
         self.s_alias = ''         # Alias of the platform
-        self.s_name = ''          # Full name of the platform
+        self.s_name = ''          # Full ps_name of the platform
         self.f_aspect = 0.0       # Visual aspect ratio of the platform
-        self.ls_region_pats = []  # ROM name patters that will trigger each of the console regions
+        self.ls_region_pats = []  # ROM ps_name patters that will trigger each of the console regions
         self.ls_regions = []      # List of available regions for the console
         self.lf_freqs = []        # List of available screen frequencies for the platform
         self.ls_cores = []        # Name of compatible cores

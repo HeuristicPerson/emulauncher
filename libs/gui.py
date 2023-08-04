@@ -1044,7 +1044,7 @@ class _SoundBank:
         """
         Method to play a sound.
 
-        :param ps_sound_name: Internal name of the sound to be played.
+        :param ps_sound_name: Internal ps_name of the sound to be played.
         :type ps_sound_name: Str
 
         :return: Nothing

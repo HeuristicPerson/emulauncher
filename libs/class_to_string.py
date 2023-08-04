@@ -16,7 +16,7 @@ class AttributeName:
 
     def _decompose(self, ps_string):
         """
-        Method to extract the three different parts of each attribute name: prefix, type, and name.
+        Method to extract the three different parts of each attribute ps_name: prefix, type, and ps_name.
 
         :param ps_string:
         :type ps_string: Str
@@ -55,7 +55,7 @@ def class_to_string(po_instance, pb_privates=False):
 
     Notice how:
 
-        1. The type indication in the attribute name is indented two positions at least.
+        1. The type indication in the attribute ps_name is indented two positions at least.
         2. The variable names are vertically align (foo_size, foo_names, foo_years).
         3. Attributes without type indication (foo, bar) appear after the attributes with type.
         4. Attributes appear alphabetically sorted.
@@ -87,11 +87,11 @@ def class_to_string(po_instance, pb_privates=False):
         if (not o_attribute.s_prefix.startswith('_')) or pb_privates:
             s_attr_name = '.%s:' % o_attribute
 
-            # First, we left pad the attribute name so the variable names are vertically aligned
+            # First, we left pad the attribute ps_name so the variable names are vertically aligned
             i_left_pad = i_prefix_max_length + i_type_max_length - len(o_attribute.s_prefix) - len(o_attribute.s_type)
             s_attr_name = '%s%s' % (' ' * i_left_pad, s_attr_name)
 
-            # Then, we pad the attribute name to the right so the values will be vertically aligned
+            # Then, we pad the attribute ps_name to the right so the values will be vertically aligned
             i_max_length = 2 + i_prefix_max_length + i_type_max_length + i_name_max_length
             s_attr_name = s_attr_name.ljust(i_max_length, ' ')
 
@@ -116,7 +116,7 @@ def _my_compare(ps_item_a, ps_item_b):
     The sorting function has to return -1, 0, +1 depending on which of the items should go first.
 
     I typically call my attributes .type_name, or ._type_name for private attributes. So, the first thing is to get the
-    type of variable, and the name separately because I want to alphabetically sort by the variable name, not the type.
+    type of variable, and the ps_name separately because I want to alphabetically sort by the variable ps_name, not the type.
 
     :param ps_item_a:
     :param ps_item_b:

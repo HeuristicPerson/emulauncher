@@ -158,17 +158,28 @@ class TestClassRom(unittest.TestCase):
         s_msg = 'Safe dirty CRC32 value not matching when a ROM contains a valid clean CRC32.'
         self.assertEqual(s_expect, s_actual, s_msg)
 
+    # Initialisation tests
+    #---------------------
+    def test_init_non_existing_file(self):
+        s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt', 'Non existing.md')
+        o_rom = roms.Rom('mdr-crt', s_rom_file)
+        print(o_rom)
+        self.assertEqual(True, False)
+
+    # TODO: Test for non existing ROM file
+    # TODO: Test for existing ROM file
+    # TODO: Test for rom not included in dat
+    # TODO: Test for rom included in dat
+
 
 # Helping functions
 #=======================================================================================================================
 def _get_full_rom():
     """
-    Function that returns a fully populated ROM (including dat information).
+    Function that returns a fully populated ROM (including .dat information).
     :return:
     :rtype: roms.Rom
     """
-    # Preparation of the ROMs to be used
-    #----------------------------------
     s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
                               'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
     s_dat_file = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
@@ -178,12 +189,12 @@ def _get_full_rom():
 
 def _get_incomplete_rom():
     """
-    Function that returns a fully populated ROM (including dat information).
-    :return:
+    Function that returns a partially populated Rom object just including data from the file itself (so, not recognised
+    by any .dat file).
+
+    :return: A partially populated Rom object.
     :rtype: roms.Rom
     """
-    # Preparation of the ROMs to be used
-    #----------------------------------
     s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
                               'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl) - fake.zip')
     s_dat_file = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')

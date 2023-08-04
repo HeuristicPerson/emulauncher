@@ -33,16 +33,16 @@ class Rom:
         self.s_ccrc32 = ''     # Clean additive CRC32 of the ROM.
         self.s_dcrc32 = ''     # Dirty additive CRC32 of the ROM.
         self.s_name = ''       # Name of the ROM.
-        self.i_csize = 0       # Clean size of the ROM.
-        self.i_dsize = 0       # Dirty size of the ROM.
-        self.i_psize = 0       # Path-size of the ROM.
+        self.i_csize = None    # Clean size of the ROM.
+        self.i_dsize = None    # Dirty size of the ROM.
+        self.i_psize = None    # Path-size of the ROM (or real disk size if the file actually exists).
         self.s_dat = ''        # Dat file the ROM is matched against.
         self.s_dat_ver = ''    # Version of the dat file the ROM is matched against.
 
         try:
             self.o_platform = cons.do_PLATFORMS[ps_platform]
         except KeyError as o_exception:
-            s_msg = f'Platform with alias "{ps_platform}" not found in {cons._s_platforms_file}'
+            s_msg = f'Platform with alias "{ps_platform}" not found in {cons._s_PLATFORMS_FILE}'
             raise KeyError(s_msg) from o_exception
 
         self.populate_from_file(ps_path)
@@ -153,12 +153,16 @@ class Rom:
         s_file_name = os.path.basename(ps_file)
         s_name, _, s_ext = s_file_name.rpartition('.')
         self.s_name = s_name
-        self.i_psize = os.stat(self.s_path).st_size
+
+        try:
+            self.i_psize = os.stat(self.s_path).st_size
+        except FileNotFoundError:
+            self.i_psize = None
 
     def _get_s_region_auto(self):
         """
         Method to get the automatic region for the current ROM. The region will be obtained from the platform settings
-        and the ROM name.
+        and the ROM ps_name.
 
         :return: The automatic region of the ROM.
         :rtype: Str
@@ -174,7 +178,7 @@ class Rom:
     def _get_f_refresh_auto(self):
         """
         Method to get the automatic refresh rate for the current ROM. The refresh will be obtained from the platform
-        settings and the ROM name.
+        settings and the ROM ps_name.
 
         :return: The automatic refresh rate of the ROM.
         :rtype: Float

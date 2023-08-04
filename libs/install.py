@@ -7,29 +7,7 @@ import shutil
 import time
 import zipfile
 
-from . import paths
-
-
-# Helper functions
-#=======================================================================================================================
-def _clean_dir(ps_dir):
-    """
-    Function to clean the contents of a directory.
-
-    :param ps_dir:
-    :type ps_dir: Str
-
-    :return: Nothing.
-    """
-    for s_element in os.listdir(ps_dir):
-        file_path = os.path.join(ps_dir, s_element)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
+from .files import clean_dir
 
 
 # Main functions
@@ -66,7 +44,7 @@ def install(po_rom_cfg, ps_dir, po_status=None):
     #-------------------------------------------
     if os.path.isdir(ps_dir):
         print('  < Cleaned directory')
-        _clean_dir(ps_dir)
+        clean_dir(ps_dir)
     else:
         print('  < Created directory')
         os.makedirs(ps_dir)
@@ -114,6 +92,15 @@ def install(po_rom_cfg, ps_dir, po_status=None):
             po_status.s_message = 'Applying patch'
 
     time.sleep(2)
+
+
+def patch(ps_file, ps_patch):
+    """
+
+    :param ps_file:
+    :param ps_patch:
+    :return:
+    """
 
 
 def dummy(po_status, po_romconfig=None):

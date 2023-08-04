@@ -20,6 +20,8 @@ Description: Library with file tools.
 import codecs
 import datetime
 import os
+import shutil
+import zlib
 
 
 # Classes
@@ -163,7 +165,7 @@ class BackReader:
 
 class FilePath(object):
     """
-    Class to handle file information: FilePath name, root, extension, etc...
+    Class to handle file information: FilePath ps_name, root, extension, etc...
     """
 
     def __init__(self, *u_path):
@@ -206,7 +208,7 @@ class FilePath(object):
 
     def _get_u_full_file(self):
         """
-        Method to get the full file name including extension.
+        Method to get the full file ps_name including extension.
         :return:
         """
         return os.path.basename(self.u_path)
@@ -570,7 +572,7 @@ def file_size_format(pi_bytes, pi_jump=1024, pu_suffix=u'B'):
     elif pi_jump == 1024:
         lu_units = [u'', u'Ki', u'Mi', u'Gi', u'Ti', u'Pi', u'Ei', u'Zi', u'Yi']
 
-    # [1/?] Finally we build the output string
+    # [1/?] Finally, we build the output string
     # -----------------------------------------
     for u_unit in lu_units:
         if abs(pi_bytes) < float(pi_jump):
@@ -579,7 +581,7 @@ def file_size_format(pi_bytes, pi_jump=1024, pu_suffix=u'B'):
 
         pi_bytes /= float(pi_jump)
 
-    # If the loop finished, the number is already divided by pi_jump but we don't have any bigger unit, so...
+    # If the loop finished, the number is already divided by pi_jump, but we don't have any bigger unit, so...
     else:
         pi_bytes *= float(pi_jump)
         u_out = u'%3.1f %s%s' % (pi_bytes, lu_units[-1], pu_suffix)
@@ -619,3 +621,58 @@ def read_nlines(po_file, pi_lines):
         pass
 
     return lu_lines
+
+
+def clean_dir(ps_dir):
+    """
+    Function to clean the contents of a directory.
+
+    :param ps_dir:
+    :type ps_dir: Str
+
+    :return: Nothing.
+    """
+    for s_element in os.listdir(ps_dir):
+        file_path = os.path.join(ps_dir, s_element)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+
+def init_dir(ps_dir):
+    """
+    Function that "initialises" a directory: a) if it doesn't exist, the function will create it; b) if it exists, the
+    function will remove its content.
+
+    :param ps_dir: Path of the directory to be initialised.
+    :type ps_dir: Str
+
+    :return: Nothing.
+    """
+    if os.path.isdir(ps_dir):
+        print('dir exists')
+        clean_dir(ps_dir)
+    else:
+        os.makedirs(ps_dir)
+
+
+def compute_crc(ps_file):
+    """
+    Function to compute the CRC32 of a file. This function will be used mostly in unit-tests to validate that created
+    files are correct.
+
+    :param ps_file:
+    :type ps_file: Str
+
+    :return:
+    :rtype: Str
+    """
+    prev = 0
+    for chunk in open(ps_file, "rb"):
+        prev = zlib.crc32(chunk, prev)
+    s_crc32 = "%X" % (prev & 0xFFFFFFFF)
+    return s_crc32.lower()
