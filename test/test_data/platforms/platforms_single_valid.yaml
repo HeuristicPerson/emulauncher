@@ -1,0 +1,20 @@
+- alias: mdr-crt
+  name: Megadrive (cartridge)
+  aspect_ratio: 1.333333
+  regions:
+    - usa
+    - japan
+    - europe
+  frequencies:
+    - 60.0
+    - 60.0
+    - 50.0
+  frequency_patterns:
+    - "[\\(,\\s](usa|world)[\\),]"
+    - "[\\(,\\s](japan)[\\),]"
+    - "[\\(,\\s](europe|spain|sweden)[\\),]"
+  cores:
+    - genesis_plus_gx
+    - genesis_plus_gx_wide
+    - picodrive
+    - smsplus

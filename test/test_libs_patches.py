@@ -31,7 +31,7 @@ class TestClassPatch(unittest.TestCase):
 
     def test_method_init_from_file_with_invalid_crc32(self):
         """
-        Test for the initialization using a file that doesn't have a valid CRC32 in the file name.
+        Test for the initialization using a file that doesn't have a valid CRC32 in the file ps_name.
         :return: Nothing.
         """
         s_patch = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'foo.bar')
@@ -39,7 +39,7 @@ class TestClassPatch(unittest.TestCase):
 
     def test_method_init_from_file_with_no_description(self):
         """
-        Test for the initialization using a file that doesn't have a valid description in the file name.
+        Test for the initialization using a file that doesn't have a valid description in the file ps_name.
         :return: Nothing.
         """
         s_patch = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'aaaaaaaa.bar')
@@ -83,7 +83,8 @@ class TestFunctionGetPatches(unittest.TestCase):
         """
         # Building the Rom object that will be used to query for compatible patches
         #--------------------------------------------------------------------------
-        s_rom = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt', 'Phelios (Japan) (Virtual Console).zip')
+        s_rom = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
+                             'Phantom Gear (World) (v0.9) (Demo) (Aftermarket) (Unl).zip')
         s_dat = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
         o_rom = roms.Rom('mdr-crt', s_rom, s_dat)
 

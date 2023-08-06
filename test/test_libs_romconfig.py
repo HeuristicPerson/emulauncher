@@ -320,7 +320,7 @@ class TestClassRomConfig(unittest.TestCase):
         o_expect_config.set('meta', 'date', str(o_now))
         o_expect_config.set('meta', 'user', 'joe')
         o_expect_config.add_section('rom')
-        o_expect_config.set('rom', 'name', 'Miniplanets (World) (Rev 3) (Aftermarket) (Unl)')
+        o_expect_config.set('rom', 'ps_name', 'Miniplanets (World) (Rev 3) (Aftermarket) (Unl)')
         o_expect_config.set('rom', 'ccrc32', '8ea40d2f')
         o_expect_config.set('rom', 'platform', 'mdr-crt')
         o_expect_config.set('rom', 'patch', 'foo')

@@ -1,10 +1,10 @@
+import codecs
 import os
 import yaml
 import sys
 
 import pyglet
 
-import libs.class_to_string
 from . import class_to_string
 from . import menu
 from . import romconfig
@@ -58,7 +58,7 @@ class Theme:
 
         :return: Nothing
         """
-        with open(ps_file, 'r') as o_file:
+        with codecs.open(ps_file, 'r', 'utf8') as o_file:
             try:
                 dx_yaml = yaml.safe_load(o_file)
             except yaml.YAMLError as o_exception:
@@ -694,7 +694,7 @@ class _Menu(_GuiElement, menu.Menu):
                                          anchor_y=self._o_theme.ts_option_align[1])
         self._lo_pyglet_elems.append(o_gui_option)
 
-    def on_key_press(self, symbol, modifier):
+    def on_key_press(self, symbol, modifiers):
         if symbol == pyglet.window.key.UP:
             self.activate_prev()
         elif symbol == pyglet.window.key.DOWN:
@@ -1044,7 +1044,7 @@ class _SoundBank:
         """
         Method to play a sound.
 
-        :param ps_sound_name: Internal name of the sound to be played.
+        :param ps_sound_name: Internal ps_name of the sound to be played.
         :type ps_sound_name: Str
 
         :return: Nothing

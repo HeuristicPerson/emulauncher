@@ -4,7 +4,7 @@ window:
   height: 1080
 
 header:
-  # ROM name
+  # ROM ps_name
   title:
     color:    [255, 255, 255, 128]
     position: [960, 900]
@@ -13,7 +13,7 @@ header:
     font:     Emulogic
     width:    960
 
-  # ROM full name
+  # ROM full ps_name
   subtitle:
     color:    [255, 255, 255, 128]
     position: [960, 950]

@@ -45,7 +45,7 @@ class Patch:
         """
         self.s_path = ps_file
 
-        # Extracting information from the file name
+        # Extracting information from the file ps_name
         s_file = os.path.basename(ps_file).rpartition('.')[0]
 
         s_ccrc32, _, s_title = s_file.partition(' - ')
@@ -55,13 +55,13 @@ class Patch:
         if string_helpers.is_crc32(s_ccrc32):
             self.s_ccrc32 = s_ccrc32
         else:
-            s_msg = 'The first part of the patch file name is not a valid CRC32.'
+            s_msg = 'The first part of the patch file ps_name is not a valid CRC32.'
             raise ValueError(s_msg)
 
         if s_title:
             self.s_title = s_title
         else:
-            s_msg = 'The description of the patch file name is empty.'
+            s_msg = 'The description of the patch file ps_name is empty.'
             raise ValueError(s_msg)
 
 
@@ -70,10 +70,10 @@ class Patch:
 def get_patches(ps_dir, po_rom):
     """
     Function to get available patches in a dir for certain ROM. By default, the function will search for patches
-    following the name scheme:
+    following the ps_name scheme:
 
       - "0a0b0c0d - description.zip" where the first 8 chars are the (clean) CRC32 of the ROM.
-      - "sonic the hedgehog (usa) - description.zip" where anything below - description is the ROM name. This second
+      - "sonic the hedgehog (usa) - description.zip" where anything below - description is the ROM ps_name. This second
         method is NOT recommended at all.
 
     :param ps_dir:

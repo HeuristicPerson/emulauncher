@@ -6,18 +6,19 @@ Script to launch a ROM from certain platform.
 
 import argparse
 import os
+import sys
 import time
 
 import pyglet
 
-import libs.cons as cons
-import libs.config as config
-import libs.cores as cores
-import libs.gui as gui_theme
-import libs.install as install
-import libs.paths as paths
-import libs.patches as patches
-import libs.roms as roms
+from libs import cons
+from libs import config
+from libs import cores
+from libs import gui
+from libs import install
+from libs import paths
+from libs import patches
+from libs import roms
 from libs.parallel import ParallelTask
 
 
@@ -38,7 +39,8 @@ class _CmdArgs:
                               help='Platform of the ROM to be executed.')
         o_parser.add_argument('rom',
                               action='store',
-                              help='Full path of the ROM to be executed')
+                              help='Full path of the ROM to be executed',
+                              type=os.path.abspath)
 
         o_args = o_parser.parse_args()
 
@@ -55,10 +57,10 @@ class _CmdArgs:
         """
         s_system_desc = cons.do_PLATFORMS[self.s_system].s_name
         s_out = ''
-        s_out += f'┌[Arguments]─────────────\n'
-        s_out += f'├      System: {self.s_system} - {s_system_desc}\n'
-        s_out += f'├         ROM: {self.s_rom}\n'
-        s_out += f'└────────────────────────'
+        s_out += '┌[Arguments]─────────────\n'
+        s_out += f'├ System: ...... {self.s_system} - {s_system_desc}\n'
+        s_out += f'├ ROM: ......... {self.s_rom}\n'
+        s_out += '└────────────────────────'
         return s_out
 
 
@@ -72,8 +74,8 @@ class MainWindow(pyglet.window.Window):
         :type po_cfg: config.ProgramCfg
         """
 
-        s_theme_yaml = os.path.join(cons.s_SCRIPT_ROOT, 'themes', o_main_cfg.s_theme, 'theme.yaml')
-        self._o_theme = gui_theme.Theme(s_theme_yaml, po_rom)
+        s_theme_yaml = os.path.join(cons.s_SCRIPT_ROOT, 'themes', po_cfg.s_theme, 'theme.yaml')
+        self._o_theme = gui.Theme(s_theme_yaml, po_rom)
         pyglet.window.Window.__init__(self,
                                       width=self._o_theme.i_width,
                                       height=self._o_theme.i_height,
@@ -115,6 +117,11 @@ class MainWindow(pyglet.window.Window):
         self._lo_parallel_tasks = []
 
     def create_menu_patch(self):
+        """
+        Method to create the patch selection menu.
+
+        :return: Nothing.
+        """
         # Sending kill "signal" to already existing menu
         if self._o_menu is not None:
             self._o_menu.kill()
@@ -136,6 +143,11 @@ class MainWindow(pyglet.window.Window):
         self._lo_items.append(o_menu)
 
     def create_menu_core(self):
+        """
+        Method to create the core selection menu.
+
+        :return: Nothing.
+        """
         if self._o_menu is not None:
             self._o_menu.kill()
 
@@ -158,6 +170,11 @@ class MainWindow(pyglet.window.Window):
         self._lo_items.append(o_menu)
 
     def create_menu_refresh_rate(self):
+        """
+        Method to create the refresh rate selection menu.
+
+        :return: Nothing.
+        """
         if self._o_menu is not None:
             self._o_menu.kill()
 
@@ -180,6 +197,11 @@ class MainWindow(pyglet.window.Window):
         self._lo_items.append(o_menu)
 
     def create_menu_region(self):
+        """
+        Method to create the region selection menu.
+
+        :return: Nothing.
+        """
         if self._o_menu is not None:
             self._o_menu.kill()
 
@@ -251,40 +273,12 @@ class MainWindow(pyglet.window.Window):
         # First, we remove items that are not alive (we do this on every cycle)
         self._lo_items = [o_item for o_item in self._lo_items if o_item.b_alive]
 
-        # --- test code ---
-        self._lo_parallel_tasks = [o_task for o_task in self._lo_parallel_tasks if not o_task.b_completed]
-        for o_task in self._lo_parallel_tasks:
-            if not o_task.b_started:
-                o_task.start()
-        # ------ end ------
-
         # If there is any parallel task running:
         #
         #   1. We launch the task(s)
         #   2. We create a progress bar object
         #   3. We obtain the progress of each task and their status message. With them, we build global progress and msg
         #   4. We make the progress bar to show that information.
-
-        # Progress bar is created when parallel task are defined, or destroyed when there are no parallel tasks.
-        if (self._o_pbar is None) and self._lo_parallel_tasks:
-            print('  < Creating progress bar...')
-            self._o_pbar = self._o_theme.build_progress_bar()
-            self._lo_items.append(self._o_pbar)
-        elif (self._o_pbar is not None) and not self._lo_parallel_tasks:
-            print('  < Destroying progress bar...')
-            self._o_pbar.kill()
-            self._o_pbar = None
-
-        if self._o_pbar is not None:
-            lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
-            ls_messages = [o_task.s_status for o_task in self._lo_parallel_tasks]
-            s_message = ', '.join(ls_messages)
-
-            self._o_pbar.s_message = s_message
-            self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
-
-        # Then, we update all objects
-        # --- nothing yet ---
 
         # Finally, we draw everything
         self.clear()
@@ -318,10 +312,6 @@ class MainWindow(pyglet.window.Window):
         _register_action('play')
         o_romconfig = self._o_status_block.o_config
 
-        # Printing the settings to the terminal
-        for s_line in o_romconfig.nice_format().splitlines(False):
-            print(f'  < {s_line}')
-
         # When the user launches the game, the configuration is saved in the user's directory. It will overwrite
         # anything already existing with no questions.
         s_user_settings_file = paths.build_user_game_settings(po_rom_config=o_romconfig,
@@ -332,27 +322,30 @@ class MainWindow(pyglet.window.Window):
         b_installed = paths.is_rom_installed(po_rom_config=o_romconfig,
                                              po_program_config=self.o_cfg)
 
-        # TODO: Installation process is long, so it shouldn't be done here but added to a parallel execution queue.
         # TODO: Probably the same applies to running the game but that queue is ran out of the menu system.
         # If the games is not installed, we install it
         if not b_installed:
+            print(f'  < Installing with options')
+            for s_line in o_romconfig.nice_format().splitlines(False):
+                print(f'  <   {s_line}')
+
             # We killed the active menu (if any, so it'll be removed in the next loop).
             if self._o_menu is not None:
                 self._o_menu.kill()
-
-            # TODO: Probably it's a good idea to remove the progress bar creation from here and do it when we start the
-            # parallel task.
-            # We create a progress bar
-            #self._o_pbar = self._o_theme.build_progress_bar()
-            #self._lo_items.append(self._o_pbar)
 
             # --- test code ---
             # We need to create a thread where the actual installation is happening. We can't directly pass the progress
             # object, so the installation can update the progress and message because the progress bar contains some
             # pyglet objects (Label, rectangles, background color...) that are not compatible with threading. Instead,
             # we pass a pure text Status object that will be updated by the installation process.
+            s_install_dir = paths.build_rom_install_dir_path(po_rom_config=o_romconfig,
+                                                             po_program_config=self.o_cfg)
+            # TODO: We need to create the install directory
+            # TODO: We
+
             o_parallel_task_definition = ParallelTask(po_callback=install.install,
-                                                      plx_args=['romconfig_here'])
+                                                      plx_args=[self._o_status_block.o_config, s_install_dir],
+                                                      pb_close_gui=True)
             self._lo_parallel_tasks.append(o_parallel_task_definition)
 
             # TODO: Install the game (external function)
@@ -374,7 +367,7 @@ class MainWindow(pyglet.window.Window):
         Callback function for 1st menu exit option.
         """
         time.sleep(1)
-        quit()
+        sys.exit()
 
     def callback_menu_1_choose_user(self, ps_user):
         """
@@ -458,6 +451,65 @@ class MainWindow(pyglet.window.Window):
         _register_action(f'core: {po_core.s_name}')
         self._o_status_block.o_core = po_core
 
+    def schedule_updater(self, pf_delta_t):
+        """
+        Method to run the update of the progress bar.
+
+        :param pf_delta_t: Delta time since last run of the scheduler. Required by pyglet but not used in this program.
+        :type pf_delta_t: Float
+
+        :return: Nothing.
+        """
+        self._update_parallel_tasks()
+        self._update_progress_bar()
+
+    def _update_progress_bar(self):
+        """
+        Method to create/destroy/manage the progress bar.
+        :return: Nothing.
+        """
+        # Creation and destruction of the progress bar
+        #---------------------------------------------
+        # Progress bar is created when parallel task are defined, or destroyed when there are no parallel tasks.
+        if (self._o_pbar is None) and self._lo_parallel_tasks:
+            # print('  < Creating progress bar...')
+            self._o_pbar = self._o_theme.build_progress_bar()
+            self._lo_items.append(self._o_pbar)
+        elif (self._o_pbar is not None) and not self._lo_parallel_tasks:
+            # print('  < Destroying progress bar...')
+            self._o_pbar.kill()
+            self._o_pbar = None
+
+        # Updating the progress bar
+        #--------------------------
+        if (self._o_pbar is not None) and self._lo_parallel_tasks:
+            lf_progress = [o_task.f_progress for o_task in self._lo_parallel_tasks]
+            ls_messages = [o_task.s_status for o_task in self._lo_parallel_tasks]
+            s_message = ', '.join(ls_messages)
+
+            self._o_pbar.s_message = s_message
+            self._o_pbar.f_progress = sum(lf_progress) / len(lf_progress)
+
+    def _update_parallel_tasks(self):
+        """
+        Method to process parallel tasks.
+
+        :return: Nothing.
+        """
+        # Checking for completed tasks that require the gui to be closed
+        for o_task in self._lo_parallel_tasks:
+            if o_task.b_close_gui and o_task.b_completed:
+                print('  < Closing GUI')
+                self.close()
+
+        # Removing completed tasks
+        self._lo_parallel_tasks = [o_task for o_task in self._lo_parallel_tasks if not o_task.b_completed]
+
+        # Starting tasks that need it
+        for o_task in self._lo_parallel_tasks:
+            if not o_task.b_started:
+                o_task.start()
+
 
 # Helper functions
 #=======================================================================================================================
@@ -473,9 +525,13 @@ def _register_action(ps_action):
     print(s_msg)
 
 
-# Main code
+# Main function
 #=======================================================================================================================
-if __name__ == '__main__':
+def main():
+    """
+    Main function.
+    :return: Nothing.
+    """
     s_msg = '%s\n%s' % (cons.s_PRG, '='*len(cons.s_PRG))
     print(s_msg)
 
@@ -490,7 +546,18 @@ if __name__ == '__main__':
     o_rom = roms.Rom(ps_platform=o_cmd_args.s_system, ps_path=o_cmd_args.s_rom, ps_dat=s_dat_path)
     print(o_rom.nice_format())
 
+    # TODO: Add an output object to be updated with the info for the rom to be launched.
     o_window = MainWindow(po_rom=o_rom, po_cfg=o_main_cfg)
+
+    # TODO: Maybe it's better to simply have one update schedule and from it, calling other methods for cleaner code.
+    pyglet.clock.schedule_interval(o_window.schedule_updater, 0.2)
     pyglet.app.run(1/30)
 
+    # TODO: Run launching of the installed ROM here.
     print('AFTER CLOSING PYGLET')
+
+
+# Main code
+#=======================================================================================================================
+if __name__ == '__main__':
+    main()

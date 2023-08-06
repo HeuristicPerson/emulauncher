@@ -6,16 +6,9 @@ import os
 import re
 
 from . import cons
-from . import dat_files
+from . import datfiles
+from . import files
 from . import string_helpers
-
-
-# Initialization
-#=======================================================================================================================
-#_lo_platforms = platforms.read_platforms_file(cons._s_platforms_file)
-
-# TODO: Read available cores.
-# I think this is not needed anymore, functionality added somewhere else
 
 
 # Classes
@@ -24,9 +17,8 @@ class Rom:
     """
     :ivar o_platform: platform.PlatformCfg
     """
-    def __init__(self, ps_platform, ps_path, ps_dat=''):
+    def __init__(self, ps_platform, ps_path, ps_dat='', pb_linked=True):
         """
-
         :param ps_platform: Alias of the platform that runs the ROM.
         :type ps_platform: Str
 
@@ -35,27 +27,38 @@ class Rom:
 
         :param ps_dat: Path of a dat file to get more information from
         :type ps_dat: Str
-        """
 
-        self.s_path = ps_path
-        self.s_ccrc32 = ''
-        self.s_dcrc32 = ''
-        self.s_name = ''
-        self.i_csize = 0
-        self.i_dsize = 0
-        self.s_dat = ''
-        self.s_dat_ver = ''
+        :param pb_linked: Whether linked (e.g. multi-file or multi-disc ROMs need to be identified and stored).
+        :type pb_linked: Bool
+        """
+        self.s_path = ps_path     # Full path of the ROM.
+        self.s_ccrc32 = ''        # Clean additive CRC32 of the ROM.
+        self.s_dcrc32 = ''        # Dirty additive CRC32 of the ROM.
+        self.s_name = ''          # Name of the ROM.
+        self.i_csize = None       # Clean size of the ROM.
+        self.i_dsize = None       # Dirty size of the ROM.
+        self.i_psize = None       # Path-size of the ROM (or real disk size if the file actually exists).
+        self.s_dat = ''           # Dat file the ROM is matched against.
+        self.s_dat_ver = ''       # Version of the dat file the ROM is matched against.
+
+        # TODO: Create method to populate associated ROMs from files and dats.
+        # Linked ROMs (e.g. for multi disc games, the other discs) paths. There is no point in creating full Rom objects
+        # for linked ROMs since we don't need most of the data. Only the path will be used to install the ROMs.
+        self.ls_linked_roms = []
 
         try:
             self.o_platform = cons.do_PLATFORMS[ps_platform]
         except KeyError as o_exception:
-            s_msg = f'Platform with alias "{ps_platform}" not found in {cons._s_platforms_file}'
+            s_msg = f'Platform with alias "{ps_platform}" not found in {cons._s_PLATFORMS_FILE}'
             raise KeyError(s_msg) from o_exception
 
         self.populate_from_file(ps_path)
 
         if ps_dat:
             self.populate_from_dat(ps_dat)
+
+        if pb_linked:
+            self._find_linked_roms()
 
     def __eq__(self, po_other):
         """
@@ -84,6 +87,7 @@ class Rom:
         s_out += f'  .s_dat_ver:     {self.s_dat_ver}\n'
         s_out += f'  .i_dsize:       {self.i_dsize}\n'
         s_out += f'  .i_csize:       {self.i_csize}\n'
+        s_out += f'  .i_psize:       {self.i_psize}\n'
         s_out += f'  .s_dcrc32:      {self.s_dcrc32}\n'
         s_out += f'  .s_ccrc32:      {self.s_ccrc32}\n'
         s_out += f'  .s_dcrc32_safe: {self.s_dcrc32_safe}\n'  # Safe dirty CRC32 ('xxxxxxxx' when crc32 is empty)
@@ -99,20 +103,26 @@ class Rom:
         :Return: A text summary with ROM information.
         :rtype: Str
         """
+
+        s_file_size = files.file_size_format(self.i_psize)
+        s_rom_csize = files.file_size_format(self.i_csize)
+        s_rom_dsize = files.file_size_format(self.i_dsize)
+
         s_out = ''
         s_out += f'┌[ROM Information]───────\n'
         s_out += f'├ From file \n'
-        s_out += f'│   Name:        {self.s_name}\n'
-        s_out += f'│   System:      {self.o_platform.s_name}\n'
+        s_out += f'│   Name: ...... {self.s_name}\n'
+        s_out += f'│   System: .... {self.o_platform.s_name}\n'
+        s_out += f'│   Size: ...... {self.i_psize} ({s_file_size})\n'
         s_out += f'├ From .dat\n'
-        s_out += f'│   Dat:         {self.s_dat} - {self.s_dat_ver}\n'
-        s_out += f'│   Size:        dirty={self.i_dsize}, clean={self.i_csize}\n'
-        s_out += f'│   CRC32:       dirty={self.s_dcrc32}, clean={self.s_ccrc32}\n'
+        s_out += f'│   Dat: ....... {self.s_dat} - {self.s_dat_ver}\n'
+        s_out += f'│   Size: ...... dirty={self.i_dsize} ({s_rom_dsize}), clean={self.i_csize} ({s_rom_csize})\n'
+        s_out += f'│   CRC32: ..... dirty={self.s_dcrc32}, clean={self.s_ccrc32}\n'
         s_out += f'├ From platform\n'
-        s_out += f'│   Cores:       %s\n' % ', '.join(self.o_platform.ls_cores)
-        s_out += f'│   Aspect:      {self.o_platform.f_aspect:.3f}\n'
-        s_out += f'│   Regions:     %s\n' % ', '.join([str(s_region) for s_region in self.o_platform.ls_regions])
-        s_out += f'│   Refresh:     %s\n' % ', '.join([str(f_freq) for f_freq in self.o_platform.lf_freqs])
+        s_out += f'│   Cores: ..... %s\n' % ', '.join(self.o_platform.ls_cores)
+        s_out += f'│   Aspect: .... {self.o_platform.f_aspect:.3f}\n'
+        s_out += f'│   Regions: ... %s\n' % ', '.join([str(s_region) for s_region in self.o_platform.ls_regions])
+        s_out += f'│   Refresh: ... %s\n' % ', '.join([str(f_freq) for f_freq in self.o_platform.lf_freqs])
         s_out += f'│   R. patterns: %s\n' % ', '.join(self.o_platform.ls_region_pats)
         s_out += f'└────────────────────────'
         return s_out
@@ -126,20 +136,41 @@ class Rom:
 
         :return: Nothing, the object will be populated in place.
         """
-        o_dat = dat_files.Dat(ps_file=ps_dat)
+        o_dat = datfiles.Dat(ps_file=ps_dat)
         self.s_dat = o_dat.s_name
         self.s_dat_ver = o_dat.s_version
+
+        # --- test code ---
+        print()
+        print('Populating from dat')
+        # ------ end ------
 
         s_file = os.path.basename(self.s_path)
         s_file_name, _, s_file_ext = s_file.rpartition('.')
 
         o_dat_rom = o_dat.get_romset_by_name(s_file_name)
+
+        # --- test code ---
+        print(o_dat_rom)
+        # ------ end ------
+
         if o_dat_rom is not None:
             self.s_name = o_dat_rom.s_desc
             self.i_dsize = o_dat_rom.i_dsize
             self.i_csize = o_dat_rom.i_csize
             self.s_dcrc32 = o_dat_rom.s_dcrc32
             self.s_ccrc32 = o_dat_rom.s_ccrc32
+
+        # Method to identify and store linked ROMs (e.g. when the current ROM is the first disc of a multi-disc game, this
+        # method will try to identify the other discs of the game). At the moment, the only way to identify linked ROMs is
+        # through the use of .dat files. Naming convention for non-.dat ROMs is not standardise in any way, so it's not
+        # worth wasting time in coding that will never be reliable.
+        lo_linked_dat_roms = o_dat.get_linked_roms(self.s_name)
+        self.ls_linked_roms = [o_dat_rom.s_name for o_dat_rom in lo_linked_dat_roms]
+
+        # --- test code ---
+        print(self.ls_linked_roms)
+        # ------ end ------
 
     def populate_from_file(self, ps_file):
         """
@@ -154,10 +185,25 @@ class Rom:
         s_name, _, s_ext = s_file_name.rpartition('.')
         self.s_name = s_name
 
+        try:
+            self.i_psize = os.stat(self.s_path).st_size
+        except FileNotFoundError:
+            self.i_psize = None
+
+    def _find_linked_roms(self):
+        """
+        Method to identify and store linked ROMs (e.g. when the current ROM is the first disc of a multi-disc game, this
+        method will try to identify the other discs of the game). At the moment, the only way to identify linked ROMs is
+        through the use of .dat files. Naming convention for non-.dat ROMs is not standardise in any way, so it's not
+        worth wasting time in coding that will never be reliable.
+        :return: Nothing.
+        """
+
+
     def _get_s_region_auto(self):
         """
         Method to get the automatic region for the current ROM. The region will be obtained from the platform settings
-        and the ROM name.
+        and the ROM ps_name.
 
         :return: The automatic region of the ROM.
         :rtype: Str
@@ -173,7 +219,7 @@ class Rom:
     def _get_f_refresh_auto(self):
         """
         Method to get the automatic refresh rate for the current ROM. The refresh will be obtained from the platform
-        settings and the ROM name.
+        settings and the ROM ps_name.
 
         :return: The automatic refresh rate of the ROM.
         :rtype: Float

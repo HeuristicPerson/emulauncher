@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" "http://www.logiqx.com/Dats/datafile.dtd">
+<datafile>
+	<header>
+		<name>Sony - PlayStation</name>
+		<description>Sony - PlayStation - Discs (10201) (2020-02-10 11-41-26)</description>
+		<version>2020-02-10 11-41-26</version>
+		<date>2020-02-10 11-41-26</date>
+		<author>redump.org</author>
+		<homepage>redump.org</homepage>
+		<url>http://redump.org/</url>
+	</header>
+	<game name="Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It)">
+		<category>Games</category>
+		<description>Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It)</description>
+		<rom name="Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It).cue" size="120" crc="92b3ff37" md5="56125070a7f679f547133512543a3585" sha1="5cc0e2d25792ae13ec7dab7b2ee8974c700c3337"/>
+		<rom name="Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It).bin" size="470999760" crc="91cad2df" md5="24c2f5a5e43e4bc4c41081f5ef4dc818" sha1="8c215d983ad7d7f5f8aa122981cbd79d846532ec"/>
+	</game>
+	<game name="Dino Crisis (USA)">
+		<category>Games</category>
+		<description>Dino Crisis (USA)</description>
+		<rom name="Dino Crisis (USA).cue" size="204" crc="d300424f" md5="149a0e24421d396746d696dafc5f459c" sha1="6496a64bf92d4f6aca185d55e7214f877b3608bd"/>
+		<rom name="Dino Crisis (USA) (Track 1).bin" size="379984416" crc="bd09f6d5" md5="4990bb2a9e3374a234885ac983a9397a" sha1="0f1dc456c40bd0839afd0c0947a71ebb4e16d836"/>
+		<rom name="Dino Crisis (USA) (Track 2).bin" size="37396800" crc="7976083e" md5="2d7b5e8e94a91bf5423b2356f6a34863" sha1="d9f92af296360772e62caa4cb276de3fa74f5538"/>
+	</game>
+</datafile>

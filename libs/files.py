@@ -20,6 +20,8 @@ Description: Library with file tools.
 import codecs
 import datetime
 import os
+import shutil
+import zlib
 
 
 # Classes
@@ -59,14 +61,11 @@ class BackReader:
         return self
 
     def next(self):
-        while (self._u_buffer.count(u'\n') < 2) and (self._o_file.tell() > 0):
-            # We aim to fill the buffer so we try to have two new lines symbols in it:
-            #
-            #
+        while (self._u_buffer.count('\n') < 2) and (self._o_file.tell() > 0):
+            # We aim to fill the buffer, so we try to have two new lines symbols in it:
             self._u_buffer = self._get_chunk_from_end() + self._u_buffer
-            # print '## READING BUFF:', repr(self._u_buffer)
 
-        if self._u_buffer == u'':
+        if self._u_buffer == '':
             raise StopIteration
 
         # Remember we WANTED to have at least two '\n' in the buffer, but that's not possible when finishing to
@@ -89,21 +88,21 @@ class BackReader:
         #          |=====[n]======
 
         # With a little of pre-process (removing and keeping the last '\n' when present)...
-        u_end = u''
+        u_end = ''
         if self._u_buffer.endswith(u'\n'):
-            u_end = u'\n'
+            u_end = '\n'
             self._u_buffer = self._u_buffer[:-1]
 
         # We can process cases 1a inside case 2.
-        if u'\n' in self._u_buffer:
+        if '\n' in self._u_buffer:
             lu_chunks = self._u_buffer.rpartition(u'\n')
-            u_line = u'%s%s' % (lu_chunks[2], u_end)
-            self._u_buffer = u'%s\n' % self._u_buffer.rpartition(u'\n')[0]
+            u_line = '%s%s' % (lu_chunks[2], u_end)
+            self._u_buffer = '%s\n' % self._u_buffer.rpartition(u'\n')[0]
 
         # Now case 1b is the only one that needs to be processed.
         else:
-            u_line = u'%s%s' % (self._u_buffer, u_end)
-            self._u_buffer = u''
+            u_line = '%s%s' % (self._u_buffer, u_end)
+            self._u_buffer = ''
 
         return u_line
 
@@ -114,8 +113,7 @@ class BackReader:
         """
         i_end = self._o_file.tell()
         i_start = i_end - self.i_block
-        if i_start < 0:
-            i_start = 0
+        i_start = max(i_start, 0)
 
         # The problem with utf8 (as far as I know) is that some characters use one byte, while others use two. That
         # means that you could split a character in half when getting a chunk of data (resulting in an
@@ -163,7 +161,7 @@ class BackReader:
 
 class FilePath(object):
     """
-    Class to handle file information: FilePath name, root, extension, etc...
+    Class to handle file information: FilePath ps_name, root, extension, etc...
     """
 
     def __init__(self, *u_path):
@@ -206,25 +204,25 @@ class FilePath(object):
 
     def _get_u_full_file(self):
         """
-        Method to get the full file name including extension.
+        Method to get the full file ps_name including extension.
         :return:
         """
         return os.path.basename(self.u_path)
 
     def _get_u_name(self):
         u_file = self.u_file
-        if u'.' in u_file:
-            u_name = u_file.rpartition(u'.')[0]
+        if '.' in u_file:
+            u_name = u_file.rpartition('.')[0]
         else:
             u_name = u_file
         return u_name
 
     def _get_u_ext(self):
         u_file = self.u_file
-        if u'.' in u_file:
-            u_ext = u_file.rpartition(u'.')[2]
+        if '.' in u_file:
+            u_ext = u_file.rpartition('.')[2]
         else:
-            u_ext = u''
+            u_ext = ''
         return u_ext
 
     def _get_size(self):
@@ -251,7 +249,7 @@ class FilePath(object):
         Method to get the file size in human readable format.
         :return:
         """
-        return _sizeof_fmt(self.i_size, pi_jump=1024, pu_suffix=u'B')
+        return file_size_format(self.i_size, pi_jump=1024, pu_suffix=u'B')
 
     def _get_mod_time(self):
         """
@@ -544,11 +542,14 @@ class FilePath(object):
 
 
 # Functions
-# =======================================================================================================================
-def _sizeof_fmt(i_number, pi_jump=1024, pu_suffix=u'B'):
+#=======================================================================================================================
+def file_size_format(pi_bytes, pi_jump=1024, pu_suffix=u'B'):
     """
-    Function to convert integer numbers to human readable format
-    :param i_number: Value you want to convert to human readable format. e.g. 1545167316
+    Function to convert integer numbers to human-readable format
+    
+    :param pi_bytes: Value you want to convert to human-readable format. e.g. 1545167316
+    :type pi_bytes: Int
+
     :param pi_jump: Whether 1K equals to 1000 units or 1024. You could use any other number but... WHY?
     :param pu_suffix: Name of the unit, u'B' stands for Bytes, but you could use any other unit.
     :return:
@@ -557,29 +558,29 @@ def _sizeof_fmt(i_number, pi_jump=1024, pu_suffix=u'B'):
     # [0/?] Initialization
     # ---------------------
     # For crazy jumps, the units will by KxB, MxB...
-    lu_units = [u'', u'Kx', u'Mx', u'Gx', u'Tx', u'Px', u'Ex', u'Zx', u'Yx']
+    lu_units = ['', 'Kx', 'Mx', 'Gx', 'Tx', 'Px', 'Ex', 'Zx', 'Yx']
 
     # for standard 1000 jumps KB, MB, GB, TB...
     if pi_jump == 1000:
-        lu_units = [u'', u'K', u'M', u'G', u'T', u'P', u'E', u'Z', u'Y']
+        lu_units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
     # and for standard computer science 1024 jumps, KiB, MiB, GiB...
     elif pi_jump == 1024:
-        lu_units = [u'', u'Ki', u'Mi', u'Gi', u'Ti', u'Pi', u'Ei', u'Zi', u'Yi']
+        lu_units = ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi']
 
-    # [1/?] Finally we build the output string
+    # [1/?] Finally, we build the output string
     # -----------------------------------------
     for u_unit in lu_units:
-        if abs(i_number) < float(pi_jump):
-            u_out = u'%3.1f %s%s' % (i_number, u_unit, pu_suffix)
+        if abs(pi_bytes) < float(pi_jump):
+            u_out = u'%3.1f %s%s' % (pi_bytes, u_unit, pu_suffix)
             break
 
-        i_number /= float(pi_jump)
+        pi_bytes /= float(pi_jump)
 
-    # If the loop finished, the number is already divided by pi_jump but we don't have any bigger unit, so...
+    # If the loop finished, the number is already divided by pi_jump, but we don't have any bigger unit, so...
     else:
-        i_number *= float(pi_jump)
-        u_out = u'%3.1f %s%s' % (i_number, lu_units[-1], pu_suffix)
+        pi_bytes *= float(pi_jump)
+        u_out = u'%3.1f %s%s' % (pi_bytes, lu_units[-1], pu_suffix)
 
     return u_out
 
@@ -616,3 +617,58 @@ def read_nlines(po_file, pi_lines):
         pass
 
     return lu_lines
+
+
+def clean_dir(ps_dir):
+    """
+    Function to clean the contents of a directory.
+
+    :param ps_dir:
+    :type ps_dir: Str
+
+    :return: Nothing.
+    """
+    for s_element in os.listdir(ps_dir):
+        file_path = os.path.join(ps_dir, s_element)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+
+def init_dir(ps_dir):
+    """
+    Function that "initialises" a directory: a) if it doesn't exist, the function will create it; b) if it exists, the
+    function will remove its content.
+
+    :param ps_dir: Path of the directory to be initialised.
+    :type ps_dir: Str
+
+    :return: Nothing.
+    """
+    if os.path.isdir(ps_dir):
+        print('dir exists')
+        clean_dir(ps_dir)
+    else:
+        os.makedirs(ps_dir)
+
+
+def compute_crc(ps_file):
+    """
+    Function to compute the CRC32 of a file. This function will be used mostly in unit-tests to validate that created
+    files are correct.
+
+    :param ps_file:
+    :type ps_file: Str
+
+    :return:
+    :rtype: Str
+    """
+    prev = 0
+    for chunk in open(ps_file, "rb"):
+        prev = zlib.crc32(chunk, prev)
+    s_crc32 = "%X" % (prev & 0xFFFFFFFF)
+    return s_crc32.lower()

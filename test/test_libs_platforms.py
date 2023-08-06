@@ -5,6 +5,11 @@ import libs.cons as cons
 import libs.platforms as platforms
 
 
+# Constants
+#=======================================================================================================================
+_u_PLATFORMS_SINGLE_VALID = os.path.join(cons.s_TEST_DATA_DIR, 'platforms', 'platforms_single_valid.yaml')
+
+
 # Tests for functions
 #=======================================================================================================================
 class TestFunctionReadPlatformsFile(unittest.TestCase):
@@ -16,8 +21,7 @@ class TestFunctionReadPlatformsFile(unittest.TestCase):
         Test to read a .json file with a single platform definition inside.
         :return: Nothing
         """
-        u_file = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'platforms_single_valid.json')
-        do_platforms = platforms.read_platforms_file(u_file)
+        do_platforms = platforms.read_platforms_file(_u_PLATFORMS_SINGLE_VALID)
 
         s_first_key = sorted(do_platforms.keys())[0]
         o_platform = do_platforms[s_first_key]
@@ -66,8 +70,7 @@ class TestClassPlatform(unittest.TestCase):
         u_rom = os.path.join('/foo', 'bar',
                              'Battle Squadron (USA, Europe) (Rev 1) (Beta) (1991-01-18) (Sega Channel).zip')
 
-        u_platforms_file = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'platforms_single_valid.json')
-        do_platforms = platforms.read_platforms_file(u_platforms_file)
+        do_platforms = platforms.read_platforms_file(_u_PLATFORMS_SINGLE_VALID)
         o_platform = do_platforms['mdr-crt']
 
         # Testing the ROM gets the 1st frequency
@@ -88,8 +91,7 @@ class TestClassPlatform(unittest.TestCase):
         #-----------------------------------------------------------
         u_rom = os.path.join('Sonic 3 (Europe).zip')
 
-        u_platforms_file = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'platforms_single_valid.json')
-        do_platforms = platforms.read_platforms_file(u_platforms_file)
+        do_platforms = platforms.read_platforms_file(_u_PLATFORMS_SINGLE_VALID)
         o_platform = do_platforms['mdr-crt']
 
         # Testing the ROM gets the 1st frequency
@@ -109,8 +111,7 @@ class TestClassPlatform(unittest.TestCase):
         #-----------------------------------------------------------
         u_rom = os.path.join('Sonic 3.zip')
 
-        u_platforms_file = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'platforms_single_valid.json')
-        do_platforms = platforms.read_platforms_file(u_platforms_file)
+        do_platforms = platforms.read_platforms_file(_u_PLATFORMS_SINGLE_VALID)
         o_platform = do_platforms['mdr-crt']
 
         # Testing the ROM gets the 1st frequency
@@ -120,7 +121,12 @@ class TestClassPlatform(unittest.TestCase):
 
         s_msg = 'Not able to get the default frequency when no match available'
         self.assertEqual(f_actual_result, f_expected_result, s_msg)
-        
+
+    def test_foo(self):
+        do_platforms = platforms.read_platforms_file(_u_PLATFORMS_SINGLE_VALID)
+        o_platform = do_platforms['mdr-crt']
+        print(o_platform)
+
 
 # Main code
 #=======================================================================================================================

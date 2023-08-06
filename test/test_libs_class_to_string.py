@@ -97,9 +97,9 @@ class FunctionClassToString(unittest.TestCase):
 
         o_instance = Foo()
 
-        s_expect = '<Foo>' \
-
+        s_expect = '<Foo>'
         s_actual = class_to_string.class_to_string(o_instance, pb_privates=False)
+
         s_msg = 'String representation of class with "untyped" attributes is wrong.'
         self.assertEqual(s_expect, s_actual, s_msg)
 
@@ -140,6 +140,70 @@ class FunctionClassToString(unittest.TestCase):
         s_actual = class_to_string.class_to_string(o_instance)
 
         s_msg = 'String representation of class with "untyped" attributes is wrong.'
+        self.assertEqual(s_expect, s_actual, s_msg)
+
+    def test_class_with_read_only_property(self):
+        """
+        Test for properties to be returned as regular attributes.
+
+        :return: Nothing.
+        """
+        class Foo:
+            def __init__(self):
+                self._i_value = 0
+
+            def _get_i_value(self):
+                return self._i_value
+
+            i_value = property(fget=_get_i_value, fset=None)
+
+        o_instance = Foo()
+        s_actual = class_to_string.class_to_string(o_instance)
+        s_expect = '<Foo>\n' \
+                   '  .i_value: 0'
+
+        s_msg = 'Actual output is different from expected one.'
+        self.assertEqual(s_expect, s_actual, s_msg)
+
+    def test_class_with_read_and_write_property(self):
+        """
+        Test for write only property to be returned as regular attributes.
+
+        :return: Nothing.
+        """
+
+        class Foo:
+            def __init__(self):
+                self._i_value = 0
+
+            def _get_i_value(self):
+                return self._i_value
+
+            def _set_i_value(self, f_value):
+                self._i_value = f_value
+
+            i_value = property(fget=_get_i_value, fset=_set_i_value)
+
+        o_instance = Foo()
+        s_actual = class_to_string.class_to_string(o_instance)
+        s_expect = '<Foo>\n' \
+                   '  .i_value: 0'
+
+        s_msg = 'Actual output is different from expected one.'
+        self.assertEqual(s_expect, s_actual, s_msg)
+
+    def test_class_with_empty_attributes(self):
+        class Foo:
+            def __init__(self):
+                self.s_attr_a = ''
+                self.s_attr_b = ' '
+
+        o_foo = Foo()
+        s_actual = class_to_string.class_to_string(o_foo)
+        s_expect = '<Foo>\n' \
+                   '  .s_attr_a: \n' \
+                   '  .s_attr_b:  '
+        s_msg = 'Actual output is different from expected one.'
         self.assertEqual(s_expect, s_actual, s_msg)
 
 
