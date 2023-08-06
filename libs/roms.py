@@ -6,7 +6,7 @@ import os
 import re
 
 from . import cons
-from . import dat_files
+from . import datfiles
 from . import files
 from . import string_helpers
 
@@ -17,9 +17,8 @@ class Rom:
     """
     :ivar o_platform: platform.PlatformCfg
     """
-    def __init__(self, ps_platform, ps_path, ps_dat=''):
+    def __init__(self, ps_platform, ps_path, ps_dat='', pb_linked=True):
         """
-
         :param ps_platform: Alias of the platform that runs the ROM.
         :type ps_platform: Str
 
@@ -28,16 +27,24 @@ class Rom:
 
         :param ps_dat: Path of a dat file to get more information from
         :type ps_dat: Str
+
+        :param pb_linked: Whether linked (e.g. multi-file or multi-disc ROMs need to be identified and stored).
+        :type pb_linked: Bool
         """
-        self.s_path = ps_path  # Full path of the ROM.
-        self.s_ccrc32 = ''     # Clean additive CRC32 of the ROM.
-        self.s_dcrc32 = ''     # Dirty additive CRC32 of the ROM.
-        self.s_name = ''       # Name of the ROM.
-        self.i_csize = None    # Clean size of the ROM.
-        self.i_dsize = None    # Dirty size of the ROM.
-        self.i_psize = None    # Path-size of the ROM (or real disk size if the file actually exists).
-        self.s_dat = ''        # Dat file the ROM is matched against.
-        self.s_dat_ver = ''    # Version of the dat file the ROM is matched against.
+        self.s_path = ps_path     # Full path of the ROM.
+        self.s_ccrc32 = ''        # Clean additive CRC32 of the ROM.
+        self.s_dcrc32 = ''        # Dirty additive CRC32 of the ROM.
+        self.s_name = ''          # Name of the ROM.
+        self.i_csize = None       # Clean size of the ROM.
+        self.i_dsize = None       # Dirty size of the ROM.
+        self.i_psize = None       # Path-size of the ROM (or real disk size if the file actually exists).
+        self.s_dat = ''           # Dat file the ROM is matched against.
+        self.s_dat_ver = ''       # Version of the dat file the ROM is matched against.
+
+        # TODO: Create method to populate associated ROMs from files and dats.
+        # Linked ROMs (e.g. for multi disc games, the other discs) paths. There is no point in creating full Rom objects
+        # for linked ROMs since we don't need most of the data. Only the path will be used to install the ROMs.
+        self.ls_linked_roms = []
 
         try:
             self.o_platform = cons.do_PLATFORMS[ps_platform]
@@ -49,6 +56,9 @@ class Rom:
 
         if ps_dat:
             self.populate_from_dat(ps_dat)
+
+        if pb_linked:
+            self._find_linked_roms()
 
     def __eq__(self, po_other):
         """
@@ -126,20 +136,41 @@ class Rom:
 
         :return: Nothing, the object will be populated in place.
         """
-        o_dat = dat_files.Dat(ps_file=ps_dat)
+        o_dat = datfiles.Dat(ps_file=ps_dat)
         self.s_dat = o_dat.s_name
         self.s_dat_ver = o_dat.s_version
+
+        # --- test code ---
+        print()
+        print('Populating from dat')
+        # ------ end ------
 
         s_file = os.path.basename(self.s_path)
         s_file_name, _, s_file_ext = s_file.rpartition('.')
 
         o_dat_rom = o_dat.get_romset_by_name(s_file_name)
+
+        # --- test code ---
+        print(o_dat_rom)
+        # ------ end ------
+
         if o_dat_rom is not None:
             self.s_name = o_dat_rom.s_desc
             self.i_dsize = o_dat_rom.i_dsize
             self.i_csize = o_dat_rom.i_csize
             self.s_dcrc32 = o_dat_rom.s_dcrc32
             self.s_ccrc32 = o_dat_rom.s_ccrc32
+
+        # Method to identify and store linked ROMs (e.g. when the current ROM is the first disc of a multi-disc game, this
+        # method will try to identify the other discs of the game). At the moment, the only way to identify linked ROMs is
+        # through the use of .dat files. Naming convention for non-.dat ROMs is not standardise in any way, so it's not
+        # worth wasting time in coding that will never be reliable.
+        lo_linked_dat_roms = o_dat.get_linked_roms(self.s_name)
+        self.ls_linked_roms = [o_dat_rom.s_name for o_dat_rom in lo_linked_dat_roms]
+
+        # --- test code ---
+        print(self.ls_linked_roms)
+        # ------ end ------
 
     def populate_from_file(self, ps_file):
         """
@@ -158,6 +189,16 @@ class Rom:
             self.i_psize = os.stat(self.s_path).st_size
         except FileNotFoundError:
             self.i_psize = None
+
+    def _find_linked_roms(self):
+        """
+        Method to identify and store linked ROMs (e.g. when the current ROM is the first disc of a multi-disc game, this
+        method will try to identify the other discs of the game). At the moment, the only way to identify linked ROMs is
+        through the use of .dat files. Naming convention for non-.dat ROMs is not standardise in any way, so it's not
+        worth wasting time in coding that will never be reliable.
+        :return: Nothing.
+        """
+
 
     def _get_s_region_auto(self):
         """

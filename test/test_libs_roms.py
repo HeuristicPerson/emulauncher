@@ -166,6 +166,21 @@ class TestClassRom(unittest.TestCase):
         print(o_rom)
         self.assertEqual(True, False)
 
+    # Tests for linked ROMs
+    #----------------------
+    def test_linked_rom_from_dat(self):
+        """
+        Test to check whether the initialisation of the ROM is able to identify and "capture" linked ROMs.
+
+        :return: Nothing.
+        """
+        s_rom = 'X-Files, The (Spain) (Disc 1).zip'
+        s_dat = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'ps1-partial.dat')
+        o_rom = roms.Rom(ps_platform='ps1', ps_path=s_rom, ps_dat=s_dat)
+
+        print(o_rom)
+        self.assertEqual(True, False)
+
     # TODO: Test for non existing ROM file
     # TODO: Test for existing ROM file
     # TODO: Test for rom not included in dat

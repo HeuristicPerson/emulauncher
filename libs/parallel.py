@@ -62,6 +62,11 @@ class ParallelTask:
         self._b_close_gui = pb_close_gui
 
     def join(self):
+        """
+        Method to wait for the ParallelTask to complete.
+
+        :return: Nothing.
+        """
         if self._o_thread is not None:
             self._o_thread.join()
         else:
@@ -141,7 +146,12 @@ class _TaskStatus:
         self._f_progress = 0.0
 
     def __str__(self):
-        s_out = '%s> %.2f - %s' % (id(self), self._f_progress, self.s_message)
+        """
+        :return: A text representation of the instance.
+        :rtype: Str
+        """
+        i_id = id(self)
+        s_out = f'{i_id}> {self._f_progress:.2f} - {self.s_message}'
         return s_out
 
     def _get_f_progress(self):
@@ -159,10 +169,8 @@ class _TaskStatus:
         :return: Nothing.
         """
         f_value = pf_value
-        if f_value < 0.0:
-            f_value = 0.0
-        if f_value > 1.0:
-            f_value = 1.0
+        f_value = max(f_value, 0.0)
+        f_value = min(f_value, 1.0)
 
         self._f_progress = f_value
 

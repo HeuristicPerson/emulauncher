@@ -12,9 +12,11 @@ Link with information about different .dat file formats:
 
 import codecs
 import configparser
-import xml.etree.cElementTree
+import xml.etree.ElementTree
 import os
 import re
+
+from . import class_to_string
 
 
 # Constants
@@ -23,7 +25,11 @@ import re
 _ts_IGNORE_EXTS = ('cue',)
 
 # Text values than will be considered as True
-ss_TRUE_VALUES = ('1', 'yes', 'true')
+ts_TRUE_VALUES = ('1', 'yes', 'true')
+
+# Regex patterns to detect multi-disc romsets
+_s_DISC_PATTERN = r'\(Disc\s(\d+?)\)'
+_s_DISC_FULL_PATTERN = r'(.*)\(Disc\s(\d+?)\)(.*)'
 
 
 # Classes
@@ -40,19 +46,15 @@ class Filter:
 
         for x_value in x_values:
             if not isinstance(x_value, (str, int, float)):
-                raise Exception('ERROR, type "%s" is not valid value for a filter' % type(x_value))
+                s_msg = f'Type "{type(x_value)}" is not valid value for a filter'
+                raise Exception(s_msg)
 
         # TODO: Check for valid values for s_method. So far 'equals' is the only one implemented.
         # TODO: Create a check for x_values to avoid the case when you create a wrong filter with a tuple (123, 145)
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<Filter>\n'
-        s_out += '  .s_attribute: %s\n' % self.s_attribute
-        s_out += '  .s_method:    %s\n' % self.s_method
-        s_out += '  .lx_values:   %s' % str(self.lx_values)
-
-        return s_out.encode('utf8', 'strict')
+        s_out = class_to_string.class_to_string(self)
+        return s_out
 
 
 class Field:
@@ -64,13 +66,12 @@ class Field:
         self.s_dst_field = ps_dst_field
 
 
-class Dat(object):
+class Dat:
     """
     Class to store a list of games, each game can contain different ROM files data. The information can be read/write to
     disk ROM file objects.
 
     :ivar _do_romsets: Dict[Str:RomSet]
-
     """
 
     def __init__(self, ps_file=''):
@@ -86,8 +87,8 @@ class Dat(object):
         #   -A author                                   <- s_author
         #   -V version                                  <- s_version
         #   -C category
-        #   -R ref ps_name                                 <- s_name
-        #   -F full ps_name (i.e. description)             <- s_description
+        #   -R ref ps_name                              <- s_name
+        #   -F full ps_name (i.e. description)          <- s_description
         #   -T date
         #   -E e-mail
         #   -H homepage                                 <- s_homepage
@@ -101,9 +102,10 @@ class Dat(object):
         self.s_description = ''  # description of the dat file.
         self.s_version = ''      # version of the dat file (usually a date).
         self.s_comment = ''      # extra comment for the dat file.
+        self.s_date = ''         # Date of the .dat.
         self.s_type = ''         # type of DAT file the data comes from.
-        self.s_author = ''       # Author of the dat.
-        self.s_homepage = ''     # Homepage of the author of the DAT.
+        self.s_author = ''       # Author of the .dat.
+        self.s_homepage = ''     # Homepage of the author of the .dat.
 
         self._do_romsets = {}    # list of game objects inside the dat file
 
@@ -122,27 +124,14 @@ class Dat(object):
             self.read_from_dat(ps_file)
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<Dat>\n'
-        s_out += '  ._db_flags:  %s\n' % str(self._db_flags)
-        s_out += '  .s_name:     %s\n' % self.s_name
-        s_out += '  .s_desc:     %s\n' % self.s_description
-        s_out += '  .s_version:  %s\n' % self.s_version
-        s_out += '  .s_homepage: %s\n' % self.s_homepage
-        s_out += '  .s_comment:  %s\n' % self.s_comment
-        s_out += '  .s_type:     %s\n' % self.s_type
-        s_out += '  .s_author:   %s\n' % self.s_author
-        s_out += '  .i_romsets:  %s\n' % self.i_romsets
-        s_out += '  .i_baddumps: %s\n' % self.i_baddumps
-        s_out += '  .i_devices:  %s\n' % self.i_devices
-        s_out += '  .i_nodumps:  %s\n' % self.i_nodumps
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
     def __iter__(self):
         """
-
-        :return:
-        :rtype Iterator[RomSet]
+        Method to represent the instance as a string.
+        :return: A string representation of the instance.
+        :rtype: Iterator[RomSet]
         """
         return iter(sorted(self._do_romsets.values(), key=lambda o_romset: o_romset.s_desc.lower()))
 
@@ -171,12 +160,10 @@ class Dat(object):
         :return: True if a matching ROMset was found and deleted.
         :rtype Bool
         """
-
         b_found = False
         if ps_name in self._do_romsets:
             b_found = True
             del self._do_romsets[ps_name]
-
         return b_found
 
     def get_duplicated_crc32(self):
@@ -232,7 +219,7 @@ class Dat(object):
         # Then we filter out those "families" of ROMsets with only one member so we actually have a dictionary of
         # ROMsets with duplicated MD5
         dls_clean_duplicated_romsets = {}
-        for s_key, ls_values in dls_duplicated_romsets.iteritems():
+        for s_key, ls_values in dls_duplicated_romsets.items():
             if len(ls_values) > 1:
                 dls_clean_duplicated_romsets[s_key] = set(ls_values)
 
@@ -253,7 +240,6 @@ class Dat(object):
 
         :param po_game_container: External Dat object.
         """
-
         # Modification of data
         self.s_name = po_game_container.s_name
         self.s_description = po_game_container.s_description
@@ -265,12 +251,12 @@ class Dat(object):
 
         s_log_msg = ''
         s_log_msg += 'Metadata copied: '
-        s_log_msg += 's_name="%s" ' % self.s_name
-        s_log_msg += 's_desc="%s" ' % self.s_description
-        s_log_msg += 's_version="%s" ' % self.s_version
-        s_log_msg += 's_comment="%s" ' % self.s_comment
-        s_log_msg += 's_type="%s" ' % self.s_type
-        s_log_msg += 's_author="%s" ' % self.s_author
+        s_log_msg += f's_name="{self.s_name}" '
+        s_log_msg += f's_desc="{self.s_description}" '
+        s_log_msg += f's_version="{self.s_version}" '
+        s_log_msg += f's_comment="{self.s_comment}" '
+        s_log_msg += f's_type="{self.s_type}" '
+        s_log_msg += f's_author="{self.s_author}" '
 
     def filter(self, o_filter):
         """
@@ -294,8 +280,8 @@ class Dat(object):
             try:
                 x_value = getattr(o_game, o_filter.s_attribute)
 
-            except AttributeError:
-                raise Exception('ERROR: You are trying to access the unknown attribute "%s"' % o_filter.s_attribute)
+            except AttributeError as o_exception:
+                o_exception.message = f'You are trying to access the unknown attribute "{o_filter.s_attribute}"'
 
             # Then we can filter. Since we are filtering already unique games present in our container, we don't need
             # to perform any uniqueness test while adding the games to the matched/unmatched containers. So, we use the
@@ -321,7 +307,7 @@ class Dat(object):
         :return: The found ROMset or None if no ROMset is found
         :rtype: Union[RomSet, None]
         """
-        try: 
+        try:
             o_romset = self._do_romsets[ps_name]
         except KeyError:
             o_romset = None
@@ -347,25 +333,26 @@ class Dat(object):
         # given as a string. Notice below that the "search" is done with an "in". So, so AAA would match AA. For that
         # reason I check the type of the parameter.
         if not isinstance(ptx_search_values, tuple):
-            raise ValueError('ERROR: ptx_search_values must be a tuple. %s given instead' % type(ptx_search_values))
+            s_msg = f'ptx_search_values must be a tuple. {type(ptx_search_values)} given instead.'
+            raise ValueError(s_msg)
 
         lo_romsets = []
 
         if ps_field not in self._ts_valid_search_fields:
-            raise ValueError('Error: ps_field must be one of %s' % str(self._ts_valid_search_fields))
+            s_msg = f'Error: ps_field must be one of {self._ts_valid_search_fields}'
+            raise ValueError(s_msg)
 
-        else:
-            for o_romset in self:
-                if getattr(o_romset, ps_field) in ptx_search_values:
-                    lo_romsets.append(o_romset)
-                    if pb_first:
-                        break
+        for o_romset in self:
+            if getattr(o_romset, ps_field) in ptx_search_values:
+                lo_romsets.append(o_romset)
+                if pb_first:
+                    break
 
         return lo_romsets
 
     def read_from_dat(self, ps_file):
         """
-        Method to load Dat data from a file on disk.
+        Method to load .dat data from a file on disk.
 
         :param ps_file: File containing the data. i.e. '/home/john/mame.dat'
         :type ps_file: Unicode
@@ -375,13 +362,11 @@ class Dat(object):
 
         # If the file is not present, we raise an error
         if not os.path.isfile(ps_file):
-            raise ValueError('Can\'t find dat file "%s"' % ps_file)
+            s_msg = f'Can\'t find dat file "{ps_file}"'
+            raise ValueError(s_msg)
 
-        o_file = codecs.open(ps_file, 'rb', 'utf8', 'ignore')
-
-        # We try to automatically identify it reading the beginning of the file.
-        s_first_line = o_file.readline()
-        o_file.close()
+        with codecs.open(ps_file, 'rb', 'utf8', 'ignore') as o_file:
+            s_first_line = o_file.readline()
 
         # Identifying ClrMamePro mode
         if (s_first_line.find('clrmamepro') != -1) or (s_first_line.find('emulator') != -1):
@@ -452,15 +437,16 @@ class Dat(object):
         """
         self.s_type = 'ClrMamePro'
 
-        o_file = codecs.open(ps_file, 'rb', 'utf8', 'ignore')
+        with codecs.open(ps_file, 'rb', 'utf8', 'ignore') as o_file:
+            s_data = o_file.read()
 
         b_head_mode = False
         b_game_mode = False
 
-        ls_head_strings = []    # List that will contain the multiple lines with data from the heading.
-        ls_game_strings = []    # List that will contain the multiple lines with data for a game.
+        ls_head_strings = []  # List that will contain the multiple lines with data from the heading.
+        ls_game_strings = []  # List that will contain the multiple lines with data for a game.
 
-        for s_line in o_file:
+        for s_line in s_data.splitlines(False):
 
             # Detection of the start of the heading of the file
             if (s_line.find('clrmamepro (') == 0) or (s_line.find('emulator (') == 0):
@@ -546,7 +532,6 @@ class Dat(object):
             # RomSet mode actions
             if b_game_mode:
                 ls_game_strings.append(s_line)
-                pass
 
     def _read_from_xml_generic(self, ps_file):
         """
@@ -560,84 +545,101 @@ class Dat(object):
         """
         self.s_type = 'xml'
 
-        o_xml_tree = xml.etree.cElementTree.parse(ps_file)
+        o_xml_tree = xml.etree.ElementTree.parse(ps_file)
         o_xml_root = o_xml_tree.getroot()
 
         # Header information
         #-------------------
         # "<header>" section is optional in generic xml, so we need to take that in consideration.
         o_header = o_xml_root.find('header')
+
         if o_header is not None:
             self.s_name = o_header.find('name').text
             self.s_description = o_header.find('description').text
             self.s_version = o_header.find('version').text
 
+            o_xelem_date = o_header.find('date')
+            if o_xelem_date is not None:
+                self.s_date = o_xelem_date.text
+
             o_xelem_homepage = o_header.find('homepage')
-            if o_xelem_homepage:
+            if o_xelem_homepage is not None:
                 self.s_homepage = o_xelem_homepage.text
 
-            if o_header.find('author'):
-                self.s_author = o_header.find('author').text
+            o_xelem_author = o_header.find('author')
+            if o_xelem_author is not None:
+                self.s_author = o_xelem_author.text
             else:
                 self.s_author = 'None'
 
         # ROMsets information
         #--------------------
         for o_xelem_game in o_xml_root.findall('game'):
-            s_game_name = o_xelem_game.attrib['name']
-            s_game_description = o_xelem_game.find('description').text
+            self._generic_xml_parse_games(o_xelem_game)
 
-            o_dat_game = RomSet(s_game_name, s_game_description)
+    def _generic_xml_parse_games(self, po_game_xelem):
+        """
+        Method to parse romset data from a generic xml game tree.
 
-            for o_xelem_rom in o_xelem_game.findall('rom'):
-                    o_rom = Rom()
-                    try:
-                        o_rom.s_name = o_xelem_rom.attrib['ps_name']
-                    except KeyError:
-                        pass
+        :param po_game_xelem:
+        :type po_game_xelem: xml.etree.ElementTree.Element
 
-                    # TODO: Not sure about this code. Maybe I should only trust specifically indicated nodumps
-                    try:
-                        o_rom.i_size = int(o_xelem_rom.attrib['size'])
-                    except KeyError:
-                        o_rom.b_nodump = True
+        :return: Nothing.
+        """
+        s_game_name = po_game_xelem.attrib['name']
+        s_game_description = po_game_xelem.find('description').text
 
-                    # TODO: Not sure about this code. Maybe I should only trust specifically indicated nodumps
-                    try:
-                        o_rom.s_crc32 = o_xelem_rom.attrib['crc'].lower()
-                    except KeyError:
-                        o_rom.b_nodump = True
+        o_dat_game = RomSet(s_game_name, s_game_description)
 
-                    try:
-                        o_rom.s_md5 = o_xelem_rom.attrib['md5'].lower()
-                    except KeyError:
-                        o_rom.s_md5 = None
+        for o_xelem_rom in po_game_xelem.findall('rom'):
+            o_rom = Rom()
+            try:
+                o_rom.s_name = o_xelem_rom.attrib['name']
+            except KeyError:
+                pass
 
-                    try:
-                        o_rom.s_sha1 = o_xelem_rom.attrib['sha1'].lower()
-                    except KeyError:
-                        o_rom.s_sha1 = None
+            # TODO: Not sure about this code. Maybe I should only trust specifically indicated nodumps
+            try:
+                o_rom.i_size = int(o_xelem_rom.attrib['size'])
+            except KeyError:
+                o_rom.b_nodump = True
 
-                    # MAME generated XML (later converted generic format (AFAIK) includes a status field which can
-                    # contain "baddump" and "nodump" status information
-                    try:
-                        s_status = o_xelem_rom.attrib['status'].lower()
-                        if s_status == 'baddump':
-                            o_rom.b_baddump = True
-                        if s_status == 'nodump':
-                            o_rom.b_nodump = True
-                    except KeyError:
-                        pass
+            # TODO: Not sure about this code. Maybe I should only trust specifically indicated nodumps
+            try:
+                o_rom.s_crc32 = o_xelem_rom.attrib['crc'].lower()
+            except KeyError:
+                o_rom.b_nodump = True
 
-                    try:
-                        o_rom.s_merge = o_xelem_rom.attrib['merge']
-                    except KeyError:
-                        pass
+            try:
+                o_rom.s_md5 = o_xelem_rom.attrib['md5'].lower()
+            except KeyError:
+                o_rom.s_md5 = None
 
-                    # Adding the rom object to the list
-                    o_dat_game._lo_roms.append(o_rom)
+            try:
+                o_rom.s_sha1 = o_xelem_rom.attrib['sha1'].lower()
+            except KeyError:
+                o_rom.s_sha1 = None
 
-            self.add_romset(o_dat_game)
+            # MAME generated XML (later converted generic format (AFAIK) includes a status field which can
+            # contain "baddump" and "nodump" status information
+            try:
+                s_status = o_xelem_rom.attrib['status'].lower()
+                if s_status == 'baddump':
+                    o_rom.b_baddump = True
+                if s_status == 'nodump':
+                    o_rom.b_nodump = True
+            except KeyError:
+                pass
+
+            try:
+                o_rom.s_merge = o_xelem_rom.attrib['merge']
+            except KeyError:
+                pass
+
+            # Adding the rom object to the list
+            o_dat_game.add_rom(o_rom)
+
+        self.add_romset(o_dat_game)
 
     def _read_from_xml_mame(self, ps_file):
         """
@@ -681,7 +683,7 @@ class Dat(object):
             b_device = False
             try:
                 s_device = o_xmachine.get('isdevice')
-                if s_device.lower() in ss_TRUE_VALUES:
+                if s_device.lower() in ts_TRUE_VALUES:
                     b_device = True
             except AttributeError:
                 pass
@@ -732,12 +734,11 @@ class Dat(object):
 
         # Header
         #-------
-        s_header = ''
-        s_header += 'clrmamepro (\n'
-        s_header += '\tps_name "%s"\n' % self.s_name
-        s_header += '\tdescription "%s"\n' % self.s_description
-        s_header += '\tversion "%s"\n' % self.s_version
-        s_header += '\tcomment "%s"\n' % self.s_comment
+        s_header = 'clrmamepro (\n'
+        s_header += f'\tps_name "{self.s_name}"\n'
+        s_header += f'\tdescription "{self.s_description}"\n'
+        s_header += f'\tversion "{self.s_version}"\n'
+        s_header += f'\tcomment "{self.s_comment}"\n'
         s_header += ')\n\n'
         ls_chunks.append(s_header)
 
@@ -747,43 +748,45 @@ class Dat(object):
             # Output generation
             #------------------
             s_romset = 'game (\n'
-            s_romset += '\tps_name "%s"\n' % o_romset.s_name
-            s_romset += '\tdescription "%s"\n' % o_romset.s_desc
+            s_romset += f'\tps_name "{o_romset.s_name}"\n'
+            s_romset += f'\tdescription "{o_romset.s_desc}"\n'
             for o_rom in o_romset:
-                ls_rom_data = ['ps_name "%s"' % o_rom.s_name]
+                ls_rom_data = [f'name "{o_rom.s_name}"']
 
                 i_size = 0
                 if o_rom.i_size:
                     i_size = o_rom.i_size
-                ls_rom_data.append('size "%s"' % i_size)
+                ls_rom_data.append(f'size "{i_size}"')
 
                 s_crc32 = ''
                 if o_rom.s_crc32:
                     s_crc32 = o_rom.s_crc32
                 if s_crc32:
-                    ls_rom_data.append('crc "%s"' % s_crc32)
+                    ls_rom_data.append(f'crc "{s_crc32}"')
 
                 s_md5 = ''
                 if o_rom.s_md5:
                     s_md5 = o_rom.s_md5
                 if s_md5:
-                    ls_rom_data.append('md5 "%s"' % s_md5)
+                    ls_rom_data.append(f'md5 "{s_md5}"')
 
                 s_sha1 = ''
                 if o_rom.s_sha1:
                     s_sha1 = o_rom.s_sha1
                 if s_sha1:
-                    ls_rom_data.append('sha1 "%s"' % s_sha1)
+                    ls_rom_data.append(f'sha1 "{s_sha1}"')
 
                 ls_flags = []
                 if o_rom.b_baddump:
                     ls_flags.append('baddump')
                 if o_rom.b_nodump:
                     ls_flags.append('nodump')
-                if ls_flags:
-                    ls_rom_data.append('flags "%s"' % ' '.join(ls_flags))
 
-                s_romset += '\trom ( %s )\n' % (' '.join(ls_rom_data))
+                if ls_flags:
+                    s_flags = f'flags "{" ".join(ls_flags)}"'
+                    ls_rom_data.append(s_flags)
+
+                s_romset += f'\trom ( {" ".join(ls_rom_data)} )\n'
 
             s_romset += ')\n\n'
             ls_chunks.append(s_romset)
@@ -814,6 +817,73 @@ class Dat(object):
     def _get_i_romsets(self):
         return len(self._do_romsets)
 
+    def get_linked_roms(self, ps_name):
+        """
+        # TODO: Rewrite this method documentation because it's just a draft and not straightforward
+
+        In some .dat files (e.g. Redump Playstation), multi-disc games are stored in individual entries for each of the
+        discs. Given a ROMset, this function will attempt to identify the other romsets belonging to the same game. The
+        only way to do it is identifying the string (Disc X) in the name (only present in Redump .dat files AFAIK) and
+        search for other ROMsets with similar name pattern.
+
+        So, for example, if the search name is "Tokimeki Memorial 2 (Japan) (Disc 2) (Rev 1)", the output will be a list
+        with the RomSet objects for:
+
+            - Tokimeki Memorial 2 (Japan) (Disc 1) (Rev 1)
+            - Tokimeki Memorial 2 (Japan) (Disc 3) (Rev 1)
+            - Tokimeki Memorial 2 (Japan) (Disc 4) (Rev 1)
+
+
+            - Tokimeki Memorial 2 (Japan) (Disc 1) (Limited Box)
+            - Tokimeki Memorial 2 (Japan) (Disc 2) (Limited Box)
+            - Tokimeki Memorial 2 (Japan) (Disc 3) (Limited Box)
+            - Tokimeki Memorial 2 (Japan) (Disc 4) (Limited Box)
+            - Tokimeki Memorial 2 (Japan) (Disc 5) (Limited Box)
+
+        To make things more complicated, in Redump dats, SOMETIMES, the text after the disc is different for discs
+        belonging to the same ROMset. For example:
+
+            - Tomb Raider III - Adventures of Lara Croft (Asia) (Disc 1) (Japanese Version)
+            - Tomb Raider III - Adventures of Lara Croft (Asia) (Disc 2) (International Version)
+
+        Unfortunately, It's not possible to create a simple algorythm that works for all cases.
+
+        # TODO: We can build two link types: Tier A: Everything but the number is different
+                                             Tier B: Some differences after disc number
+          So we can use as link roms Tier A if not empty, otherwise, we will use Tier B.
+
+        :param ps_name: Name of the ROMset that will be used to search for other discs. e.g. "Beep Boop (Disc 2)".
+        :type ps_name: Str
+
+        :return: A list of ROMs with same name but
+        :rtype: List[RomSet]
+        """
+        lo_results = []
+
+        s_tier_a_pattern, s_tier_b_pattern = _build_multi_disc_patterns(ps_name)
+
+        if '' not in (s_tier_a_pattern, s_tier_b_pattern):
+            lo_tier_a_results = []
+            lo_tier_b_results = []
+            for o_romset in self._do_romsets.values():
+                if re.search(pattern=s_tier_a_pattern, string=o_romset.s_name) is not None:
+                    lo_tier_a_results.append(o_romset)
+                elif re.search(pattern=s_tier_b_pattern, string=o_romset.s_name) is not None:
+                    lo_tier_b_results.append(o_romset)
+
+            # Post-filtering of the precise ROM we are using for the search (I think this is quicker than using one
+            # extra "if" for every ROM in the .dat). This step needs to be done before "multiplexing" tier-a and tier-b
+            # lists, otherwise tier-a will always contain the searched name (if the romset exists, of course).
+            lo_tier_a_results = [o_romset for o_romset in lo_tier_a_results if o_romset.s_name != ps_name]
+            lo_tier_b_results = [o_romset for o_romset in lo_tier_b_results if o_romset.s_name != ps_name]
+
+            if lo_tier_a_results:
+                lo_results = lo_tier_a_results
+            else:
+                lo_results = lo_tier_b_results
+
+        return lo_results
+
     @staticmethod
     def _identify_xml_format(ps_file):
         """
@@ -841,7 +911,7 @@ class Dat(object):
     i_devices = property(fget=_get_i_devices, fset=None)
 
 
-class RomSet(object):
+class RomSet:
     """
     Class to store information about a RomSet.
 
@@ -860,16 +930,18 @@ class RomSet(object):
         :type pb_device: Bool
         """
         # Properties: Basic ones
-        self.s_name = ps_name         # Usually, the file ps_name for the game. MAME uses a short 8 char or fewer ps_name here.
-        self.s_desc = ps_description  # Usually, the full and long ps_name of the game i.e. 'Super Mario World (Europe)'.
-        self.b_device = pb_device     # MAME .dat includes ROMsets for devices (which some times don't contain any ROM).
-                                      # An example of this are DACs (digital to analog converters) which are emulated
-                                      # using pure code (so no ROMs involved) and are incorporated or referenced by
-                                      # some videogames.
+        self.s_name = ps_name         # Usually, file name for the game. MAME uses 8 chars or fewer ps_name here.
+        self.s_desc = ps_description  # Usually, full and long name of the game i.e. 'Super Mario World (Europe)'.
+
+        # MAME .dat includes ROMsets for devices (which some times don't contain any ROM). An example of this are DACs
+        # (digital to analog converters) which are emulated using pure code (so no ROMs involved) and are incorporated
+        # or referenced by some videogames.
+        self.b_device = pb_device
 
         # Properties: The rest
-        self._lo_roms = []            # Somehow, ROMsets *CAN* have "duplicated" ROMs with the same ps_name, so a list.
+        self._lo_roms = []            # Somehow, ROMsets *CAN* have "duplicated" ROMs with the same name, so a list.
         self.s_auth = ''              # Author, company that programmed the game (MAME dat support only, AFAIK).
+        self.s_year = ''              # Some dats store year (string because it can be unknown or contain wild cards.
 
     def __iter__(self):
         """
@@ -879,38 +951,22 @@ class RomSet(object):
         return iter(self._lo_roms)
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_output = '<RomSet>\n'
-        s_output += '  .b_baddump: %s\n' % self.b_baddump
-        s_output += '  .b_device:  %s\n' % self.b_device
-        s_output += '  .b_nodump:  %s\n' % self.b_nodump
-        s_output += '  .i_croms:   %s\n' % self.i_croms
-        s_output += '  .i_csize:   %s\n' % self.i_csize
-        s_output += '  .i_droms:   %s\n' % self.i_droms
-        s_output += '  .i_dsize:   %s\n' % self.i_dsize
-        s_output += '  .s_ccrc32:  %s\n' % self.s_ccrc32
-        s_output += '  .s_cmd5:    %s\n' % self.s_cmd5
-        s_output += '  .s_csha1:   %s\n' % self.s_csha1
-        s_output += '  .s_dcrc32:  %s\n' % self.s_dcrc32
-        s_output += '  .s_desc:    %s\n' % self.s_desc
-        s_output += '  .s_dmd5:    %s\n' % self.s_dmd5
-        s_output += '  .s_dsha1:   %s\n' % self.s_dsha1
-        s_output += '  .s_auth:    %s\n' % self.s_auth
-        s_output += '  .s_name:    %s\n' % self.s_name
-        s_output += '  ._lo_roms:\n'
+        s_output = class_to_string.class_to_string(self)
+        s_output += '\n  ._lo_roms:\n'
 
         for i_rom, o_rom in enumerate(self):
             s_rom_text = str(o_rom)
 
             # Modification of s_rom_text to show the rom number
-            s_rom_text = s_rom_text.replace('<Rom>', '<Rom> #%i' % (i_rom + 1))
+            s_rom_text = s_rom_text.replace('<Rom>', f'<Rom> #{i_rom}')
 
             ls_rom_raw_lines = s_rom_text.splitlines()
             ls_rom_clean_lines = []
 
             for s_line in ls_rom_raw_lines:
                 s_extra_spaces = ' ' * 13
-                ls_rom_clean_lines.append('%s%s' % (s_extra_spaces, s_line))
+                s_msg = f'{s_extra_spaces}{s_line}'
+                ls_rom_clean_lines.append(s_msg)
 
             s_output += '%s\n\n' % ('\n'.join(ls_rom_clean_lines))
 
@@ -951,12 +1007,10 @@ class RomSet(object):
             # By default, every ROM will be taken into account...
             b_include = True
             s_rom_ext = o_rom.s_name.rpartition('.')[2].lower()
-            # o_rom_fp = files.FilePath(o_rom.s_name)
 
             # ...unless we're in "clean mode" where we'll discard ROMs for different reasons
             if pb_clean:
                 # ...for having an unwanted extension (like .cue)
-                #if o_rom_fp.has_exts(*_ts_IGNORE_EXTS):
                 if s_rom_ext in _ts_IGNORE_EXTS:
                     b_include = False
 
@@ -1024,7 +1078,8 @@ class RomSet(object):
             elif ps_type == 'sha1':
                 ls_hexs.append(o_rom.s_sha1)
             else:
-                raise Exception('Invalid hash type "%s"' % ps_type)
+                s_msg = f'Invalid hash type "{ps_type}"'
+                raise ValueError(s_msg)
 
         s_hash = _compound_hash(ls_hexs)
 
@@ -1100,7 +1155,7 @@ class RomSet(object):
         that I know containing this information.
 
         :return:
-        :rtype Bool
+        :rtype: Bool
         """
         b_nodump = False
         for o_rom in self:
@@ -1124,14 +1179,14 @@ class RomSet(object):
     def _get_s_csha1(self):
         """
         :return: The clean SHA-1 of the ROMset.
-        :rtype Unicode
+        :rtype: Unicode
         """
         return self._get_s_hash(ps_type='sha1', pb_clean=True)
 
     def _get_s_dsha1(self):
         """
-        :return The dirty SHA-1 of the ROMset.
-        :rtype Unicode
+        :return: The dirty SHA-1 of the ROMset.
+        :rtype: Str
         """
         return self._get_s_hash(ps_type='sha1', pb_clean=False)
 
@@ -1163,7 +1218,7 @@ class RomSet(object):
 
 class Rom:
     """
-    Class to store all the information for a ROM file contained in a DAT file. Typically, that information is the ps_name
+    Class to store all the information for a ROM file contained in a DAT file. Typically, that information is the name
     of the ROM, the description, CRC-MD5-SHA1 check-sums...
 
     NOTE ABOUT self.b_bios: In each "game", mame .xml includes all the files (ROMs) that are part of the bios of the
@@ -1191,17 +1246,7 @@ class Rom:
                                 # ROM file.
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<Rom>\n'
-        s_out += '  .b_baddump: %s\n' % self.b_baddump
-        s_out += '  .b_nodump:  %s\n' % self.b_nodump
-        s_out += '  .b_bios:    %s\n' % self.b_bios
-        s_out += '  .i_size:    %i\n' % self.i_size
-        s_out += '  .s_crc32:   %s\n' % self.s_crc32
-        s_out += '  .s_md5:     %s\n' % self.s_md5
-        s_out += '  .s_name:    %s\n' % self.s_name
-        s_out += '  .s_merge:   %s\n' % self.s_merge
-        s_out += '  .s_sha1:    %s\n' % self.s_sha1
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
 
@@ -1231,12 +1276,7 @@ class CatVer:
         return iter(self._do_entries.values())
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<CatVer>\n'
-        s_out += '  .s_version: %s\n' % self.s_version
-        s_out += '  .s_date:    %s\n' % self.s_date
-        s_out += '  .s_mame:    %s\n' % self.s_mame
-        s_out += '  .i_entries: %s\n' % self.i_entries
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
     def get_entry(self, ps_rom):
@@ -1244,10 +1284,10 @@ class CatVer:
         Method to get the entry for a given ROMset ps_name.
 
         :param ps_rom:
-        :type ps_rom: Unicode
+        :type ps_rom: Str
 
         :return:
-        :rtype _CatVerEntry
+        :rtype: _CatVerEntry
         """
         return self._do_entries[ps_rom]
 
@@ -1256,7 +1296,7 @@ class CatVer:
         Method to populate the object from a catver.ini file.
 
         :param ps_file:
-        :type ps_file: Unicode
+        :type ps_file: Str
 
         :return: Nothing, the object will be populated in place.
         """
@@ -1325,12 +1365,7 @@ class _CatVerEntry:
         self.s_cat_2nd = ps_cat_2nd  # Secondary category of the ROMset.
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<_CatVerEntry>\n'
-        s_out += '  .s_romset:  %s\n' % self.s_romset
-        s_out += '  .s_version: %s\n' % self.s_version
-        s_out += '  .s_cat_1st: %s\n' % self.s_cat_1st
-        s_out += '  .s_cat_2nd: %s' % self.s_cat_2nd
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
     def has_category(self, *pxs_category):
@@ -1380,9 +1415,8 @@ def get_rom_header(ps_rom_file):
     li_years = []
     li_years_clean = []
 
-    o_file = open(ps_rom_file, mode='rb')
-    s_data_chunk = o_file.read(i_bytes)
-    o_file.close()
+    with open(ps_rom_file, 'rb') as o_file:
+        s_data_chunk = o_file.read(i_bytes)
 
     o_match = re.search(r'(\d{4})', s_data_chunk)
 
@@ -1440,7 +1474,8 @@ def _dat_vertical_parse(ls_lines, s_section, s_mode='single'):
     elif s_mode == 'multi':
         x_output = ls_data
     else:
-        raise Exception('Error: %s mode for _dat_vertical_parse() NOT known.' % s_mode)
+        s_msg = f'Error: {s_mode} mode for _dat_vertical_parse() NOT known.'
+        raise ValueError(s_msg)
 
     return x_output
 
@@ -1556,3 +1591,35 @@ def _split_string_to_set(ps_string, ps_split, pb_lowercase=False):
         ls_clean_words.append(s_word)
 
     return set(ls_clean_words)
+
+
+def _build_multi_disc_patterns(ps_name):
+    """
+    Function to build multi-disc regex patterns, so they can be used to identify "linked" ROMsets for multi-disc games.
+
+    :param ps_name: Title of the ROMset. e.g. "Street Fighter Collection (Disc 2) (Collection Edition)"
+    :type ps_name: Str
+
+    :return:
+    :rtype: Tuple[Str, Str]
+    """
+    ts_patterns = ('', '')
+
+    o_multi_disc_match = re.search(pattern=_s_DISC_FULL_PATTERN, string=ps_name)
+    if o_multi_disc_match is not None:
+        # I add a "E127E" tag instead of "(Disc X)" in the original input, then I convert the input to
+        # regular-expression-safe text. Finally, I replace the "E127E" tag with the regular expression pattern to
+        # search for other roms with the same title but different disc number.
+        s_tier_a_tagged_input = f'{o_multi_disc_match.group(1)}E127E{o_multi_disc_match.group(3)}'
+        s_tier_b_tagged_input = f'{o_multi_disc_match.group(1)}E127E'
+
+        s_tier_a_tagged_input_raw = re.escape(s_tier_a_tagged_input)
+        s_tier_b_tagged_input_raw = re.escape(s_tier_b_tagged_input)
+
+        s_tier_a_pattern = s_tier_a_tagged_input_raw.replace('E127E', _s_DISC_PATTERN)
+        s_tier_b_pattern = f'{s_tier_b_tagged_input_raw.replace("E127E", _s_DISC_PATTERN)}(.*)'
+
+
+        ts_patterns = (s_tier_a_pattern, s_tier_b_pattern)
+
+    return ts_patterns

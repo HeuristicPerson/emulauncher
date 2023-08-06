@@ -26,6 +26,11 @@ def install(po_rom_cfg, ps_dir, po_status=None):
 
     :return:
     """
+    # TODO: Add function to identify other "ROMs" from multi-disc games (probably it has to be done way upstream)
+    # TODO: When ROMs are multi-disc, decompress each one in sub-folders (disc 1, disc 2...)
+    # TODO: Apply patches to required files
+    # TODO: For multi-disc games, create a playlist file containing all discs (whatever format is used by RetroArch)
+
     # Initialization of weights
     #--------------------------
     f_weight_rom_copy = 0.3
@@ -101,6 +106,7 @@ def patch(ps_file, ps_patch):
     :param ps_patch:
     :return:
     """
+    pass
 
 
 def dummy(po_status, po_romconfig=None):

@@ -62,7 +62,7 @@ class RomConfig:
         s_out += f'User:    {self.s_user}\n'
 
         if self.o_rom is None:
-            s_out += f'ROM:     [????????] None\n'
+            s_out += 'ROM:     [????????] None\n'
         else:
             s_out += f'ROM:     [{self.o_rom.s_ccrc32}] {self.o_rom.s_name}\n'
 
@@ -71,7 +71,7 @@ class RomConfig:
         s_out += f'Refresh: {self.f_refresh}\n'
 
         if self._o_core is None:
-            s_out += f'Core:    None'
+            s_out += 'Core:    None'
         else:
             s_out += f'Core:    {self._o_core.s_name}'
 
@@ -103,11 +103,11 @@ class RomConfig:
         if not os.path.isfile(ps_file):
             s_msg = f'Can\'t read file {ps_file}'
             raise IOError(s_msg)
-        else:
-            # Reading the "raw" ini
-            #----------------------
-            o_ini = configparser.ConfigParser()
-            o_ini.read(ps_file)
+
+        # Reading the "raw" ini
+        #----------------------
+        o_ini = configparser.ConfigParser()
+        o_ini.read(ps_file)
 
         # Validating that the read configuration is for the current ROM
         #--------------------------------------------------------------
@@ -115,47 +115,46 @@ class RomConfig:
             s_msg = 'Before reading a configuration file, you must have populated self.o_rom first'
             raise ValueError(s_msg)
 
-        else:
-            if not _check_rom_and_ini_match(self.o_rom, o_ini):
-                s_rom_summary = f'[{self.o_rom.s_ccrc32}] {self.o_rom.s_name}'
-                s_ini_summary = f'[%s] %s' % (o_ini.get('rom', 'ccrc32'), o_ini.get('rom', 'ps_name'))
-                s_msg = 'Rom (%s) and RomConfig (%s) don\'t match.' % (s_rom_summary, s_ini_summary)
-                raise ValueError(s_msg)
+        if not _check_rom_and_ini_match(self.o_rom, o_ini):
+            s_rom_summary = f'[{self.o_rom.s_ccrc32}] {self.o_rom.s_name}'
+            s_ini_summary = f'[{o_ini.get("rom", "ccrc32")}] {o_ini.get("rom", "name")}'
+            s_msg = f'Rom ({s_rom_summary}) and RomConfig ({s_ini_summary}) don\'t match.'
+            raise ValueError(s_msg)
+
+        # Since saved configurations will be shared between users, we won't read the username from them.
+        # TODO: add extra parameter to ignore attributes during the loading. Maybe better having the option to
+        # reset them afterward with another method?
+
+        self.s_user = o_ini.get('meta', 'user')
+        self.s_region = o_ini.get('settings', 'region')
+        self.f_refresh = o_ini.getfloat('settings', 'refresh')
+
+        # To get the patch, we first find all the patches available for the Rom object, and then we identify the
+        # one with the right ps_name.
+        s_ini_patch = o_ini.get('rom', 'patch')
+        if s_ini_patch:
+            s_patches_dir = po_prog_cfg.ds_patch_dirs[self.o_rom.o_platform.s_alias]
+            lo_patches = patches.get_patches(s_patches_dir, self.o_rom)
+
+            for o_patch in lo_patches:
+                if o_patch.s_title == s_ini_patch:
+                    self.o_patch = o_patch
+                    break
             else:
-                # Since saved configurations will be shared between users, we won't read the username from them.
-                # TODO: add extra parameter to ignore attributes during the loading. Maybe better having the option to
-                # reset them afterward with another method?
+                s_error = f'ERROR: patch "{s_ini_patch}" not found'
+                ls_errors.append(s_error)
 
-                self.s_user = o_ini.get('meta', 'user')
-                self.s_region = o_ini.get('settings', 'region')
-                self.f_refresh = o_ini.getfloat('settings', 'refresh')
-
-                # To get the patch, we first find all the patches available for the Rom object, and then we identify the
-                # one with the right ps_name.
-                s_ini_patch = o_ini.get('rom', 'patch')
-                if s_ini_patch:
-                    s_patches_dir = po_prog_cfg.ds_patch_dirs[self.o_rom.o_platform.s_alias]
-                    lo_patches = patches.get_patches(s_patches_dir, self.o_rom)
-
-                    for o_patch in lo_patches:
-                        if o_patch.s_title == s_ini_patch:
-                            self.o_patch = o_patch
-                            break
-                    else:
-                        s_error = f'ERROR: patch "{s_ini_patch}" not found'
-                        ls_errors.append(s_error)
-
-                # Getting the core object from the core ps_name saved in the file. We will check that a) the core is valid
-                # for the current platform, and the core is available in the system.
-                s_ini_core = o_ini.get('settings', 'core')
-                s_cores_dir = po_prog_cfg.s_cores_dir
-                lo_cores = cores.get_cores(ps_dir=s_cores_dir, pls_cores_wanted=[s_ini_core])
-                do_cores = {o_core.s_name: o_core for o_core in lo_cores}
-                if (s_ini_core in self.o_rom.o_platform.ls_cores) and (s_ini_core in do_cores):
-                    self.o_core = do_cores[s_ini_core]
-                else:
-                    s_error = f'ERROR: core "{s_ini_core}" not found'
-                    ls_errors.append(s_error)
+        # Getting the core object from the core ps_name saved in the file. We will check that a) the core is valid
+        # for the current platform, and the core is available in the system.
+        s_ini_core = o_ini.get('settings', 'core')
+        s_cores_dir = po_prog_cfg.s_cores_dir
+        lo_cores = cores.get_cores(ps_dir=s_cores_dir, pls_cores_wanted=[s_ini_core])
+        do_cores = {o_core.s_name: o_core for o_core in lo_cores}
+        if (s_ini_core in self.o_rom.o_platform.ls_cores) and (s_ini_core in do_cores):
+            self.o_core = do_cores[s_ini_core]
+        else:
+            s_error = f'ERROR: core "{s_ini_core}" not found'
+            ls_errors.append(s_error)
 
         return ls_errors
 

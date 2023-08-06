@@ -9,7 +9,7 @@ import libs.files as files
 
 # Test cases
 #=======================================================================================================================
-class MyTestCase(unittest.TestCase):
+class TestFunctionIsToolInstalled(unittest.TestCase):
     def test_non_installed_tool(self):
         b_installed = cli_tools.is_tool_installed('whatever')
         s_msg = 'A non-installed tool is detected as installed.'

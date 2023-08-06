@@ -70,21 +70,45 @@ def class_to_string(po_instance, pb_privates=False):
     """
     # Header
     ls_out = ['<%s>' % type(po_instance).__name__]
-    lo_attributes_and_values = [(AttributeName(s_key), x_value) for s_key, x_value in vars(po_instance).items()]
+    lo_attributes_and_values = [(AttributeName(s_key), getattr(po_instance, s_key)) for s_key in dir(po_instance)]
 
-    li_prefix_lengths = [len(o_entry[0].s_prefix) for o_entry in lo_attributes_and_values]
-    li_type_lengths = [len(o_entry[0].s_type) for o_entry in lo_attributes_and_values]
-    li_name_lengths = [len(o_entry[0].s_name) for o_entry in lo_attributes_and_values]
+    # Pre-filtering of __X__ attributes and methods
+    #----------------------------------------------
+    lo_attributes_and_values = [(o_attr, x_value) for o_attr, x_value in lo_attributes_and_values
+                                if (o_attr.s_prefix != '__' and not callable(x_value))]
 
-    i_prefix_max_length = max(li_prefix_lengths)
-    i_type_max_length = max(li_type_lengths)
-    i_name_max_length = max(li_name_lengths)
+    li_prefix_lengths = []
+    li_type_lengths = []
+    li_name_lengths = []
+    for o_attribute, _ in lo_attributes_and_values:
+        b_keep = (not o_attribute.s_prefix.startswith('_')) or pb_privates
+
+        if b_keep:
+            li_prefix_lengths.append(len(o_attribute.s_prefix))
+            li_type_lengths.append(len(o_attribute.s_type))
+            li_name_lengths.append(len(o_attribute.s_name))
+
+    try:
+        i_prefix_max_length = max(li_prefix_lengths)
+    except ValueError:
+        i_prefix_max_length = 0
+
+    try:
+        i_type_max_length = max(li_type_lengths)
+    except ValueError:
+        i_type_max_length = 0
+
+    try:
+        i_name_max_length = max(li_name_lengths)
+    except ValueError:
+        i_name_max_length = 0
 
     ls_attributes = []
     for o_attribute, x_value in sorted(lo_attributes_and_values, key=lambda tx_entry: (tx_entry[0].s_prefix,
                                                                                        tx_entry[0].s_name,
                                                                                        tx_entry[0].s_type)):
-        if (not o_attribute.s_prefix.startswith('_')) or pb_privates:
+        b_keep = (not o_attribute.s_prefix.startswith('_')) or pb_privates
+        if b_keep:
             s_attr_name = '.%s:' % o_attribute
 
             # First, we left pad the attribute ps_name so the variable names are vertically aligned
@@ -97,29 +121,21 @@ def class_to_string(po_instance, pb_privates=False):
 
             # Finally, we create the text representation of the value, splitting into multiple lines when required.
             s_attr_value = str(x_value)
-
             s_attr_value_padding = ' ' * len(s_attr_name)
-            for i_line, s_line in enumerate(s_attr_value.splitlines(False)):
-                if i_line == 0:
-                    s_new_line = f'  {s_attr_name} {s_line}'
-                else:
-                    s_new_line = f'  {s_attr_value_padding} {s_line}'
+
+            # an empty string doesn't contain lines, so we have to process it separately
+            if not s_attr_value:
+                s_new_line = f'  {s_attr_name} {s_attr_value}'
                 ls_attributes.append(s_new_line)
+            else:
+                for i_line, s_line in enumerate(s_attr_value.splitlines(False)):
+                    if i_line == 0:
+                        s_new_line = f'  {s_attr_name} {s_line}'
+                    else:
+                        s_new_line = f'  {s_attr_value_padding} {s_line}'
+                    ls_attributes.append(s_new_line)
 
     ls_out += ls_attributes
 
     return '\n'.join(ls_out)
 
-
-def _my_compare(ps_item_a, ps_item_b):
-    """
-    The sorting function has to return -1, 0, +1 depending on which of the items should go first.
-
-    I typically call my attributes .type_name, or ._type_name for private attributes. So, the first thing is to get the
-    type of variable, and the ps_name separately because I want to alphabetically sort by the variable ps_name, not the type.
-
-    :param ps_item_a:
-    :param ps_item_b:
-    :return:
-    :rtype: Int
-    """

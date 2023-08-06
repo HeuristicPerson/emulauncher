@@ -6,18 +6,19 @@ Script to launch a ROM from certain platform.
 
 import argparse
 import os
+import sys
 import time
 
 import pyglet
 
-import libs.cons as cons
-import libs.config as config
-import libs.cores as cores
-import libs.gui as gui_theme
-import libs.install as install
-import libs.paths as paths
-import libs.patches as patches
-import libs.roms as roms
+from libs import cons
+from libs import config
+from libs import cores
+from libs import gui
+from libs import install
+from libs import paths
+from libs import patches
+from libs import roms
 from libs.parallel import ParallelTask
 
 
@@ -56,10 +57,10 @@ class _CmdArgs:
         """
         s_system_desc = cons.do_PLATFORMS[self.s_system].s_name
         s_out = ''
-        s_out += f'┌[Arguments]─────────────\n'
+        s_out += '┌[Arguments]─────────────\n'
         s_out += f'├ System: ...... {self.s_system} - {s_system_desc}\n'
         s_out += f'├ ROM: ......... {self.s_rom}\n'
-        s_out += f'└────────────────────────'
+        s_out += '└────────────────────────'
         return s_out
 
 
@@ -73,8 +74,8 @@ class MainWindow(pyglet.window.Window):
         :type po_cfg: config.ProgramCfg
         """
 
-        s_theme_yaml = os.path.join(cons.s_SCRIPT_ROOT, 'themes', o_main_cfg.s_theme, 'theme.yaml')
-        self._o_theme = gui_theme.Theme(s_theme_yaml, po_rom)
+        s_theme_yaml = os.path.join(cons.s_SCRIPT_ROOT, 'themes', po_cfg.s_theme, 'theme.yaml')
+        self._o_theme = gui.Theme(s_theme_yaml, po_rom)
         pyglet.window.Window.__init__(self,
                                       width=self._o_theme.i_width,
                                       height=self._o_theme.i_height,
@@ -115,10 +116,12 @@ class MainWindow(pyglet.window.Window):
         # List to store tasks to be running in the background. Used, for example to run installation of games.
         self._lo_parallel_tasks = []
 
-        # Defining schedules
-        # pyglet.clock.schedule_interval(self.schedule_create_destroy_progress_bar, 1.0)
-
     def create_menu_patch(self):
+        """
+        Method to create the patch selection menu.
+
+        :return: Nothing.
+        """
         # Sending kill "signal" to already existing menu
         if self._o_menu is not None:
             self._o_menu.kill()
@@ -140,6 +143,11 @@ class MainWindow(pyglet.window.Window):
         self._lo_items.append(o_menu)
 
     def create_menu_core(self):
+        """
+        Method to create the core selection menu.
+
+        :return: Nothing.
+        """
         if self._o_menu is not None:
             self._o_menu.kill()
 
@@ -162,6 +170,11 @@ class MainWindow(pyglet.window.Window):
         self._lo_items.append(o_menu)
 
     def create_menu_refresh_rate(self):
+        """
+        Method to create the refresh rate selection menu.
+
+        :return: Nothing.
+        """
         if self._o_menu is not None:
             self._o_menu.kill()
 
@@ -184,6 +197,11 @@ class MainWindow(pyglet.window.Window):
         self._lo_items.append(o_menu)
 
     def create_menu_region(self):
+        """
+        Method to create the region selection menu.
+
+        :return: Nothing.
+        """
         if self._o_menu is not None:
             self._o_menu.kill()
 
@@ -254,8 +272,6 @@ class MainWindow(pyglet.window.Window):
     def on_draw(self, **px_args):
         # First, we remove items that are not alive (we do this on every cycle)
         self._lo_items = [o_item for o_item in self._lo_items if o_item.b_alive]
-
-
 
         # If there is any parallel task running:
         #
@@ -351,7 +367,7 @@ class MainWindow(pyglet.window.Window):
         Callback function for 1st menu exit option.
         """
         time.sleep(1)
-        quit()
+        sys.exit()
 
     def callback_menu_1_choose_user(self, ps_user):
         """
@@ -509,9 +525,13 @@ def _register_action(ps_action):
     print(s_msg)
 
 
-# Main code
+# Main function
 #=======================================================================================================================
-if __name__ == '__main__':
+def main():
+    """
+    Main function.
+    :return: Nothing.
+    """
     s_msg = '%s\n%s' % (cons.s_PRG, '='*len(cons.s_PRG))
     print(s_msg)
 
@@ -535,3 +555,9 @@ if __name__ == '__main__':
 
     # TODO: Run launching of the installed ROM here.
     print('AFTER CLOSING PYGLET')
+
+
+# Main code
+#=======================================================================================================================
+if __name__ == '__main__':
+    main()

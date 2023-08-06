@@ -61,14 +61,11 @@ class BackReader:
         return self
 
     def next(self):
-        while (self._u_buffer.count(u'\n') < 2) and (self._o_file.tell() > 0):
-            # We aim to fill the buffer so we try to have two new lines symbols in it:
-            #
-            #
+        while (self._u_buffer.count('\n') < 2) and (self._o_file.tell() > 0):
+            # We aim to fill the buffer, so we try to have two new lines symbols in it:
             self._u_buffer = self._get_chunk_from_end() + self._u_buffer
-            # print '## READING BUFF:', repr(self._u_buffer)
 
-        if self._u_buffer == u'':
+        if self._u_buffer == '':
             raise StopIteration
 
         # Remember we WANTED to have at least two '\n' in the buffer, but that's not possible when finishing to
@@ -91,21 +88,21 @@ class BackReader:
         #          |=====[n]======
 
         # With a little of pre-process (removing and keeping the last '\n' when present)...
-        u_end = u''
+        u_end = ''
         if self._u_buffer.endswith(u'\n'):
-            u_end = u'\n'
+            u_end = '\n'
             self._u_buffer = self._u_buffer[:-1]
 
         # We can process cases 1a inside case 2.
-        if u'\n' in self._u_buffer:
+        if '\n' in self._u_buffer:
             lu_chunks = self._u_buffer.rpartition(u'\n')
-            u_line = u'%s%s' % (lu_chunks[2], u_end)
-            self._u_buffer = u'%s\n' % self._u_buffer.rpartition(u'\n')[0]
+            u_line = '%s%s' % (lu_chunks[2], u_end)
+            self._u_buffer = '%s\n' % self._u_buffer.rpartition(u'\n')[0]
 
         # Now case 1b is the only one that needs to be processed.
         else:
-            u_line = u'%s%s' % (self._u_buffer, u_end)
-            self._u_buffer = u''
+            u_line = '%s%s' % (self._u_buffer, u_end)
+            self._u_buffer = ''
 
         return u_line
 
@@ -116,8 +113,7 @@ class BackReader:
         """
         i_end = self._o_file.tell()
         i_start = i_end - self.i_block
-        if i_start < 0:
-            i_start = 0
+        i_start = max(i_start, 0)
 
         # The problem with utf8 (as far as I know) is that some characters use one byte, while others use two. That
         # means that you could split a character in half when getting a chunk of data (resulting in an
@@ -215,18 +211,18 @@ class FilePath(object):
 
     def _get_u_name(self):
         u_file = self.u_file
-        if u'.' in u_file:
-            u_name = u_file.rpartition(u'.')[0]
+        if '.' in u_file:
+            u_name = u_file.rpartition('.')[0]
         else:
             u_name = u_file
         return u_name
 
     def _get_u_ext(self):
         u_file = self.u_file
-        if u'.' in u_file:
-            u_ext = u_file.rpartition(u'.')[2]
+        if '.' in u_file:
+            u_ext = u_file.rpartition('.')[2]
         else:
-            u_ext = u''
+            u_ext = ''
         return u_ext
 
     def _get_size(self):
@@ -562,15 +558,15 @@ def file_size_format(pi_bytes, pi_jump=1024, pu_suffix=u'B'):
     # [0/?] Initialization
     # ---------------------
     # For crazy jumps, the units will by KxB, MxB...
-    lu_units = [u'', u'Kx', u'Mx', u'Gx', u'Tx', u'Px', u'Ex', u'Zx', u'Yx']
+    lu_units = ['', 'Kx', 'Mx', 'Gx', 'Tx', 'Px', 'Ex', 'Zx', 'Yx']
 
     # for standard 1000 jumps KB, MB, GB, TB...
     if pi_jump == 1000:
-        lu_units = [u'', u'K', u'M', u'G', u'T', u'P', u'E', u'Z', u'Y']
+        lu_units = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
     # and for standard computer science 1024 jumps, KiB, MiB, GiB...
     elif pi_jump == 1024:
-        lu_units = [u'', u'Ki', u'Mi', u'Gi', u'Ti', u'Pi', u'Ei', u'Zi', u'Yi']
+        lu_units = ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi', 'Yi']
 
     # [1/?] Finally, we build the output string
     # -----------------------------------------

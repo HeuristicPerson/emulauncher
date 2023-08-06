@@ -1,9 +1,10 @@
 import codecs
-import json
 import os.path
 import re
 
-from . import string_helpers
+import yaml
+
+from . import class_to_string
 
 
 # Classes
@@ -14,7 +15,17 @@ class PlatformCfg:
 
     :ivar ls_cores: List[Str]
     """
-    def __init__(self, pdx_json={}):
+    def __init__(self, pdx_data=None):
+        """
+        :param pdx_data:
+        :type pdx_data: Dict
+        """
+
+        if pdx_data is None:
+            dx_data = {}
+        else:
+            dx_data = pdx_data
+
         self.s_alias = ''         # Alias of the platform
         self.s_name = ''          # Full ps_name of the platform
         self.f_aspect = 0.0       # Visual aspect ratio of the platform
@@ -24,22 +35,18 @@ class PlatformCfg:
         self.ls_cores = []        # Name of compatible cores
         self.ls_regions = []      # Regions of the console, typically with different bios and/or frequencies.
 
-        if pdx_json:
-            self._from_json_chunk(pdx_json)
+        if pdx_data:
+            self._from_dict_data(dx_data)
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<_PlatformCfg>\n'
-        s_out += f'  .s_alias:        {self.s_alias}\n'
-        s_out += f'  .s_name:         {self.s_name}\n'
-        s_out += f'  .f_aspect:       {self.f_aspect}\n'
-        s_out += string_helpers.section_generate('  .ls_regions:    ', self.ls_regions)
-        s_out += string_helpers.section_generate('  .lf_freqs:      ', self.lf_freqs)
-        s_out += string_helpers.section_generate('  .ls_region_pats:', self.ls_region_pats)
-        s_out += string_helpers.section_generate('  .ls_cores:      ', self.ls_cores)
+        """
+        :return:
+        :rtype: Str
+        """
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
-    def _from_json_chunk(self, pdx_json):
+    def _from_dict_data(self, pdx_json):
         """
         Method to populate the object from a chunk of json data.
 
@@ -71,7 +78,7 @@ class PlatformCfg:
 
         # The number of regions is zero or negative
         if ti_set_lengths[0] < 1:
-            s_error = f'The number of regions/frequencies/patterns must be at least 1'
+            s_error = 'The number of regions/frequencies/patterns must be at least 1'
             raise ValueError(s_error)
 
     def get_frequency_for_rom(self, ps_path):
@@ -123,7 +130,7 @@ def read_platforms_file(pu_file):
     do_result = {}
 
     with codecs.open(pu_file, 'r', 'utf8') as o_file:
-        ldx_data = json.load(o_file)
+        ldx_data = yaml.safe_load(o_file)
 
     for dx_data in ldx_data:
         o_platform = PlatformCfg(dx_data)
