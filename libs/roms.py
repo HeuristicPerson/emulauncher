@@ -5,6 +5,7 @@ Library with a class to store information about a ROM file
 import os
 import re
 
+from . import class_to_string
 from . import cons
 from . import datfiles
 from . import files
@@ -41,10 +42,11 @@ class Rom:
         self.s_dat = ''           # Dat file the ROM is matched against.
         self.s_dat_ver = ''       # Version of the dat file the ROM is matched against.
 
-        # TODO: Create method to populate associated ROMs from files and dats.
         # Linked ROMs (e.g. for multi disc games, the other discs) paths. There is no point in creating full Rom objects
-        # for linked ROMs since we don't need most of the data. Only the path will be used to install the ROMs.
-        self.ls_linked_roms = []
+        # for linked ROMs since we don't need most of the data. Only the path will be used to install the ROMs. The
+        # attribute is private because the data stored will only be the NAME of the linked ROMs, without path or file
+        # extension. The full path will be built by a get method.
+        self._ls_linked_roms = []
 
         try:
             self.o_platform = cons.do_PLATFORMS[ps_platform]
@@ -79,21 +81,12 @@ class Rom:
         return b_equal
 
     def __str__(self):
-        # TODO: replace with my str method from class_to_string
-        s_out = '<Rom>\n'
-        s_out += f'  .s_name:        {self.s_name}\n'
-        s_out += f'  .s_path:        {self.s_path}\n'
-        s_out += f'  .s_dat:         {self.s_dat}\n'
-        s_out += f'  .s_dat_ver:     {self.s_dat_ver}\n'
-        s_out += f'  .i_dsize:       {self.i_dsize}\n'
-        s_out += f'  .i_csize:       {self.i_csize}\n'
-        s_out += f'  .i_psize:       {self.i_psize}\n'
-        s_out += f'  .s_dcrc32:      {self.s_dcrc32}\n'
-        s_out += f'  .s_ccrc32:      {self.s_ccrc32}\n'
-        s_out += f'  .s_dcrc32_safe: {self.s_dcrc32_safe}\n'  # Safe dirty CRC32 ('xxxxxxxx' when crc32 is empty)
-        s_out += f'  .s_ccrc32_safe: {self.s_ccrc32_safe}\n'  # Safe clean CRC32 ('xxxxxxxx' when crc32 is empty)
-
-        s_out += string_helpers.section_generate('  .o_platform:', str(self.o_platform).splitlines(False))
+        """
+        Method to build a text representation of the instance.
+        :return: A text representation of the instance.
+        :rtype: Str
+        """
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
     def nice_format(self):
@@ -140,19 +133,10 @@ class Rom:
         self.s_dat = o_dat.s_name
         self.s_dat_ver = o_dat.s_version
 
-        # --- test code ---
-        print()
-        print('Populating from dat')
-        # ------ end ------
-
         s_file = os.path.basename(self.s_path)
         s_file_name, _, s_file_ext = s_file.rpartition('.')
 
         o_dat_rom = o_dat.get_romset_by_name(s_file_name)
-
-        # --- test code ---
-        print(o_dat_rom)
-        # ------ end ------
 
         if o_dat_rom is not None:
             self.s_name = o_dat_rom.s_desc
@@ -161,16 +145,12 @@ class Rom:
             self.s_dcrc32 = o_dat_rom.s_dcrc32
             self.s_ccrc32 = o_dat_rom.s_ccrc32
 
-        # Method to identify and store linked ROMs (e.g. when the current ROM is the first disc of a multi-disc game, this
-        # method will try to identify the other discs of the game). At the moment, the only way to identify linked ROMs is
-        # through the use of .dat files. Naming convention for non-.dat ROMs is not standardise in any way, so it's not
-        # worth wasting time in coding that will never be reliable.
+        # Method to identify and store linked ROMs (e.g. when the current ROM is the first disc of a multi-disc game,
+        # this method will try to identify the other discs of the game). At the moment, the only way to identify linked
+        # ROMs is through the use of .dat files. Naming convention for non-.dat ROMs is not standardise in any way, so
+        # it's not worth wasting time in coding that will never be reliable.
         lo_linked_dat_roms = o_dat.get_linked_roms(self.s_name)
-        self.ls_linked_roms = [o_dat_rom.s_name for o_dat_rom in lo_linked_dat_roms]
-
-        # --- test code ---
-        print(self.ls_linked_roms)
-        # ------ end ------
+        self._ls_linked_roms = [o_dat_rom.s_name for o_dat_rom in lo_linked_dat_roms]
 
     def populate_from_file(self, ps_file):
         """
@@ -199,6 +179,19 @@ class Rom:
         :return: Nothing.
         """
 
+    def _get_ls_linked_roms(self):
+        """
+        Method to build the linked roms list that will contain the full path of the linked ROMs. Please keep in mind the
+        existence of the paths won't be checked.
+
+        :return: A list with the full path of all the linked ROMs.
+        :rtype: List[Str]
+        """
+        s_rom_dir = os.path.dirname(self.s_path)
+        s_rom_ext = self.s_path.rpartition('.')[2]
+        ls_linked_roms = [os.path.join(s_rom_dir, f'{s_linked_rom}.{s_rom_ext}')
+                          for s_linked_rom in self._ls_linked_roms]
+        return ls_linked_roms
 
     def _get_s_region_auto(self):
         """
@@ -262,3 +255,4 @@ class Rom:
     s_region_auto = property(fget=_get_s_region_auto, fset=None)
     s_dcrc32_safe = property(fget=_get_s_dcrc32_safe, fset=None)
     s_ccrc32_safe = property(fget=_get_s_ccrc32_safe, fset=None)
+    ls_linked_roms = property(fget=_get_ls_linked_roms, fset=None)

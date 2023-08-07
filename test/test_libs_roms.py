@@ -174,12 +174,17 @@ class TestClassRom(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_rom = 'X-Files, The (Spain) (Disc 1).zip'
+        s_rom = '/home/john_doe/X-Files, The (Spain) (Disc 1).zip'
         s_dat = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'ps1-partial.dat')
         o_rom = roms.Rom(ps_platform='ps1', ps_path=s_rom, ps_dat=s_dat)
 
-        print(o_rom)
-        self.assertEqual(True, False)
+        ls_expect = ['/home/john_doe/X-Files, The (Spain) (Disc 2).zip',
+                     '/home/john_doe/X-Files, The (Spain) (Disc 3).zip',
+                     '/home/john_doe/X-Files, The (Spain) (Disc 4).zip']
+        ls_actual = o_rom.ls_linked_roms
+
+        s_msg = 'Linked ROM paths are not correct.'
+        self.assertEqual(ls_expect, ls_actual, s_msg)
 
     # TODO: Test for non existing ROM file
     # TODO: Test for existing ROM file

@@ -456,10 +456,13 @@ class Dat:
             # If we are in "head-mode" and the first character of the line is ")", it means we have reached the end of
             # the heading (so we have all its lines) and we can parse them.
             if b_head_mode and s_line.find(')') == 0:
-                self.s_name = _dat_vertical_parse(ls_head_strings, 'ps_name')
-                self.s_description = _dat_vertical_parse(ls_head_strings, 'description')
-                self.s_version = _dat_vertical_parse(ls_head_strings, 'version')
+                self.s_author = _dat_vertical_parse(ls_head_strings, 'author')
                 self.s_comment = _dat_vertical_parse(ls_head_strings, 'comment')
+                self.s_date = _dat_vertical_parse(ls_head_strings, 'date')
+                self.s_description = _dat_vertical_parse(ls_head_strings, 'description')
+                self.s_homepage = _dat_vertical_parse(ls_head_strings, 'homepage')
+                self.s_name = _dat_vertical_parse(ls_head_strings, 'name')
+                self.s_version = _dat_vertical_parse(ls_head_strings, 'version')
 
                 ls_head_strings = []
                 b_head_mode = False
@@ -477,7 +480,7 @@ class Dat:
                 continue
 
             if b_game_mode and s_line.find(')') == 0:
-                s_romset_name = _dat_vertical_parse(ls_game_strings, 'ps_name')
+                s_romset_name = _dat_vertical_parse(ls_game_strings, 'name')
                 s_romset_description = _dat_vertical_parse(ls_game_strings, 'description')
                 s_romset_author = _dat_vertical_parse(ls_game_strings, 'manufacturer')
                 s_game_year = _dat_vertical_parse(ls_game_strings, 'year')
@@ -492,7 +495,7 @@ class Dat:
 
                 for s_game_rom in ls_game_roms:
                     # sometimes ps_name has quotes " around and sometimes not, so it's safer to use size as end.
-                    s_rom_name = _dat_horizontal_parse(s_game_rom, 'ps_name ', 'size')
+                    s_rom_name = _dat_horizontal_parse(s_game_rom, 'name ', 'size')
 
                     s_rom_size = _dat_horizontal_parse(s_game_rom, 'size ', ' ')
                     s_rom_crc = _dat_horizontal_parse(s_game_rom, 'crc ', ' ')
@@ -1433,8 +1436,9 @@ def get_rom_header(ps_rom_file):
 
 # Helper Functions
 #=======================================================================================================================
-def _dat_vertical_parse(ls_lines, s_section, s_mode='single'):
-    """Function to parse a group of lines which contains different information about the same item.
+def _dat_vertical_parse(pls_lines, ps_section, ps_mode='single'):
+    """
+    Function to parse a group of lines which contains different information about the same item.
 
     So, the information follows a pattern similar to:
 
@@ -1443,38 +1447,40 @@ def _dat_vertical_parse(ls_lines, s_section, s_mode='single'):
         field_2 data_c
         ...
 
-        ls_lines: a list containing the individual lines as strings.
+    :param pls_lines: a list containing the individual lines as strings.
+    :type pls_lines: List[Str]
 
-        s_section: ps_name of the section (in the above example s_section = field_1, for example).
+        ps_section: ps_name of the section (in the above example ps_section = field_1, for example).
 
-        s_mode: 'single', each field exists once and the function returns its data as a string.
+        ps_mode: 'single', each field exists once and the function returns its data as a string.
                 'multi', each field exists several times and the function returns its data as a list of strings.
 
-        @rtype : string or list of strings
+    # TODO: Make the return format consistent
+    :rtype: Union[Str, List[Str]]
     """
 
     ls_data = []
     s_data = ''
 
     # Adding a space to the section because it has to exist a space between the section and the data.
-    s_section += ' '
+    ps_section += ' '
 
-    for s_line in ls_lines:
+    for s_line in pls_lines:
         s_line = s_line.strip()
 
-        if s_line.find(s_section) == 0:
-            i_start_pos = len(s_section)
+        if s_line.find(ps_section) == 0:
+            i_start_pos = len(ps_section)
             s_data = s_line[i_start_pos:]
             s_data = s_data.strip()
             s_data = s_data.strip('"')
             ls_data.append(s_data)
 
-    if s_mode == 'single':
+    if ps_mode == 'single':
         x_output = s_data
-    elif s_mode == 'multi':
+    elif ps_mode == 'multi':
         x_output = ls_data
     else:
-        s_msg = f'Error: {s_mode} mode for _dat_vertical_parse() NOT known.'
+        s_msg = f'Error: {ps_mode} mode for _dat_vertical_parse() NOT known.'
         raise ValueError(s_msg)
 
     return x_output
@@ -1618,7 +1624,6 @@ def _build_multi_disc_patterns(ps_name):
 
         s_tier_a_pattern = s_tier_a_tagged_input_raw.replace('E127E', _s_DISC_PATTERN)
         s_tier_b_pattern = f'{s_tier_b_tagged_input_raw.replace("E127E", _s_DISC_PATTERN)}(.*)'
-
 
         ts_patterns = (s_tier_a_pattern, s_tier_b_pattern)
 
