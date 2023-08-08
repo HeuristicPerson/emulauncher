@@ -3,6 +3,7 @@ import unittest
 
 import libs.cons as cons
 import libs.cores as cores
+import libs.files as files
 import libs.install as install
 import libs.patches as patches
 import libs.roms as roms
@@ -38,11 +39,24 @@ class FunctionInstall(unittest.TestCase):
 
     def test_rom_with_several_discs(self):
         s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_rom_with_several_discs')
+
+        files.init_dir(s_out_dir)
+
         o_rom_cfg = _build_rom_config_multiple_files()
-        o_rom_cfg.s_user = 'jonh'
+        #o_rom_cfg.s_user = 'jonh'
 
         install.install(po_rom_cfg=o_rom_cfg,
                         ps_dir=s_out_dir)
+
+        # --- test code ---
+        for s_a, ls_b, ls_c in os.walk(s_out_dir):
+            print(s_a)
+            print(ls_b)
+            print(ls_c)
+            print('---')
+        quit()
+        # ------ end ------
+
         self.assertEqual(True, False)
 
     def test_rom_with_patch(self):
@@ -111,7 +125,6 @@ def _build_rom_config_multiple_files():
     o_rom._ls_linked_roms = [s_rom_2nd]
     o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=())
     return o_rom_cfg
-
 
 
 # Main code

@@ -189,7 +189,7 @@ class Rom:
         """
         s_rom_dir = os.path.dirname(self.s_path)
         s_rom_ext = self.s_path.rpartition('.')[2]
-        ls_linked_roms = [os.path.join(s_rom_dir, f'{s_linked_rom}.{s_rom_ext}')
+        ls_linked_roms = [os.path.join(s_rom_dir, s_linked_rom)
                           for s_linked_rom in self._ls_linked_roms]
         return ls_linked_roms
 

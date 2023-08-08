@@ -641,8 +641,10 @@ def clean_dir(ps_dir):
 
 def init_dir(ps_dir):
     """
-    Function that "initialises" a directory: a) if it doesn't exist, the function will create it; b) if it exists, the
-    function will remove its content.
+    Function that "initialises" a directory:
+
+        a) if it doesn't exist, the function will create it;
+        b) if it exists, the function will remove its content.
 
     :param ps_dir: Path of the directory to be initialised.
     :type ps_dir: Str

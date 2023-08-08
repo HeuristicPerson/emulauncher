@@ -7,7 +7,7 @@ import shutil
 import time
 import zipfile
 
-from .files import clean_dir
+from . import files
 
 
 # Main functions
@@ -26,10 +26,9 @@ def install(po_rom_cfg, ps_dir, po_status=None):
 
     :return:
     """
-    # TODO: Add function to identify other "ROMs" from multi-disc games (probably it has to be done way upstream)
-    # TODO: When ROMs are multi-disc, decompress each one in sub-folders (disc 1, disc 2...)
-    # TODO: Apply patches to required files
-    # TODO: For multi-disc games, create a playlist file containing all discs (whatever format is used by RetroArch)
+    #TODO: When ROMs are multi-disc, decompress each one in sub-folders (disc 1, disc 2...)
+    #TODO: Apply patches to required files
+    #TODO: For multi-disc games, create a playlist file containing all discs (whatever format is used by RetroArch)
 
     # Initialization of weights
     #--------------------------
@@ -47,26 +46,34 @@ def install(po_rom_cfg, ps_dir, po_status=None):
 
     # Cleaning/creation of the install directory
     #-------------------------------------------
-    if os.path.isdir(ps_dir):
-        print('  < Cleaned directory')
-        clean_dir(ps_dir)
-    else:
-        print('  < Created directory')
-        os.makedirs(ps_dir)
+    print('  < Install dir initialization')
+    files.init_dir(ps_dir)
 
-    # Copying of ROM to destination directory
-    #----------------------------------------
+    # Creation of directories for associated ROMs
+    #--------------------------------------------
+    ls_src_roms = sorted([po_rom_cfg.o_rom.s_path] + po_rom_cfg.o_rom.ls_linked_roms)
+    ls_dst_roms = []
+
+    for i_rom, s_src_rom in enumerate(ls_src_roms, start=1):
+        if len(ls_src_roms) == 1:
+            s_dst_rom = os.path.join(ps_dir, os.path.basename(s_src_rom))
+        else:
+            s_dst_rom = os.path.join(ps_dir, f'disc {i_rom}', os.path.basename(s_src_rom))
+
+        ls_dst_roms.append(s_dst_rom)
+
+    # Copying of ROMs to destination directory
+    #-----------------------------------------
     if po_status is not None:
         po_status.s_message = 'Copying ROM...'
 
-    s_src_file = po_rom_cfg.o_rom.s_path
-    s_dst_file = os.path.join(ps_dir, os.path.basename(s_src_file))
+    for i_rom, (s_src_rom, s_dst_rom) in enumerate(zip(ls_src_roms, ls_dst_roms), start=1):
+        files.init_dir(os.path.dirname(s_dst_rom))
+        shutil.copyfile(s_src_rom, s_dst_rom)
+        print(f'  < ROM #{i_rom} copied')
 
-    shutil.copyfile(s_src_file, s_dst_file)
-    print('  < ROM copied')
-
-    if po_status is not None:
-        po_status.f_progress += f_weight_rom_copy / f_weight_total
+        if po_status is not None:
+            po_status.f_progress += f_weight_rom_copy / (f_weight_total * len(ls_src_roms))
 
     time.sleep(2)
 
@@ -75,14 +82,17 @@ def install(po_rom_cfg, ps_dir, po_status=None):
     if po_status is not None:
         po_status.s_message = 'Decompressing ROM'
 
-    with zipfile.ZipFile(s_dst_file, 'r') as o_file:
-        o_file.extractall(ps_dir)
+    for i_rom, s_dst_rom in enumerate(ls_dst_roms, start=1):
+        with zipfile.ZipFile(s_dst_rom, 'r') as o_file:
+            s_dst_dir = os.path.dirname(s_dst_rom)
+            o_file.extractall(s_dst_dir)
 
-    os.remove(s_dst_file)
-    print('  < ROM decompressed')
+        os.remove(s_dst_rom)
+        s_msg = f'  < ROM #{i_rom} decompressed'
+        print(s_msg)
 
-    if po_status is not None:
-        po_status.f_progress += f_weight_rom_unzip / f_weight_total
+        if po_status is not None:
+            po_status.f_progress += f_weight_rom_unzip / (f_weight_total * len(ls_src_roms))
 
     # Copying patch
     #--------------

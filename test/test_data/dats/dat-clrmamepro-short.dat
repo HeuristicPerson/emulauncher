@@ -1,0 +1,25 @@
+clrmamepro (
+	name "Sony - PlayStation"
+	description "Sony - PlayStation - Discs (10201) (2020-02-10 11-41-26)"
+	version "2020-02-10 11-41-26"
+	date "2020-02-10 11-41-26"
+	author redump.org
+	homepage redump.org
+	url "http://redump.org/"
+)
+
+game (
+	name "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It)"
+	description "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It)"
+	rom ( name "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It).cue" size 120 crc 92b3ff37 sha1 5cc0e2d25792ae13ec7dab7b2ee8974c700c3337 )
+	rom ( name "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It).bin" size 470999760 crc 91cad2df sha1 8c215d983ad7d7f5f8aa122981cbd79d846532ec )
+)
+
+game (
+	name "Dino Crisis (USA)"
+	description "Dino Crisis (USA)"
+	rom ( name "Dino Crisis (USA).cue" size 204 crc d300424f sha1 6496a64bf92d4f6aca185d55e7214f877b3608bd )
+	rom ( name "Dino Crisis (USA) (Track 1).bin" size 379984416 crc bd09f6d5 sha1 0f1dc456c40bd0839afd0c0947a71ebb4e16d836 )
+	rom ( name "Dino Crisis (USA) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
