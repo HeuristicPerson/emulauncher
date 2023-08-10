@@ -7,14 +7,17 @@ import shutil
 import time
 import zipfile
 
+import libs.files
 from . import files
+from . import cli_tools
 
 
 # Main functions
 #=======================================================================================================================
-def install(po_rom_cfg, ps_dir, po_status=None):
+def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
     """
     Function
+    :param pb_print:
     :param po_rom_cfg:
     :type po_rom_cfg: libs.romconfig.RomConfig
 
@@ -24,9 +27,11 @@ def install(po_rom_cfg, ps_dir, po_status=None):
     :param po_status:
     :type po_status: Status
 
-    :return:
+    :param pb_print: Whether the function will print results to terminal or not.
+    :type pb_print: Bool
+
+    :return: Nothing.
     """
-    #TODO: When ROMs are multi-disc, decompress each one in sub-folders (disc 1, disc 2...)
     #TODO: Apply patches to required files
     #TODO: For multi-disc games, create a playlist file containing all discs (whatever format is used by RetroArch)
 
@@ -46,7 +51,10 @@ def install(po_rom_cfg, ps_dir, po_status=None):
 
     # Cleaning/creation of the install directory
     #-------------------------------------------
-    print('  < Install dir initialization')
+    if pb_print:
+        s_msg = '  < Install dir initialization'
+        print(s_msg)
+
     files.init_dir(ps_dir)
 
     # Creation of directories for associated ROMs
@@ -70,7 +78,9 @@ def install(po_rom_cfg, ps_dir, po_status=None):
     for i_rom, (s_src_rom, s_dst_rom) in enumerate(zip(ls_src_roms, ls_dst_roms), start=1):
         files.init_dir(os.path.dirname(s_dst_rom))
         shutil.copyfile(s_src_rom, s_dst_rom)
-        print(f'  < ROM #{i_rom} copied')
+        if pb_print:
+            s_msg = f'  < ROM #{i_rom} copied'
+            print(s_msg)
 
         if po_status is not None:
             po_status.f_progress += f_weight_rom_copy / (f_weight_total * len(ls_src_roms))
@@ -83,55 +93,63 @@ def install(po_rom_cfg, ps_dir, po_status=None):
         po_status.s_message = 'Decompressing ROM'
 
     for i_rom, s_dst_rom in enumerate(ls_dst_roms, start=1):
-        with zipfile.ZipFile(s_dst_rom, 'r') as o_file:
-            s_dst_dir = os.path.dirname(s_dst_rom)
-            o_file.extractall(s_dst_dir)
+        s_dst_dir = os.path.dirname(s_dst_rom)
+        libs.files.uncompress(ps_file=s_dst_rom, ps_dst_dir=s_dst_dir)
 
         os.remove(s_dst_rom)
-        s_msg = f'  < ROM #{i_rom} decompressed'
-        print(s_msg)
+        if pb_print:
+            s_msg = f'  < ROM #{i_rom} decompressed'
+            print(s_msg)
 
         if po_status is not None:
             po_status.f_progress += f_weight_rom_unzip / (f_weight_total * len(ls_src_roms))
 
-    # Copying patch
-    #--------------
+    # TODO: The rom dir will contain the proper subfolders for multi-disc games, and the patch, all the patches.
+    # Probably I should also incorporate the patch download and unzipping into the same function.
+    # So, in principle, the function will only need two parameters to work.
+    patch(ps_rom_dir, ps_patch_dir)
     if po_rom_cfg.o_patch is not None:
+        # Copying patch
+        #--------------
+        s_patch_dir = os.path.join(ps_dir, 'patch')
+        files.init_dir(s_patch_dir)
+
+        s_src_patch = po_rom_cfg.o_patch.s_path
+        s_dst_patch = os.path.join(s_patch_dir, os.path.basename(s_src_patch))
+        shutil.copyfile(s_src_patch, s_dst_patch)
+        libs.files.uncompress(s_dst_patch)
+        os.remove(s_dst_patch)
+
         if po_status is not None:
             po_status.s_message = 'Downloading patch'
 
-    # Applying patch
-    #---------------
-    if po_rom_cfg.o_patch is not None:
-        if po_status is not None:
-            po_status.s_message = 'Applying patch'
+        # Applying patch
+        #---------------
+        # TODO: Convert this patching code to a private function
+        if po_rom_cfg.o_patch is not None:
+            for s_elem in os.listdir(s_patch_dir):
+                # TODO: Capture patch ROM CRC32, and two digits (disc, and file number)
+                s_full_path = os.path.join()
+
+            if po_status is not None:
+                po_status.s_message = 'Applying patch'
 
     time.sleep(2)
 
 
-def patch(ps_file, ps_patch):
+def patch(ps_dir, ps_patch):
     """
+    Function to apply a patch to an uncompressed ROM directory.
 
-    :param ps_file:
-    :param ps_patch:
-    :return:
+    If the ROM directory belongs to a multi-disc game, it must contain "disc 1", "disc 2", ... directories for each of
+    the discs. The patch must be a single compressed file containing all the patches required for the whole game.
+
+    :param ps_dir: Directory path of the uncompressed ROM. If the ROM belongs to a multi-disc game, different games will
+    :type ps_dir: Str
+
+    :param ps_patch: Path of the compressed file containing all the patches for the game.
+    :type ps_patch: Str
+
+    :return: Nothing.
     """
     pass
-
-
-def dummy(po_status, po_romconfig=None):
-    """
-    Function
-    :param po_romconfig:
-
-    :param po_status:
-    :type po_status: Status
-
-    :return:
-    """
-    for i_iter in range(10):
-        po_status.f_progress += 0.1
-        po_status.s_message = f'iteration {i_iter}'
-        time.sleep(1)
-
-

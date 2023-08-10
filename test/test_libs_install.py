@@ -2,29 +2,27 @@ import os
 import unittest
 
 import libs.cons as cons
-import libs.cores as cores
 import libs.files as files
 import libs.install as install
 import libs.patches as patches
 import libs.roms as roms
 import libs.romconfig as romconfig
-from libs.files import compute_crc
+import libs.files as files
 
 
 class FunctionInstall(unittest.TestCase):
-    def test_rom_that_only_requires_decompressing(self):
+    def test_single_rom_without_patch(self):
         """
         Installation test for a ROM that only requires to be decompressed.
 
         :return: Nothing.
         """
-        s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_rom_that_only_requires_decompressing')
+        s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_single_rom_without_patch')
 
         o_rom_cfg = _build_rom_config_single_file()
         o_rom_cfg.s_user = 'anna'
 
-        install.install(po_rom_cfg=o_rom_cfg,
-                        ps_dir=s_out_dir)
+        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
 
         ds_expect = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': 'd6cf8cdb'}
 
@@ -32,34 +30,45 @@ class FunctionInstall(unittest.TestCase):
         for s_elem in os.listdir(s_out_dir):
             s_full_path = os.path.join(s_out_dir, s_elem)
             if os.path.isfile(s_full_path):
-                ds_actual[s_elem] = compute_crc(s_full_path)
+                ds_actual[s_elem] = files.compute_crc(s_full_path)
 
-        s_msg = 'The file(s) contained in the install dir is not what was expected.'
+        s_msg = 'The content of install dir differs from expectation.'
         self.assertEqual(ds_expect, ds_actual, s_msg)
 
-    def test_rom_with_several_discs(self):
-        s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_rom_with_several_discs')
+    def test_linked_roms_without_patch(self):
+        """
+        Install test for multi-file ROMs (e.g. multi-disc games of Playstation) without patches. Each of the two ROMs
+        should be installed in "disc 1", and "disc 2" sub-folders.
 
+        :return: Nothing.
+        """
+        s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_linked_roms_without_patch')
         files.init_dir(s_out_dir)
 
         o_rom_cfg = _build_rom_config_multiple_files()
-        #o_rom_cfg.s_user = 'jonh'
+        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
 
-        install.install(po_rom_cfg=o_rom_cfg,
-                        ps_dir=s_out_dir)
+        ls_actual_files = []
+        for s_dir, ls_dirs, ls_files in os.walk(s_out_dir):
+            for s_file in ls_files:
+                s_full_path = os.path.join(s_dir, s_file)
+                ls_actual_files.append(s_full_path)
+        ls_actual_files.sort()
 
-        # --- test code ---
-        for s_a, ls_b, ls_c in os.walk(s_out_dir):
-            print(s_a)
-            print(ls_b)
-            print(ls_c)
-            print('---')
-        quit()
-        # ------ end ------
+        ls_expect_files = [os.path.join(s_out_dir, 'disc 1',
+                                        'Strider Hiryuu 1 & 2 (Japan) (Disc 1) (Strider Hiryuu).bin'),
+                           os.path.join(s_out_dir, 'disc 1',
+                                        'Strider Hiryuu 1 & 2 (Japan) (Disc 1) (Strider Hiryuu).cue'),
+                           os.path.join(s_out_dir, 'disc 2',
+                                        'Strider Hiryuu 1 & 2 (Japan) (Disc 2) (Strider Hiryuu 2).bin'),
+                           os.path.join(s_out_dir, 'disc 2',
+                                        'Strider Hiryuu 1 & 2 (Japan) (Disc 2) (Strider Hiryuu 2).cue')
+                           ]
 
-        self.assertEqual(True, False)
+        s_msg = 'Installed files for multi-disc game are different from expectation.'
+        self.assertEqual(ls_expect_files, ls_actual_files, s_msg)
 
-    def test_rom_with_patch(self):
+    def test_single_rom_with_patch(self):
         """
         Installation test for a small ROM that requires a patch to be applied.
 
@@ -74,10 +83,9 @@ class FunctionInstall(unittest.TestCase):
         o_rom_cfg.s_user = 'anna'
         o_rom_cfg.o_patch = o_patch
 
-        install.install(po_rom_cfg=o_rom_cfg,
-                        ps_dir=s_out_dir)
+        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
 
-        # If the patching is correct, we will obtain the original ROM ps_name (because patching won't change the ps_name at
+        # If the patching is correct, we will obtain the original ROM name (because patching won't change the name at
         # all) with the CRC32 of the v0.9 because that's the intent of the applied patch.
         ds_expect = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': '3df43d25'}
 
@@ -85,7 +93,7 @@ class FunctionInstall(unittest.TestCase):
         for s_elem in os.listdir(s_out_dir):
             s_full_path = os.path.join(s_out_dir, s_elem)
             if os.path.isfile(s_full_path):
-                ds_actual[s_elem] = compute_crc(s_full_path)
+                ds_actual[s_elem] = files.compute_crc(s_full_path)
 
         s_msg = 'The file(s) contained in the install dir is not what was expected.'
         self.assertEqual(ds_expect, ds_actual, s_msg)

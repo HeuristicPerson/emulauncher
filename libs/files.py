@@ -21,6 +21,8 @@ import codecs
 import datetime
 import os
 import shutil
+import subprocess
+import zipfile
 import zlib
 
 
@@ -652,7 +654,6 @@ def init_dir(ps_dir):
     :return: Nothing.
     """
     if os.path.isdir(ps_dir):
-        print('dir exists')
         clean_dir(ps_dir)
     else:
         os.makedirs(ps_dir)
@@ -674,3 +675,93 @@ def compute_crc(ps_file):
         prev = zlib.crc32(chunk, prev)
     s_crc32 = "%X" % (prev & 0xFFFFFFFF)
     return s_crc32.lower()
+
+
+def uncompress(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    s_file = os.path.basename(ps_file)
+    s_name, _, s_ext = s_file.rpartition('.')
+
+    s_ext = s_ext.lower()
+    dsc_decompressors = {'7z': _uncompress_7z, 'rar': _uncompress_rar, 'zip': _uncompress_zip}
+
+    if ps_dst_dir:
+        s_dir = ps_dst_dir
+    else:
+        s_dir = os.path.dirname(ps_file)
+
+    if s_ext in dsc_decompressors:
+        c_decompressor = dsc_decompressors[s_ext]
+        c_decompressor(ps_file=ps_file, ps_dst_dir=s_dir)
+
+
+def _uncompress_7z(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress 7z files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    ls_cmd = ['7z', 'x', ps_file]
+
+    if ps_dst_dir:
+        ls_cmd += [f'-o{ps_dst_dir}']
+
+    o_process = subprocess.Popen(ls_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+    # TODO: Handle error messages
+
+
+def _uncompress_rar(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress rar files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    ls_cmd = ['unrar', 'x', ps_file]
+
+    if ps_dst_dir:
+        ls_cmd += [ps_dst_dir]
+
+    o_process = subprocess.Popen(ls_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+    # TODO: Handle error messages
+
+
+def _uncompress_zip(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress zip files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    with zipfile.ZipFile(ps_file, 'r') as o_file:
+        o_file.extractall(ps_dst_dir)
