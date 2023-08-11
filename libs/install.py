@@ -107,8 +107,10 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
     # TODO: The rom dir will contain the proper subfolders for multi-disc games, and the patch, all the patches.
     # Probably I should also incorporate the patch download and unzipping into the same function.
     # So, in principle, the function will only need two parameters to work.
-    patch(ps_rom_dir, ps_patch_dir)
     if po_rom_cfg.o_patch is not None:
+        patch(ps_dir=ps_dir, ps_patch=po_rom_cfg.o_patch.s_path)
+
+    if False and po_rom_cfg.o_patch is not None:
         # Copying patch
         #--------------
         s_patch_dir = os.path.join(ps_dir, 'patch')
@@ -137,7 +139,7 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
     time.sleep(2)
 
 
-def patch(ps_dir, ps_patch):
+def patch(ps_dir, ps_patch, po_status=None, pb_print=False):
     """
     Function to apply a patch to an uncompressed ROM directory.
 
@@ -150,6 +152,35 @@ def patch(ps_dir, ps_patch):
     :param ps_patch: Path of the compressed file containing all the patches for the game.
     :type ps_patch: Str
 
+    :param po_status: Status object so the patching process can update the progress (message and progress percentage).
+    :type po_status: Status
+
+    :param pb_print: Whether the function will print results to terminal or not.
+    :type pb_print: Bool
+
     :return: Nothing.
     """
-    pass
+    # Copying patch
+    # --------------
+    s_patch_dir = os.path.join(ps_dir, 'patch')
+    files.init_dir(s_patch_dir)
+    s_dst_patch = os.path.join(s_patch_dir, os.path.basename(ps_patch))
+    shutil.copyfile(ps_patch, s_dst_patch)
+
+    libs.files.uncompress(s_dst_patch)
+    os.remove(s_dst_patch)
+
+    if po_status is not None:
+        po_status.s_message = 'Downloading patch'
+
+    # Applying patch
+    #---------------
+    for s_elem in os.listdir(s_patch_dir):
+        # TODO: Capture patch ROM CRC32, and two digits (disc, and file number)
+        s_ext = s_elem.rpartition('.')[2].lower()
+        s_full_path = os.path.join(s_patch_dir, s_elem)
+        # TODO: capture extensions
+        if s_ext != 'txt':
+
+        if po_status is not None:
+            po_status.s_message = 'Applying patch'

@@ -1,20 +1,5 @@
-# -*- coding: utf-8 -*-
-
 """
 Description: Library with file tools.
-    Version: 2017-05-28
-
-        Log: 2017-05-28 - Modification in BackReader to avoid decode error when splitting a two-byte utf8 character in
-                          half when
-                          getting a chunk
-
-             2019-03-02 - Added new file extension filter to FilePath.content() method. It's a quite common operation
-                          and if saves the user iterating over all of them afterwards. Added two properties to get file
-                          size as an integer and also as an human-readable unicode string.
-
-             2019-03-09 - Fixed bug in FilePath initialization so when joining back the elements of an absolute path
-                          (e.g. '/home/john/my_file.txt'), the result would miss the leading dash (e.g.
-                          'home/john/my_file.txt). Added two new methods in FilePath: common_prefix and uncommon_prefix.
 """
 
 import codecs
@@ -24,6 +9,8 @@ import shutil
 import subprocess
 import zipfile
 import zlib
+
+from . import cons
 
 
 # Classes
@@ -248,7 +235,7 @@ class FilePath(object):
 
     def _get_size_h(self):
         """
-        Method to get the file size in human readable format.
+        Method to get the file size in human-readable format.
         :return:
         """
         return file_size_format(self.i_size, pi_jump=1024, pu_suffix=u'B')
@@ -765,3 +752,107 @@ def _uncompress_zip(ps_file, ps_dst_dir=''):
     """
     with zipfile.ZipFile(ps_file, 'r') as o_file:
         o_file.extractall(ps_dst_dir)
+
+
+def patch(ps_file, ps_patch):
+    """
+    Function to patch a file IN PLACE because that's the functionality we require in emulauncher.
+
+    The function will call external tools to perform the patching. When those tools are not compatible with in-place
+    patching, an intermediate patched file will be created and then removed.
+
+    :param ps_file: Path of the file to be patched.
+    :type ps_file: Str
+
+    :param ps_patch: Path of the patch to be applied.
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    # Dictionary with patcher per extension
+    dsc_patcher = {'ips':    _patch_flips,
+                   'ppf':    _patch_ppf,
+                   'xdelta': _patch_xdelta}
+
+    s_ext = os.path.basename(ps_patch).rpartition('.')[2].lower()
+
+    # I'm not sure whether patching in place is safe or valid for large files, so by now I'll save patched files into
+    # /tmp and then later I'll move them to the output file just in case I want to patch "in place".
+    s_temp_file = os.path.join(f'/tmp/patched_file.{s_ext}')
+    if s_ext not in dsc_patcher:
+        s_msg = f'Unknown patch extension "{s_ext}"'
+        raise ValueError(s_msg)
+    else:
+        c_patcher = dsc_patcher[s_ext]
+        c_patcher(ps_file=ps_file, ps_patch=ps_patch)
+
+
+def _patch_flips(ps_file, ps_patch):
+    """
+    Function to patch ips, and bps patches
+    :param ps_file:
+    :type ps_file: Str
+
+    :param ps_patch:
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    # We use a local compiled version of Flips, I don't know what are its dependencies; I hope it easily works in
+    # any common Linux machine.
+    s_tool_src = os.path.join(cons.s_SCRIPT_ROOT, 'resources', 'tools', 'Flips', 'flips')
+    s_tool_dst = os.path.join('/tmp/flips')
+    shutil.copyfile(s_tool_src, s_tool_dst)
+    os.chmod(s_tool_dst, 0o700)
+
+    ts_cmd = (s_tool_dst, '--apply', '--exact', ps_patch, ps_file)
+    o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+
+def _patch_ppf(ps_file, ps_patch):
+    """
+    Function to apply xdelta3 patches.
+
+    :param ps_file:
+    :type ps_file: Str
+
+    :param ps_patch:
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    # We use a local compiled version of applyppf, I don't know what are its dependencies; I hope it easily works in
+    # any common Linux machine.
+    s_tool_src = os.path.join(cons.s_SCRIPT_ROOT, 'resources', 'tools', 'ApplyPPF', 'applyppf')
+    s_tool_dst = os.path.join('/tmp/applyppf')
+    shutil.copyfile(s_tool_src, s_tool_dst)
+    os.chmod(s_tool_dst, 0o700)
+
+    ts_cmd = (s_tool_dst, 'a', ps_file, ps_patch)
+    o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+
+def _patch_xdelta(ps_file, ps_patch):
+    """
+    Function to apply xdelta3 patches.
+
+    Xdelta3 doesn't allow to patch in place, so we have to create an intermediate file.
+
+    :param ps_file:
+    :type ps_file: Str
+
+    :param ps_patch:
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    s_ext = ps_file.rpartition('.')[2]
+    s_temp_file = os.path.join(f'/tmp/xdelta3_intermediate_file.{s_ext}')
+
+    ts_cmd = ('xdelta3', '-d', '-s', ps_file, ps_patch, s_temp_file)
+    o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+    shutil.move(s_temp_file, ps_file)
