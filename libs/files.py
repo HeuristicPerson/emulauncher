@@ -770,7 +770,8 @@ def patch(ps_file, ps_patch):
     :return: Nothing.
     """
     # Dictionary with patcher per extension
-    dsc_patcher = {'ips':    _patch_flips,
+    dsc_patcher = {'bps':    _patch_flips,
+                   'ips':    _patch_flips,
                    'ppf':    _patch_ppf,
                    'xdelta': _patch_xdelta}
 
