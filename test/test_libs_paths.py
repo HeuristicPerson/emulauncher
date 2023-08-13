@@ -34,7 +34,7 @@ def _build_prog_and_rom_configs_with_patch():
 
     s_rom_cfg = os.path.join(cons.s_TEST_DATA_DIR,
                              'romconfig',
-                             'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - with patch.ini')
+                             'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - with patch_file.ini')
     o_rom_cfg = romconfig.RomConfig()
     o_rom_cfg.o_rom = o_rom
     o_rom_cfg.load_from_disk(ps_file=s_rom_cfg, po_prog_cfg=o_prog_cfg)
@@ -124,12 +124,12 @@ class TestFunctionBuildRomInstallDirPath(unittest.TestCase):
         s_expect_dir = '/tmp/emulaunch_cache/games/mdr-crt - d6cf8cdb+2e94ed41 - phantom gear (world) (v0.2) (demo) ' \
                        '(aftermarket) (unl)'
 
-        s_msg = 'Installation dir different from what was expected for rom with patch applied'
+        s_msg = 'Installation dir different from what was expected for rom with patch_file applied'
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
     def test_partial_romconfig_and_full_program_config(self):
         """
-        Test for the dir path when all there is no patch applied.
+        Test for the dir path when all there is no patch_file applied.
 
         :return: Nothing.
         """
@@ -138,7 +138,7 @@ class TestFunctionBuildRomInstallDirPath(unittest.TestCase):
         s_expect_dir = '/tmp/emulaunch_cache/games/mdr-crt - d6cf8cdb+xxxxxxxx - phantom gear (world) (v0.2) (demo) ' \
                        '(aftermarket) (unl)'
 
-        s_msg = 'Installation dir different from what was expected for rom without patch applied'
+        s_msg = 'Installation dir different from what was expected for rom without patch_file applied'
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
     def test_unknown_romconfig_and_full_program_config(self):
@@ -152,21 +152,21 @@ class TestFunctionBuildRomInstallDirPath(unittest.TestCase):
         s_expect_dir = '/tmp/emulaunch_cache/games/mdr-crt - xxxxxxxx+xxxxxxxx - phantom gear (world) (v0.2) (demo) ' \
                        '(aftermarket) (unl)'
 
-        s_msg = 'Installation dir different from what was expected from rom without known CRC32 (and without patch)'
+        s_msg = 'Installation dir different from what was expected from rom without known CRC32 (and without patch_file)'
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
 
 class TestFunctionBuildUserGameDirPath(unittest.TestCase):
     def test_full_romconfig_and_full_program_config(self):
         """
-        Test for the dir path when all the data is provided (including a patch).
+        Test for the dir path when all the data is provided (including a patch_file).
 
         :return: Nothing.
         """
         o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_with_patch()
         s_actual_dir = paths.build_user_game_dir_path(o_rom_cfg, o_prog_cfg)
         s_expect_dir = '/tmp/emulaunch_cache/users/joe/mdr-crt'
-        s_msg = 'Installation dir different from what was expected for rom with patch applied'
+        s_msg = 'Installation dir different from what was expected for rom with patch_file applied'
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
     def test_full_romconfig_and_partial_program_config(self):
@@ -178,7 +178,7 @@ class TestFunctionBuildUserGameDirPath(unittest.TestCase):
         o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_dat()
         s_actual_dir = paths.build_user_game_dir_path(o_rom_cfg, o_prog_cfg)
         s_expect_dir = '/tmp/emulaunch_cache/users/joe/mdr-crt'
-        s_msg = 'Installation dir different from what was expected for rom with patch applied'
+        s_msg = 'Installation dir different from what was expected for rom with patch_file applied'
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
 

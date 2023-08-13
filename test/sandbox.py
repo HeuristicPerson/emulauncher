@@ -9,16 +9,36 @@ import subprocess
 import libs.cons as cons
 
 
-s_patcher_src = os.path.join(cons.s_SCRIPT_ROOT, 'resources', 'vendoring', 'lppf')
-s_patcher_dst = os.path.join('/tmp', 'lppf')
+def list_files_with_positions(root_dir):
+    file_positions = []
 
-shutil.copyfile(s_patcher_src, s_patcher_dst)
-os.chmod(s_patcher_dst, 0o777)
+    def traverse_directory(path, level=0):
+        nonlocal file_positions
 
-ts_cmd = (s_patcher_dst, )
+        # Add the current directory to the list
+        file_positions.append((path, level))
 
-o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-s_stdout, s_stderr = o_process.communicate()
+        # Iterate through the contents of the directory
+        for item in os.listdir(path):
+            item_path = os.path.join(path, item)
 
-print(s_stdout)
-print(s_stderr)
+            # Check if the item is a directory
+            if os.path.isdir(item_path):
+                traverse_directory(item_path, level + 1)
+            else:
+                # Add the file to the list
+                file_positions.append((item_path, level + 1))
+
+    traverse_directory(root_dir)
+
+    return file_positions
+
+# Specify the root directory
+root_directory = os.path.join(cons.s_TEST_DATA_DIR, 'libs_install', 'function_patch_dir', 'multi_rom')
+
+file_positions = list_files_with_positions(root_directory)
+
+# Print the list of files and their positions
+for position, (file_path, level) in enumerate(file_positions, start=1):
+    indentation = "    " * level
+    print(f"{position}. {indentation}{file_path}")

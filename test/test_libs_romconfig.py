@@ -251,7 +251,7 @@ class TestClassRomConfig(unittest.TestCase):
 
     def test_method_load_from_disk_with_rom_matched_ccrc32_and_patch_not_found(self):
         """
-        Test to load a RomConfig from disk with when the specified patch is not found in the current patches dir.
+        Test to load a RomConfig from disk with when the specified patch_file is not found in the current patches dir.
         :return: Nothing.
         """
         # Preparation of a program config that will provide the path of the patches
@@ -323,7 +323,7 @@ class TestClassRomConfig(unittest.TestCase):
         o_expect_config.set('rom', 'ps_name', 'Miniplanets (World) (Rev 3) (Aftermarket) (Unl)')
         o_expect_config.set('rom', 'ccrc32', '8ea40d2f')
         o_expect_config.set('rom', 'platform', 'mdr-crt')
-        o_expect_config.set('rom', 'patch', 'foo')
+        o_expect_config.set('rom', 'patch_file', 'foo')
         o_expect_config.add_section('settings')
         o_expect_config.set('settings', 'core', 'picodrive')
         o_expect_config.set('settings', 'region', 'japan')
@@ -340,7 +340,7 @@ class TestClassRomConfig(unittest.TestCase):
     @staticmethod
     def _load_config_with_matched_ccrc32_and_patch():
         """
-        Method to fully load a romconfig matching the ROM ccrc32 and specifying a patch. This method is auxiliary for
+        Method to fully load a romconfig matching the ROM ccrc32 and specifying a patch_file. This method is auxiliary for
         other test methods.
 
         :return:
@@ -362,7 +362,7 @@ class TestClassRomConfig(unittest.TestCase):
         #---------------------------------
         s_romconfig_file = os.path.join(
                                cons.s_TEST_DATA_DIR, 'romconfig',
-                               'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - with patch.ini')
+                               'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - with patch_file.ini')
         o_config = romconfig.RomConfig()
         o_config.o_rom = o_rom
 

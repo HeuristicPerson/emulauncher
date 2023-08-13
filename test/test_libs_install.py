@@ -70,7 +70,7 @@ class FunctionInstall(unittest.TestCase):
 
     def test_single_rom_with_patch(self):
         """
-        Installation test for a small ROM that requires a patch to be applied.
+        Installation test for a small ROM that requires a patch_file to be applied.
 
         :return: Nothing.
         """
@@ -86,7 +86,7 @@ class FunctionInstall(unittest.TestCase):
         install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
 
         # If the patching is correct, we will obtain the original ROM name (because patching won't change the name at
-        # all) with the CRC32 of the v0.9 because that's the intent of the applied patch.
+        # all) with the CRC32 of the v0.9 because that's the intent of the applied patch_file.
         ds_expect = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': '3df43d25'}
 
         ds_actual = {}
@@ -99,11 +99,32 @@ class FunctionInstall(unittest.TestCase):
         self.assertEqual(ds_expect, ds_actual, s_msg)
 
 
+class FunctionPatchDir(unittest.TestCase):
+    """
+    Tests for the patch_dir function.
+    """
+    def test_single_file_rom(self):
+        self.assertEqual(True, False)
+
+    def test_multi_file_rom(self):
+        """
+        Test for the patching of a multi-disc rom directory.
+
+        :return: Nothing.
+        """
+        s_dir = os.path.join(cons.s_TEST_DATA_DIR, 'libs_install', 'function_patch_dir', 'multi_rom')
+        s_patch = 'bar'
+
+        install.patch_dir(ps_dir=s_dir, ps_patch=s_patch)
+
+        self.assertEqual(True, False)
+
+
 # Helper functions
 #=======================================================================================================================
 def _build_rom_config_single_file():
     """
-    Function to obtain a valid RomConfig for a small ROM without user or patch.
+    Function to obtain a valid RomConfig for a small ROM without user or patch_file.
     :return:
     """
     # "Creating" a a ROM object
@@ -117,7 +138,7 @@ def _build_rom_config_single_file():
 
 def _build_rom_config_multiple_files():
     """
-    Function to obtain a valid RomConfig for a small ROM without user or patch.
+    Function to obtain a valid RomConfig for a small ROM without user or patch_file.
     :return:
     """
     # "Creating" a a ROM object

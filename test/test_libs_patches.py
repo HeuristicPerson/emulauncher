@@ -26,7 +26,7 @@ class TestClassPatch(unittest.TestCase):
         ls_actual.append(o_patch.s_title)
         ls_expect.append('double x hack')
 
-        s_msg = 'The information read from the patch file is not correct.'
+        s_msg = 'The information read from the patch_file file is not correct.'
         self.assertEqual(ls_expect, ls_actual, s_msg)
 
     def test_method_init_from_file_with_invalid_crc32(self):

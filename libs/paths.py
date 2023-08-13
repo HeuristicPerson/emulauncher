@@ -18,7 +18,7 @@ def build_rom_install_dir_path(po_rom_config, po_program_config):
     The path will be something along "X - Y - Z" where:
 
       X: Safe clean CRC32 of the ROM, "xxxxxxxx" if unknown.
-      Y: CRC32 of the patch ps_name, "xxxxxxxx" if no patch is applied.
+      Y: CRC32 of the patch_file ps_name, "xxxxxxxx" if no patch_file is applied.
       Z: Name of the ROM lower-cased.
 
     :param po_rom_config:
@@ -40,7 +40,7 @@ def build_user_game_dir_path(po_rom_config, po_program_config):
     Function to build the user data directory to store data. The path will be something along "X - Y - Z" where:
 
       X: Clean CRC32 of the ROM, "xxxxxxxx" if unknown.
-      Y: CRC32 of the patch ps_name, "xxxxxxxx" if no patch is applied.
+      Y: CRC32 of the patch_file ps_name, "xxxxxxxx" if no patch_file is applied.
       Z: Name of the ROM lower-cased.
 
     :param po_rom_config:
@@ -137,7 +137,7 @@ def _build_romconfig_dir(po_rom_config):
     The path will be something along "X - Y - Z" where:
 
       X: Clean CRC32 of the ROM, "xxxxxxxx" if unknown.
-      Y: CRC32 of the patch ps_name, "xxxxxxxx" if no patch is applied.
+      Y: CRC32 of the patch_file ps_name, "xxxxxxxx" if no patch_file is applied.
       Z: Name of the ROM lower-cased.
 
     :param po_rom_config:
@@ -156,7 +156,7 @@ def _build_romconfig_dir(po_rom_config):
     o_patch = po_rom_config.o_patch
     s_patch_code = 'xxxxxxxx'
     if o_patch is not None:
-        # In order to obtain the CRC32 of the patch title, we need to obtain a chain of bytes, which means we first have
+        # In order to obtain the CRC32 of the patch_file title, we need to obtain a chain of bytes, which means we first have
         # to encode the text into a string of bytes.
         s_patch_code = hex(zlib.crc32(o_patch.s_title.encode('utf8').lower()) & 0xffffffff)[-8:]
 

@@ -118,7 +118,7 @@ class MainWindow(pyglet.window.Window):
 
     def create_menu_patch(self):
         """
-        Method to create the patch selection menu.
+        Method to create the patch_file selection menu.
 
         :return: Nothing.
         """
@@ -132,7 +132,7 @@ class MainWindow(pyglet.window.Window):
         lo_patches = patches.get_patches(s_patches_dir, self.o_rom)
 
         o_menu = self._o_theme.build_menu()
-        o_menu.s_title = 'Choose patch'
+        o_menu.s_title = 'Choose patch_file'
         o_menu.add_option(ps_text='None', pc_callback=self.callback_menu_3_choose_patch, pdx_args={'po_patch': None})
         for o_patch in lo_patches:
             o_menu.add_option(ps_text=o_patch.s_name, pc_callback=self.callback_menu_3_choose_patch,
@@ -355,7 +355,7 @@ class MainWindow(pyglet.window.Window):
             #  3. activate controls (actually, not needed, because we're just running the game after
             #  ------- end -------
 
-        # If the game is installed including the wanted patch, we simply need to replace the settings file for the user
+        # If the game is installed including the wanted patch_file, we simply need to replace the settings file for the user
         # settings
         #s_install_settings_file = paths.build_rom_install_game_settings(po_rom_config=o_romconfig,
         #                                                                po_program_config=self.o_cfg)
@@ -393,7 +393,7 @@ class MainWindow(pyglet.window.Window):
 
     def callback_menu_3_choose_patch(self, po_patch):
         """
-        Callback used when a patch is selected in the menu.
+        Callback used when a patch_file is selected in the menu.
 
         :param po_patch:
         :type po_patch: patches.Patch
@@ -406,9 +406,9 @@ class MainWindow(pyglet.window.Window):
             s_patch = 'none'
         else:
             s_patch = po_patch.s_title
-        _register_action(f'patch: {s_patch}')
+        _register_action(f'patch_file: {s_patch}')
 
-        # Storing the selected patch information
+        # Storing the selected patch_file information
         #---------------------------------------
         self._o_status_block.o_patch = po_patch
         self.create_menu_rom_options()

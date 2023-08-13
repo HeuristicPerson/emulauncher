@@ -5,6 +5,7 @@ Description: Library with file tools.
 import codecs
 import datetime
 import os
+import re
 import shutil
 import subprocess
 import zipfile
@@ -754,7 +755,7 @@ def _uncompress_zip(ps_file, ps_dst_dir=''):
         o_file.extractall(ps_dst_dir)
 
 
-def patch(ps_file, ps_patch):
+def patch_file(ps_file, ps_patch):
     """
     Function to patch a file IN PLACE because that's the functionality we require in emulauncher.
 
@@ -764,7 +765,7 @@ def patch(ps_file, ps_patch):
     :param ps_file: Path of the file to be patched.
     :type ps_file: Str
 
-    :param ps_patch: Path of the patch to be applied.
+    :param ps_patch: Path of the patch_file to be applied.
     :type ps_patch: Str
 
     :return: Nothing.
@@ -777,11 +778,8 @@ def patch(ps_file, ps_patch):
 
     s_ext = os.path.basename(ps_patch).rpartition('.')[2].lower()
 
-    # I'm not sure whether patching in place is safe or valid for large files, so by now I'll save patched files into
-    # /tmp and then later I'll move them to the output file just in case I want to patch "in place".
-    s_temp_file = os.path.join(f'/tmp/patched_file.{s_ext}')
     if s_ext not in dsc_patcher:
-        s_msg = f'Unknown patch extension "{s_ext}"'
+        s_msg = f'Unknown patch_file extension "{s_ext}"'
         raise ValueError(s_msg)
     else:
         c_patcher = dsc_patcher[s_ext]
@@ -790,11 +788,12 @@ def patch(ps_file, ps_patch):
 
 def _patch_flips(ps_file, ps_patch):
     """
-    Function to patch ips, and bps patches
-    :param ps_file:
+    Function to patch files using Flips which is compatible with .ips, and .bps patches.
+
+    :param ps_file: Path of the file to be patched.
     :type ps_file: Str
 
-    :param ps_patch:
+    :param ps_patch: Path of the patch to be applied.
     :type ps_patch: Str
 
     :return: Nothing.
@@ -815,10 +814,10 @@ def _patch_ppf(ps_file, ps_patch):
     """
     Function to apply xdelta3 patches.
 
-    :param ps_file:
+    :param ps_file: Path of the file to be patched.
     :type ps_file: Str
 
-    :param ps_patch:
+    :param ps_patch: Path of the patch to be applied.
     :type ps_patch: Str
 
     :return: Nothing.
@@ -839,12 +838,12 @@ def _patch_xdelta(ps_file, ps_patch):
     """
     Function to apply xdelta3 patches.
 
-    Xdelta3 doesn't allow to patch in place, so we have to create an intermediate file.
+    Xdelta3 doesn't allow to patch_file in place, so we have to create an intermediate file.
 
-    :param ps_file:
+    :param ps_file: Path of the file to be patched.
     :type ps_file: Str
 
-    :param ps_patch:
+    :param ps_patch: Path of the patch to be applied.
     :type ps_patch: Str
 
     :return: Nothing.
@@ -857,3 +856,120 @@ def _patch_xdelta(ps_file, ps_patch):
     s_stdout, s_stderr = o_process.communicate()
 
     shutil.move(s_temp_file, ps_file)
+
+
+def index_dir(ps_dir, pdts_index=None, pli_current_level=None, pts_ignore_exts=()):
+    """
+    Function to alphabetically index the files within a directory, so each file path will be indexed by their relative
+    location in the tree structure. Below you can see an example of files within a directory and their index:
+
+        ROOT:
+            [0] file_a.txt
+            [1] file_b.txt
+
+            DIR_A:
+                [0, 0] file_a.txt
+                [0, 1] file_b.txt
+
+            DIR_B:
+                [1, 0] file_a.txt
+                [1, 1] file_b.txt
+
+                DIR_C:
+                    [1, 0, 0] file_a.txt
+                    [1, 0, 1] file_b.txt
+
+    :param ps_dir: Directory to be indexed.
+    :param ps_dir: Str
+
+    :param pdts_index: Index of already indexed files. This parameter should only be used by the function when calling
+                       itself recursively.
+    :type pdts_index: Dict[Tuple:Str]
+
+    :param pli_current_level: Current level of the directory to be scanned. This parameter should only be used by the
+                              function when calling itself recursively.
+    :type pli_current_level: List[Int]
+
+    :param pts_ignore_exts: Tuple with extensions to be ignored (case insensitive).
+    :type pts_ignore_exts: Tuple[Str]
+
+    :return: Dictionary of indexed files. The key is a tuple indicating the numerical "path" of the file, and the value
+             is the actual path of each file.
+    :rtype: Dict[Tuple:Str]
+    """
+    # Initialisation
+    #---------------
+    if pdts_index is None:
+        dts_index = {}
+    else:
+        # I prefer to make a copy, the performance penalty is small for the size of directories I use, and I think the
+        # code is cleaner.
+        dts_index = pdts_index.copy()
+
+    if pli_current_level is None:
+        li_current_level = []
+    else:
+        li_current_level = pli_current_level.copy()
+
+    # Traversing the folder structure
+    i_file_counter = None
+    i_dir_counter = None
+    for s_elem in sorted(os.listdir(ps_dir)):
+        s_full_path = os.path.join(ps_dir, s_elem)
+
+        if os.path.isfile(s_full_path):
+            s_ext = s_elem.rpartition('.')[2].lower()
+            if s_ext not in pts_ignore_exts:
+                if i_file_counter is None:
+                    i_file_counter = 0
+                else:
+                    i_file_counter += 1
+
+                li_file_index = li_current_level + [i_file_counter]
+                dts_index[tuple(li_file_index)] = s_full_path
+
+        elif os.path.isdir(s_full_path):
+            if i_dir_counter is None:
+                i_dir_counter = 0
+            else:
+                i_dir_counter += 1
+
+            li_dir_level = li_current_level + [i_dir_counter]
+            dts_index = index_dir(ps_dir=s_full_path,
+                                  pdts_index=dts_index,
+                                  pli_current_level=li_dir_level,
+                                  pts_ignore_exts=pts_ignore_exts)
+
+    return dts_index
+
+
+def index_patch_dir(ps_dir):
+    """
+    Function to "index" the files of a decompressed patch
+    :param ps_dir:
+    :return:
+    """
+    # The patch naming convention is [CRC32]-[INDEX].[EXTENSION] and we need to capture the [INDEX] part of it that can
+    # be a single number value for single file ROMS (e.g. "00000000-0.ppf") or two numbers for multi-file ROMs (e.g.
+    # "00000000-0-0.ppf"). There is no need to check the CRC32 part, and actually, that can potentially change in the
+    # future to include for example the real name (at the time) of the ROM. So, we will only capture the index values.
+
+    # Dictionary with patches where the key is the
+    s_pattern = r'(.+?)-(\d+)(-(\d+))?'
+    dti_patches = {}
+    for s_elem in os.listdir(ps_dir):
+        s_full_path = os.path.join(ps_dir, s_elem)
+        s_ext = s_elem.rpartition('.')[2].lower()
+        if os.path.isfile(s_full_path) and s_ext not in ('txt',):
+            o_match = re.search(s_pattern, s_elem, flags=re.IGNORECASE)
+            if o_match is not None:
+                li_levels = []
+                i_index_0 = int(o_match.group(2))
+                li_levels.append(i_index_0)
+
+                i_index_1 = int(o_match.group(4))
+                li_levels.append(i_index_1)
+
+                dti_patches[tuple(li_levels)] = s_full_path
+
+    return dti_patches

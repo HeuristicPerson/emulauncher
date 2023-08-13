@@ -3,6 +3,7 @@ Library with functions related to the installation of ROMs.
 """
 
 import os
+import re
 import shutil
 import time
 import zipfile
@@ -104,16 +105,16 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
         if po_status is not None:
             po_status.f_progress += f_weight_rom_unzip / (f_weight_total * len(ls_src_roms))
 
-    # TODO: The rom dir will contain the proper subfolders for multi-disc games, and the patch, all the patches.
-    # Probably I should also incorporate the patch download and unzipping into the same function.
+    # TODO: The rom dir will contain the proper subfolders for multi-disc games, and the patch_file, all the patches.
+    # Probably I should also incorporate the patch_file download and unzipping into the same function.
     # So, in principle, the function will only need two parameters to work.
     if po_rom_cfg.o_patch is not None:
-        patch(ps_dir=ps_dir, ps_patch=po_rom_cfg.o_patch.s_path)
+        patch_dir(ps_dir=ps_dir, ps_patch=po_rom_cfg.o_patch.s_path)
 
     if False and po_rom_cfg.o_patch is not None:
-        # Copying patch
+        # Copying patch_file
         #--------------
-        s_patch_dir = os.path.join(ps_dir, 'patch')
+        s_patch_dir = os.path.join(ps_dir, 'patch_file')
         files.init_dir(s_patch_dir)
 
         s_src_patch = po_rom_cfg.o_patch.s_path
@@ -123,28 +124,28 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
         os.remove(s_dst_patch)
 
         if po_status is not None:
-            po_status.s_message = 'Downloading patch'
+            po_status.s_message = 'Downloading patch_file'
 
-        # Applying patch
+        # Applying patch_file
         #---------------
         # TODO: Convert this patching code to a private function
         if po_rom_cfg.o_patch is not None:
             for s_elem in os.listdir(s_patch_dir):
-                # TODO: Capture patch ROM CRC32, and two digits (disc, and file number)
+                # TODO: Capture patch_file ROM CRC32, and two digits (disc, and file number)
                 s_full_path = os.path.join()
 
             if po_status is not None:
-                po_status.s_message = 'Applying patch'
+                po_status.s_message = 'Applying patch_file'
 
     time.sleep(2)
 
 
-def patch(ps_dir, ps_patch, po_status=None, pb_print=False):
+def patch_dir(ps_dir, ps_patch, po_status=None, pb_print=False):
     """
     Function to apply a patch to an uncompressed ROM directory.
 
     If the ROM directory belongs to a multi-disc game, it must contain "disc 1", "disc 2", ... directories for each of
-    the discs. The patch must be a single compressed file containing all the patches required for the whole game.
+    the discs. The patch_file must be a single compressed file containing all the patches required for the whole game.
 
     :param ps_dir: Directory path of the uncompressed ROM. If the ROM belongs to a multi-disc game, different games will
     :type ps_dir: Str
@@ -160,8 +161,16 @@ def patch(ps_dir, ps_patch, po_status=None, pb_print=False):
 
     :return: Nothing.
     """
-    # Copying patch
-    # --------------
+    # Getting a "list" of all ROM files
+    #----------------------------------
+    # This step has to be done at the beginning se we don't need extra code to ignore patch files from the scan.
+    dtis_indexed_files = files.index_dir(ps_dir, pts_ignore_exts=('cue',))
+
+    # Copying the patch to a sub-folder of the installation dir, and decompressing it
+    #--------------------------------------------------------------------------------
+    if po_status is not None:
+        po_status.s_message = 'Downloading patch_file'
+
     s_patch_dir = os.path.join(ps_dir, 'patch')
     files.init_dir(s_patch_dir)
     s_dst_patch = os.path.join(s_patch_dir, os.path.basename(ps_patch))
@@ -170,17 +179,11 @@ def patch(ps_dir, ps_patch, po_status=None, pb_print=False):
     libs.files.uncompress(s_dst_patch)
     os.remove(s_dst_patch)
 
-    if po_status is not None:
-        po_status.s_message = 'Downloading patch'
+    # "Indexing" the patches, so they have the same index as the files to be applied
+    #-------------------------------------------------------------------------------
+    dtis_patch_files = index_decompressed_patch(s_patch_dir)
 
-    # Applying patch
-    #---------------
-    for s_elem in os.listdir(s_patch_dir):
-        # TODO: Capture patch ROM CRC32, and two digits (disc, and file number)
-        s_ext = s_elem.rpartition('.')[2].lower()
-        s_full_path = os.path.join(s_patch_dir, s_elem)
-        # TODO: capture extensions
-        if s_ext != 'txt':
+    po_status.s_message = 'Applying patch_file'
 
-        if po_status is not None:
-            po_status.s_message = 'Applying patch'
+
+
