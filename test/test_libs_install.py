@@ -1,15 +1,19 @@
 import os
+import shutil
 import unittest
 
 import libs.cons as cons
-import libs.files as files
 import libs.install as install
 import libs.patches as patches
 import libs.roms as roms
 import libs.romconfig as romconfig
 import libs.files as files
 
+import test_tools
 
+
+# Tests
+#=======================================================================================================================
 class FunctionInstall(unittest.TestCase):
     def test_single_rom_without_patch(self):
         """
@@ -19,7 +23,7 @@ class FunctionInstall(unittest.TestCase):
         """
         s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_single_rom_without_patch')
 
-        o_rom_cfg = _build_rom_config_single_file()
+        o_rom_cfg = self._build_rom_config_single_file()
         o_rom_cfg.s_user = 'anna'
 
         install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
@@ -42,10 +46,10 @@ class FunctionInstall(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_linked_roms_without_patch')
+        s_out_dir = test_tools.get_test_output_dir(self)
         files.init_dir(s_out_dir)
 
-        o_rom_cfg = _build_rom_config_multiple_files()
+        o_rom_cfg = self._build_rom_config_multiple_files()
         install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
 
         ls_actual_files = []
@@ -74,12 +78,13 @@ class FunctionInstall(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_rom_with_patch_required')
+        s_out_dir = test_tools.get_test_output_dir(self)
 
-        s_patch = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'mdr-crt', 'd6cf8cdb - v0.2 to v0.9.zip')
+        s_patch = os.path.join(test_tools.get_test_input_dir(self), 'mdr-crt-phantom_gear',
+                               'd6cf8cdb - v0.2 to v0.9.zip')
         o_patch = patches.Patch(ps_file=s_patch)
 
-        o_rom_cfg = _build_rom_config_single_file()
+        o_rom_cfg = self._build_rom_config_single_file()
         o_rom_cfg.s_user = 'anna'
         o_rom_cfg.o_patch = o_patch
 
@@ -98,7 +103,43 @@ class FunctionInstall(unittest.TestCase):
         s_msg = 'The file(s) contained in the install dir is not what was expected.'
         self.assertEqual(ds_expect, ds_actual, s_msg)
 
+    def _build_rom_config_single_file(self):
+        """
+        Function to obtain a valid RomConfig for a small ROM without user or patch_file.
+        :return:
+        """
+        # "Creating" a a ROM object
+        #--------------------------
+        s_rom = os.path.join(test_tools.get_test_input_dir(self), 'mdr-crt-phantom_gear',
+                             'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
+        o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom)
+        o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=())
+        return o_rom_cfg
 
+    def _build_rom_config_multiple_files(self):
+        """
+        Function to obtain a valid RomConfig for a small ROM without user or patch_file.
+        :return:
+        """
+        # "Creating" a a ROM object
+        #--------------------------
+        s_rom_1st = os.path.join(test_tools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
+                                 'Strider Hiryuu 1 & 2 (Japan) (Disc 1) (Strider Hiryuu).zip')
+        s_rom_2nd = os.path.join(test_tools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
+                                 'Strider Hiryuu 1 & 2 (Japan) (Disc 2) (Strider Hiryuu 2).zip')
+
+        o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom_1st)
+
+        # We have to manually add the linked ROM because normally it's added through a .dat, and I don't want to include
+        # that extra dependency and complication in this test function.
+        o_rom._ls_linked_roms = [s_rom_2nd]
+        o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=())
+
+        return o_rom_cfg
+
+
+# Skipped because the function probably needs to be removed
+@unittest.skip
 class FunctionPatchDir(unittest.TestCase):
     """
     Tests for the patch_dir function.
@@ -112,48 +153,24 @@ class FunctionPatchDir(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_dir = os.path.join(cons.s_TEST_DATA_DIR, 'libs_install', 'function_patch_dir', 'multi_rom')
-        s_patch = 'bar'
 
-        install.patch_dir(ps_dir=s_dir, ps_patch=s_patch)
+        # The patcher works in-place, so we have to create a copy of the test data
+        #-------------------------------------------------------------------------
+        s_rom_src_dir = os.path.join(test_tools.get_test_input_dir(self), 'multi_rom', 'raw_game')
+        s_rom_dst_dir = test_tools.get_test_output_dir(self)
+        files.init_dir(s_rom_dst_dir)
+        shutil.copytree(s_rom_src_dir, s_rom_dst_dir, dirs_exist_ok=True)
+
+        s_patch_dir = os.path.join(test_tools.get_test_input_dir(self), 'multi_rom', 'patch')
+
+        install.patch_dir(ps_dir=s_rom_src_dir, ps_patch=s_patch_dir)
 
         self.assertEqual(True, False)
 
 
 # Helper functions
 #=======================================================================================================================
-def _build_rom_config_single_file():
-    """
-    Function to obtain a valid RomConfig for a small ROM without user or patch_file.
-    :return:
-    """
-    # "Creating" a a ROM object
-    # --------------------------
-    s_rom = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
-                         'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
-    o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom)
-    o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=())
-    return o_rom_cfg
 
-
-def _build_rom_config_multiple_files():
-    """
-    Function to obtain a valid RomConfig for a small ROM without user or patch_file.
-    :return:
-    """
-    # "Creating" a a ROM object
-    #--------------------------
-    s_rom_1st = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'ps1',
-                             'Strider Hiryuu 1 & 2 (Japan) (Disc 1) (Strider Hiryuu).zip')
-    s_rom_2nd = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'ps1',
-                             'Strider Hiryuu 1 & 2 (Japan) (Disc 2) (Strider Hiryuu 2).zip')
-    o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom_1st)
-
-    # We have to manually add the linked ROM because normally it's added through a .dat, and I don't want to include
-    # that extra dependency and complication in this test function.
-    o_rom._ls_linked_roms = [s_rom_2nd]
-    o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=())
-    return o_rom_cfg
 
 
 # Main code

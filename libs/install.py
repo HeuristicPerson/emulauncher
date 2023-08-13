@@ -18,7 +18,7 @@ from . import cli_tools
 def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
     """
     Function
-    :param pb_print:
+
     :param po_rom_cfg:
     :type po_rom_cfg: libs.romconfig.RomConfig
 
@@ -33,7 +33,6 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
 
     :return: Nothing.
     """
-    #TODO: Apply patches to required files
     #TODO: For multi-disc games, create a playlist file containing all discs (whatever format is used by RetroArch)
 
     # Initialization of weights
@@ -105,16 +104,24 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
         if po_status is not None:
             po_status.f_progress += f_weight_rom_unzip / (f_weight_total * len(ls_src_roms))
 
+    dtis_installed_files = files.index_dir(ps_dir=ps_dir, pts_ignore_exts=('cue',))
+
+    # TODO: Decompress patch
+    # TODO: Get index of patch files
+    # TODO: Apply patches (at this point I'll have a 1:1 relationship between files and patches. If any of the patching
+    #       tools is not able to patch in-place, create the temporary files in the patch directory.
+    # TODO: Remove the whole patch directory (so all temporary files and patches will be removed).
+
     # TODO: The rom dir will contain the proper subfolders for multi-disc games, and the patch_file, all the patches.
     # Probably I should also incorporate the patch_file download and unzipping into the same function.
     # So, in principle, the function will only need two parameters to work.
-    if po_rom_cfg.o_patch is not None:
-        patch_dir(ps_dir=ps_dir, ps_patch=po_rom_cfg.o_patch.s_path)
+    #if po_rom_cfg.o_patch is not None:
+    #    patch_dir(ps_dir=ps_dir, ps_patch=po_rom_cfg.o_patch.s_path)
 
-    if False and po_rom_cfg.o_patch is not None:
+    if po_rom_cfg.o_patch is not None:
         # Copying patch_file
-        #--------------
-        s_patch_dir = os.path.join(ps_dir, 'patch_file')
+        #-------------------
+        s_patch_dir = os.path.join(ps_dir, 'patch')
         files.init_dir(s_patch_dir)
 
         s_src_patch = po_rom_cfg.o_patch.s_path
@@ -125,6 +132,19 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
 
         if po_status is not None:
             po_status.s_message = 'Downloading patch_file'
+
+        dtis_patches = files.index_patch_dir(s_patch_dir)
+
+        # --- test code ---
+        print()
+        for s_key, s_value in dtis_installed_files.items():
+            print(s_key, s_value)
+        print('------')
+        for s_key, s_value in dtis_patches.items():
+            print(s_key, s_value)
+        quit()
+        # ------ end ------
+
 
         # Applying patch_file
         #---------------
@@ -161,10 +181,14 @@ def patch_dir(ps_dir, ps_patch, po_status=None, pb_print=False):
 
     :return: Nothing.
     """
+
+    # TODO: For consistency, it makes sense that both, the dir to be patched, and the patching data are decompressed.
+    # That will probably make the code messier; explore the option and think about alternatives.
+
     # Getting a "list" of all ROM files
     #----------------------------------
     # This step has to be done at the beginning se we don't need extra code to ignore patch files from the scan.
-    dtis_indexed_files = files.index_dir(ps_dir, pts_ignore_exts=('cue',))
+    dtis_indexed_rom_files = files.index_dir(ps_dir, pts_ignore_exts=('cue',))
 
     # Copying the patch to a sub-folder of the installation dir, and decompressing it
     #--------------------------------------------------------------------------------
@@ -181,7 +205,14 @@ def patch_dir(ps_dir, ps_patch, po_status=None, pb_print=False):
 
     # "Indexing" the patches, so they have the same index as the files to be applied
     #-------------------------------------------------------------------------------
-    dtis_patch_files = index_decompressed_patch(s_patch_dir)
+    dtis_indexed_patch_files = files.index_patch_dir(s_patch_dir)
+
+    # --- test code ---
+    print()
+    print(sorted(set(dtis_indexed_rom_files.keys())))
+    print(sorted(set(dtis_indexed_patch_files.keys())))
+    quit()
+    # ------ end ------
 
     po_status.s_message = 'Applying patch_file'
 

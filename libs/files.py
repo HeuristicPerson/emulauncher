@@ -849,7 +849,8 @@ def _patch_xdelta(ps_file, ps_patch):
     :return: Nothing.
     """
     s_ext = ps_file.rpartition('.')[2]
-    s_temp_file = os.path.join(f'/tmp/xdelta3_intermediate_file.{s_ext}')
+    #s_temp_file = os.path.join(f'/tmp/xdelta3_intermediate_file.{s_ext}')
+    s_temp_file = f'{ps_file}.temp'
 
     ts_cmd = ('xdelta3', '-d', '-s', ps_file, ps_patch, s_temp_file)
     o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -960,6 +961,7 @@ def index_patch_dir(ps_dir):
     for s_elem in os.listdir(ps_dir):
         s_full_path = os.path.join(ps_dir, s_elem)
         s_ext = s_elem.rpartition('.')[2].lower()
+
         if os.path.isfile(s_full_path) and s_ext not in ('txt',):
             o_match = re.search(s_pattern, s_elem, flags=re.IGNORECASE)
             if o_match is not None:
