@@ -1,6 +1,6 @@
 # Patches
 
-Patches must be compressed in `.7z`, `.rar`, or `.zip` format and must be named
+Patches must be compressed in `.7z`, `.rar`, or `.zip` format, and named
 according to the following the scheme `<CRC32> - <TITLE>` in order to be
 recognised and used by _Emulauncher_:
 

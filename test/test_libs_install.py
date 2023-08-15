@@ -1,3 +1,4 @@
+import filecmp
 import os
 import shutil
 import unittest
@@ -88,7 +89,8 @@ class FunctionInstall(unittest.TestCase):
         o_rom_cfg.s_user = 'anna'
         o_rom_cfg.o_patch = o_patch
 
-        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
+        # TODO: Remove the printing in this test code
+        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir, pb_print=True)
 
         # If the patching is correct, we will obtain the original ROM name (because patching won't change the name at
         # all) with the CRC32 of the v0.9 because that's the intent of the applied patch_file.
@@ -102,6 +104,53 @@ class FunctionInstall(unittest.TestCase):
 
         s_msg = 'The file(s) contained in the install dir is not what was expected.'
         self.assertEqual(ds_expect, ds_actual, s_msg)
+
+    def test_linked_roms_with_patch(self):
+        """
+        Test for the installation and patching of a multi-disc ROMset.
+
+        :return: Nothing.
+        """
+        # "Creating" a ROM object
+        #------------------------
+        s_rom_1st = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+                                 'game x - disc 1 of 2.zip')
+        s_rom_2nd = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+                                 'game x - disc 2 of 2.zip')
+
+        # The platform itself is not relevant for this test, so I'll use Playstation 1 (ps1) because it's already
+        # contained in the program default platforms file.
+        o_rom = roms.Rom(ps_platform='ps1', ps_path=s_rom_1st)
+
+        # We have to manually add the linked ROM because normally it's added through a .dat, and I don't want to include
+        # that extra dependency and complication in this test function.
+        o_rom._ls_linked_roms = [s_rom_2nd]
+
+        # Creating a patch object
+        #------------------------
+        s_patch = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+                               '00000000 - my patch.zip')
+        o_patch = patches.Patch(s_patch)
+
+        # Creating a RomConfig object with all the data
+        #----------------------------------------------
+        o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=())
+        o_rom_cfg.o_patch = o_patch
+
+        # Creating output directory
+        #--------------------------
+        s_install_dir = test_tools.get_test_output_dir(self)
+        files.init_dir(s_install_dir)
+
+        # Finally we can install the game
+        #--------------------------------
+        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_install_dir)
+
+        s_expect_dir = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'mod_game')
+        b_equal = test_tools.are_dirs_same(s_install_dir, s_expect_dir)
+
+        s_msg = 'Installed+patched dir is different from expectation.'
+        self.assertTrue(b_equal, s_msg)
 
     def _build_rom_config_single_file(self):
         """

@@ -969,8 +969,11 @@ def index_patch_dir(ps_dir):
                 i_index_0 = int(o_match.group(2))
                 li_levels.append(i_index_0)
 
-                i_index_1 = int(o_match.group(4))
-                li_levels.append(i_index_1)
+                try:
+                    i_index_1 = int(o_match.group(4))
+                    li_levels.append(i_index_1)
+                except TypeError:
+                    pass
 
                 dti_patches[tuple(li_levels)] = s_full_path
 
