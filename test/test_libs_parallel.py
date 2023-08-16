@@ -61,19 +61,6 @@ class ClassParallelTask(unittest.TestCase):
         o_task.start()
         self.assertRaises(RuntimeError, o_task.start)
 
-    def test_something(self):
-        o_task = parallel.ParallelTask(po_callback=_tic_tac)
-        o_task.start()
-
-        for i_iter in range(24):
-            print('Task running: %s %s' % (o_task._o_status.s_message, o_task._o_status.f_progress))
-            print(o_task._o_thread)
-            if not o_task._o_thread.is_alive():
-                break
-            time.sleep(0.51)
-
-        self.assertEqual(True, False)  # add assertion here
-
     def test_init_kwargs_not_modified(self):
         """
         Test that the keyword arguments passed to the parallel task are not modified.

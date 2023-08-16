@@ -4,6 +4,7 @@ Library to work with patch_file files.
 
 import natsort
 import os
+import zlib
 
 from . import roms
 from . import string_helpers
@@ -63,6 +64,12 @@ class Patch:
         else:
             s_msg = 'The description of the patch_file file ps_name is empty.'
             raise ValueError(s_msg)
+
+    def _get_s_code(self):
+        s_patch_code = hex(zlib.crc32(self.s_title.lower().encode('utf8').lower()) & 0xffffffff)[-8:]
+        return s_patch_code
+
+    s_code = property(fget=_get_s_code, fset=None)
 
 
 # Functions

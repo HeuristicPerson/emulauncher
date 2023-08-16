@@ -314,8 +314,8 @@ class MainWindow(pyglet.window.Window):
 
         # When the user launches the game, the configuration is saved in the user's directory. It will overwrite
         # anything already existing with no questions.
-        s_user_settings_file = paths.build_user_game_settings(po_rom_config=o_romconfig,
-                                                              po_program_config=self.o_cfg)
+        s_user_settings_file = paths.build_user_game_settings_path(po_rom_config=o_romconfig,
+                                                                   po_program_config=self.o_cfg)
         self._o_status_block.o_config.save_to_disk(s_user_settings_file)
 
         # Then we check whether the game is already installed and, in that case, whether it has the same configuration
@@ -378,8 +378,8 @@ class MainWindow(pyglet.window.Window):
         self._o_status_block.s_user = ps_user
 
         # When the user is selected, we check whether it already had a configuration created for the game and load it.
-        s_user_saved_settings = paths.build_user_game_settings(po_rom_config=self._o_status_block.o_config,
-                                                               po_program_config=self.o_cfg)
+        s_user_saved_settings = paths.build_user_game_settings_path(po_rom_config=self._o_status_block.o_config,
+                                                                    po_program_config=self.o_cfg)
 
         if os.path.isfile(s_user_saved_settings):
             print('  < User config found, loading')

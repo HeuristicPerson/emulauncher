@@ -51,6 +51,7 @@ class FunctionInstall(unittest.TestCase):
         files.init_dir(s_out_dir)
 
         o_rom_cfg = self._build_rom_config_multiple_files()
+
         install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir)
 
         ls_actual_files = []
@@ -116,7 +117,7 @@ class FunctionInstall(unittest.TestCase):
         s_rom_1st = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
                                  'game x - disc 1 of 2.zip')
         s_rom_2nd = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
-                                 'game x - disc 2 of 2.zip')
+                                 'game x - disc 2 of 2')
 
         # The platform itself is not relevant for this test, so I'll use Playstation 1 (ps1) because it's already
         # contained in the program default platforms file.
@@ -172,10 +173,13 @@ class FunctionInstall(unittest.TestCase):
         """
         # "Creating" a a ROM object
         #--------------------------
+        # Notice the first ROM is "real" file, so it has extension...
         s_rom_1st = os.path.join(test_tools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
                                  'Strider Hiryuu 1 & 2 (Japan) (Disc 1) (Strider Hiryuu).zip')
+        #...while the second one (which is read from a .dat file in a real case), doesn't have extension because it'll
+        # assume the same extension as the main ROM.
         s_rom_2nd = os.path.join(test_tools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
-                                 'Strider Hiryuu 1 & 2 (Japan) (Disc 2) (Strider Hiryuu 2).zip')
+                                 'Strider Hiryuu 1 & 2 (Japan) (Disc 2) (Strider Hiryuu 2)')
 
         o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom_1st)
 

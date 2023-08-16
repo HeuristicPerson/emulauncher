@@ -375,11 +375,12 @@ class FilePath(object):
         :return: Nothing
         """
         # --- TEST CODE ---
-        print('0: %s' % pu_path)
-        print('1: %s' % self.u_root)
-        print(os.path.join(*pu_path, self.u_root))
-        quit()
+        #print('0: %s' % pu_path)
+        #print('1: %s' % self.u_root)
+        #print(os.path.join(*pu_path, self.u_root))
+        #quit()
         # ------ end ------
+        pass
 
     def has_exts(self, *pu_ext):
         """
@@ -658,10 +659,14 @@ def compute_crc(ps_file):
     :return:
     :rtype: Str
     """
-    prev = 0
-    for chunk in open(ps_file, "rb"):
-        prev = zlib.crc32(chunk, prev)
-    s_crc32 = "%X" % (prev & 0xFFFFFFFF)
+    i_prev = 0
+
+    with open(ps_file, 'rb') as o_file:
+        # h_chunk is a byte-string, but I use h for "hexa" since I have no better idea about what to use now.
+        for h_chunk in o_file:
+            i_prev = zlib.crc32(h_chunk, i_prev)
+
+    s_crc32 = "%X" % (i_prev & 0xFFFFFFFF)
     return s_crc32.lower()
 
 

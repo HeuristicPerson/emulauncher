@@ -59,7 +59,7 @@ def build_user_game_dir_path(po_rom_config, po_program_config):
     return s_full_path
 
 
-def build_user_game_settings(po_rom_config, po_program_config):
+def build_user_game_settings_path(po_rom_config, po_program_config):
     """
     Function to build the settings file path for a user.
 
@@ -156,9 +156,10 @@ def _build_romconfig_dir(po_rom_config):
     o_patch = po_rom_config.o_patch
     s_patch_code = 'xxxxxxxx'
     if o_patch is not None:
-        # In order to obtain the CRC32 of the patch_file title, we need to obtain a chain of bytes, which means we first have
-        # to encode the text into a string of bytes.
-        s_patch_code = hex(zlib.crc32(o_patch.s_title.encode('utf8').lower()) & 0xffffffff)[-8:]
+        # In order to obtain the CRC32 of the patch_file title, we need to obtain a chain of bytes, which means we first
+        # have to encode the text into a string of bytes.
+        #s_patch_code = hex(zlib.crc32(o_patch.s_title.encode('utf8').lower()) & 0xffffffff)[-8:]
+        s_patch_code = o_patch.s_code
 
     s_dir = '%s - %s+%s - %s' % (o_rom.o_platform.s_alias,
                                  o_rom.s_ccrc32_safe,

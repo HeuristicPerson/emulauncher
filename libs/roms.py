@@ -150,6 +150,7 @@ class Rom:
         # ROMs is through the use of .dat files. Naming convention for non-.dat ROMs is not standardise in any way, so
         # it's not worth wasting time in coding that will never be reliable.
         lo_linked_dat_roms = o_dat.get_linked_roms(self.s_name)
+
         self._ls_linked_roms = [o_dat_rom.s_name for o_dat_rom in lo_linked_dat_roms]
 
     def populate_from_file(self, ps_file):
@@ -189,7 +190,7 @@ class Rom:
         """
         s_rom_dir = os.path.dirname(self.s_path)
         s_rom_ext = self.s_path.rpartition('.')[2]
-        ls_linked_roms = [os.path.join(s_rom_dir, s_linked_rom)
+        ls_linked_roms = [os.path.join(s_rom_dir, f'{s_linked_rom}.{s_rom_ext}')
                           for s_linked_rom in self._ls_linked_roms]
         return ls_linked_roms
 
