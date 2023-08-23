@@ -3,7 +3,6 @@ Library to create and manipulate emulauncher paths.
 """
 
 import os
-import zlib
 
 from . import config
 from . import romconfig
@@ -96,6 +95,9 @@ def build_rom_install_game_settings(po_rom_config, po_program_config):
     return os.path.join(s_dir, s_file)
 
 
+# TODO: What's the reason behind this function?
+# Maybe it's a cheesy way to check before launching a game that everything went well, hence we can proceed to play or
+# reinstall.
 def build_rom_installed_flag_file_path(po_rom_config, po_program_config):
     """
     Empty text file created in the installation directory of ROM+Patch indicating the installation was successful.
@@ -106,7 +108,7 @@ def build_rom_installed_flag_file_path(po_rom_config, po_program_config):
     :param po_program_config:
     :type po_program_config: config.Config
 
-    :return:
+    :return: The full path of the "installation complete" file.
     :rtype: Str
     """
     s_dir = build_rom_install_dir_path(po_rom_config=po_rom_config, po_program_config=po_program_config)
@@ -152,13 +154,11 @@ def _build_romconfig_dir(po_rom_config):
 
     # Patch text
     #-----------
-    # TODO: Add method to patches to produce a safe crc32 of their title
     o_patch = po_rom_config.o_patch
     s_patch_code = 'xxxxxxxx'
     if o_patch is not None:
         # In order to obtain the CRC32 of the patch_file title, we need to obtain a chain of bytes, which means we first
         # have to encode the text into a string of bytes.
-        #s_patch_code = hex(zlib.crc32(o_patch.s_title.encode('utf8').lower()) & 0xffffffff)[-8:]
         s_patch_code = o_patch.s_code
 
     s_dir = '%s - %s+%s - %s' % (o_rom.o_platform.s_alias,

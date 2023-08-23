@@ -146,3 +146,8 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
             files.patch_file(ps_file=s_rom_file, ps_patch=s_patch_file)
 
         shutil.rmtree(s_patch_dir)
+
+    # TODO: Create a patching completed file or maybe it's not needed
+    # TODO: Create an install completed file or maybe it's not needed
+    # The reason I want those files is because I want the user to be aware of the issues without the program crashing,
+    # but maybe raising an exception with information about the error is good enough.

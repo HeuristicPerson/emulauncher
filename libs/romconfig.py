@@ -131,7 +131,7 @@ class RomConfig:
 
         # To get the patch_file, we first find all the patches available for the Rom object, and then we identify the
         # one with the right ps_name.
-        s_ini_patch = o_ini.get('rom', 'patch_file')
+        s_ini_patch = o_ini.get('rom', 'patch')
         if s_ini_patch:
             s_patches_dir = po_prog_cfg.ds_patch_dirs[self.o_rom.o_platform.s_alias]
             lo_patches = patches.get_patches(s_patches_dir, self.o_rom)
@@ -141,7 +141,7 @@ class RomConfig:
                     self.o_patch = o_patch
                     break
             else:
-                s_error = f'ERROR: patch_file "{s_ini_patch}" not found'
+                s_error = f'ERROR: patch "{s_ini_patch}" not found in "{s_patches_dir}"'
                 ls_errors.append(s_error)
 
         # Getting the core object from the core ps_name saved in the file. We will check that a) the core is valid
@@ -190,7 +190,7 @@ class RomConfig:
         o_config.set('rom', 'ps_name', self.o_rom.s_name)
         o_config.set('rom', 'ccrc32', self.o_rom.s_ccrc32)
         o_config.set('rom', 'platform', self.o_rom.o_platform.s_alias)
-        o_config.set('rom', 'patch_file', s_patch)  # TODO: Save ps_name of the patch_file
+        o_config.set('rom', 'patch', s_patch)  # TODO: Save name of the patch_file
         o_config.add_section('settings')
         o_config.set('settings', 'core', s_core)
         o_config.set('settings', 'region', self.s_region)

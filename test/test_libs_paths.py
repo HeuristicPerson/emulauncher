@@ -301,35 +301,129 @@ class TestFunctionBuildUserGameDirPath(unittest.TestCase):
         self.assertEqual(s_expect_dir, s_actual_dir, s_msg)
 
 
-class TestFunctionBuildUserGameSettings(unittest.TestCase):
-    def test_full_romconfig_and_full_program_config(self):
-        o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_patch()
+class TestFunctionBuildUserGameSettingsPath(unittest.TestCase):
+    def test_rom_with_crc32(self):
+        """
+        Test for a ROM having CRC32.
+
+        :return: Nothing.
+        """
+        # Data preparation
+        #-----------------
+        o_prog_cfg = config.ProgramCfg()
+        o_prog_cfg.s_cache_dir = '/this/that'
+
+        o_rom = roms.Rom('mdr-crt', 'Sonic is fast as hell.7z')
+        o_rom.s_ccrc32 = '87654321'
+
+        o_rom_cfg = romconfig.RomConfig()
+        o_rom_cfg.o_rom = o_rom
+        o_rom_cfg.s_user = 'tanatos'
+
+        # Obtaining the path and comparing with the expectation
+        #------------------------------------------------------
         s_actual_file = paths.build_user_game_settings_path(o_rom_cfg, o_prog_cfg)
-        s_expect_file = '/tmp/emulaunch_cache/users/joe/mdr-crt/d6cf8cdb - phantom gear (world) (v0.2) (demo) ' \
-                        '(aftermarket) (unl).ini'
+        s_expect_file = '/this/that/users/tanatos/mdr-crt/87654321 - sonic is fast as hell.ini'
+        s_msg = 'The user settings file is different from the expected result.'
+        self.assertEqual(s_expect_file, s_actual_file, s_msg)
+
+    def test_rom_without_crc32(self):
+        """
+        Test for a ROM without CRC32.
+
+        :return: Nothing.
+        """
+        # Data preparation
+        #-----------------
+        o_prog_cfg = config.ProgramCfg()
+        o_prog_cfg.s_cache_dir = '/this/that'
+
+        o_rom = roms.Rom('mdr-crt', 'Sonic is fast as hell.7z')
+
+        o_rom_cfg = romconfig.RomConfig()
+        o_rom_cfg.o_rom = o_rom
+        o_rom_cfg.s_user = 'tanatos'
+
+        # Obtaining the path and comparing with the expectation
+        #------------------------------------------------------
+        s_actual_file = paths.build_user_game_settings_path(o_rom_cfg, o_prog_cfg)
+        s_expect_file = '/this/that/users/tanatos/mdr-crt/xxxxxxxx - sonic is fast as hell.ini'
         s_msg = 'The user settings file is different from the expected result.'
         self.assertEqual(s_expect_file, s_actual_file, s_msg)
 
 
 class TestFunctionBuildRomInstallGameSettings(unittest.TestCase):
-    def test_full_romconfig_and_full_program_config(self):
-        o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_patch()
+    def test_rom_with_crc32(self):
+        o_prog_cfg = config.ProgramCfg()
+        o_prog_cfg.s_cache_dir = '/foo/bar'
+
+        o_rom = roms.Rom(ps_platform='mdr-crt', ps_path='This is a game.rar')
+        o_rom.s_ccrc32 = '12345678'
+
+        o_rom_cfg = romconfig.RomConfig()
+        o_rom_cfg.o_rom = o_rom
+
         s_actual_file = paths.build_rom_install_game_settings(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
-        s_expect_file = '/tmp/emulaunch_cache/games/mdr-crt - d6cf8cdb+xxxxxxxx - phantom gear (world) (v0.2) (demo) ' \
-                        '(aftermarket) (unl)/settings.ini'
+        s_expect_file = '/foo/bar/games/mdr-crt - 12345678+xxxxxxxx - this is a game/settings.ini'
+        s_msg = 'The install settings file path is different from the expected result.'
+        self.assertEqual(s_expect_file, s_actual_file, s_msg)
+
+    def test_rom_without_crc32(self):
+        o_prog_cfg = config.ProgramCfg()
+        o_prog_cfg.s_cache_dir = '/foo/bar'
+
+        o_rom = roms.Rom(ps_platform='mdr-crt', ps_path='This is a game.rar')
+
+        o_rom_cfg = romconfig.RomConfig()
+        o_rom_cfg.o_rom = o_rom
+
+        s_actual_file = paths.build_rom_install_game_settings(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
+        s_expect_file = '/foo/bar/games/mdr-crt - xxxxxxxx+xxxxxxxx - this is a game/settings.ini'
         s_msg = 'The install settings file path is different from the expected result.'
         self.assertEqual(s_expect_file, s_actual_file, s_msg)
 
 
 class TestFunctionBuildRomInstalledFlagFilePath(unittest.TestCase):
-    def test_full_romconfig_and_full_program_config(self):
-        o_prog_cfg, o_rom_cfg = _build_prog_and_rom_configs_without_patch()
+    def test_creation_of_install_flag_file__rom_with_crc32_no_patch(self):
+        """
+        Test for the creation of an installed flag file for a ROM with CRC32.
+        :return:
+        """
+        o_prog_cfg = config.ProgramCfg()
+        o_prog_cfg.s_cache_dir = '/tmp/this_dir'
+
+        o_rom = roms.Rom('mdr-crt', 'This game.zip')
+        o_rom.s_ccrc32 = '1a1a1a1a'
+
+        o_rom_cfg = romconfig.RomConfig()
+        o_rom_cfg.o_rom = o_rom
+        o_rom_cfg.s_user = 'joe'
+
         s_actual_file = paths.build_rom_installed_flag_file_path(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
-        s_expect_file = '/tmp/emulaunch_cache/games/mdr-crt - d6cf8cdb+xxxxxxxx - phantom gear (world) (v0.2) (demo) ' \
-                        '(aftermarket) (unl)/installed.txt'
+        s_expect_file = '/tmp/this_dir/games/mdr-crt - 1a1a1a1a+xxxxxxxx - this game/installed.txt'
+
         s_msg = 'The installed flag file path is different from the expected result.'
         self.assertEqual(s_expect_file, s_actual_file, s_msg)
 
+    def test_creation_of_install_flag_file__rom_without_crc32_no_patch(self):
+        """
+        Test for the creation of an installed flag file for a ROM with CRC32.
+        :return:
+        """
+        o_prog_cfg = config.ProgramCfg()
+        o_prog_cfg.s_cache_dir = '/tmp/this_dir'
+
+        o_rom = roms.Rom('mdr-crt', 'This game.zip')
+
+        o_rom_cfg = romconfig.RomConfig()
+        o_rom_cfg.o_rom = o_rom
+        o_rom_cfg.s_user = 'joe'
+
+        s_actual_file = paths.build_rom_installed_flag_file_path(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
+        s_expect_file = '/tmp/this_dir/games/mdr-crt - xxxxxxxx+xxxxxxxx - this game/installed.txt'
+
+        s_msg = 'The installed flag file path is different from the expected result.'
+        self.assertEqual(s_expect_file, s_actual_file, s_msg)
 
 # Main code
 # =======================================================================================================================
