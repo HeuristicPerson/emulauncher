@@ -15,7 +15,7 @@ from . import cons
 
 
 # Classes
-# =======================================================================================================================
+#=======================================================================================================================
 class BackReader:
     """
     My own class to read a file backwards line by line.
@@ -149,7 +149,7 @@ class BackReader:
         self._o_file.seek(0, 2)
 
 
-class FilePath(object):
+class FilePath():
     """
     Class to handle file information: FilePath ps_name, root, extension, etc...
     """
@@ -182,7 +182,7 @@ class FilePath(object):
         """
 
         # If the path starts in root u"/", the first element is empty, u"". That's perfectly logical but if you try to
-        # build back the FilePath object by doing FilePath(*lu_elements), the first empty element is not understood. So
+        # build back the FilePath object by doing FilePath(*ls_elements), the first empty element is not understood. So
         # the path is relative.
         return self.u_path.split(os.sep)
 
@@ -522,7 +522,7 @@ class FilePath(object):
 
     b_exists = property(fget=_get_exists)
     i_size = property(fget=_get_size)
-    lu_elements = property(fget=_get_elems)
+    ls_elements = property(fget=_get_elems)
     o_mod_time = property(fget=_get_mod_time)
     o_root = property(fget=_get_o_root)
     u_root = property(fget=_get_u_root)

@@ -1,6 +1,8 @@
-import filecmp
+import contextlib
+import io
 import os
 import shutil
+#import sys
 import unittest
 
 import libs.cons as cons
@@ -39,6 +41,29 @@ class FunctionInstall(unittest.TestCase):
 
         s_msg = 'The content of install dir differs from expectation.'
         self.assertEqual(ds_expect, ds_actual, s_msg)
+
+    def test_single_rom_without_patch__with_printing(self):
+        """
+        Installation test for a ROM that only requires to be decompressed.
+
+        :return: Nothing.
+        """
+        s_out_dir = os.path.join(cons.s_TEST_DATA_OUT, __name__, 'test_single_rom_without_patch')
+
+        o_rom_cfg = self._build_rom_config_single_file()
+        o_rom_cfg.s_user = 'anna'
+
+        # Creating a StringIO object that will receive stdout
+        o_captured_output = io.StringIO()  # Create StringIO object
+
+        # Redirecting stdout to the StringIO object
+        with contextlib.redirect_stdout(o_captured_output):
+            install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir, pb_print=True)
+
+        print(f'Captured: {o_captured_output.getvalue()}')
+
+        s_msg = 'The content of install dir differs from expectation.'
+        self.assertEqual(True, False, s_msg)
 
     def test_linked_roms_without_patch(self):
         """
@@ -90,8 +115,7 @@ class FunctionInstall(unittest.TestCase):
         o_rom_cfg.s_user = 'anna'
         o_rom_cfg.o_patch = o_patch
 
-        # TODO: Remove the printing in this test code
-        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir, pb_print=True)
+        install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir, pb_print=False)
 
         # If the patching is correct, we will obtain the original ROM name (because patching won't change the name at
         # all) with the CRC32 of the v0.9 because that's the intent of the applied patch_file.
@@ -105,6 +129,35 @@ class FunctionInstall(unittest.TestCase):
 
         s_msg = 'The file(s) contained in the install dir is not what was expected.'
         self.assertEqual(ds_expect, ds_actual, s_msg)
+
+    def test_single_rom_with_patch__with_printing(self):
+        """
+        Installation printing test for a small ROM that requires a patch_file to be applied. The code of this test must
+        be equivalent to the no-printing test but here we will only test that the printed output is correct.
+
+        :return: Nothing.
+        """
+        s_out_dir = test_tools.get_test_output_dir(self)
+
+        s_patch = os.path.join(test_tools.get_test_input_dir(self), 'mdr-crt-phantom_gear',
+                               'd6cf8cdb - v0.2 to v0.9.zip')
+        o_patch = patches.Patch(ps_file=s_patch)
+
+        o_rom_cfg = self._build_rom_config_single_file()
+        o_rom_cfg.s_user = 'anna'
+        o_rom_cfg.o_patch = o_patch
+
+        # Creating a StringIO object that will receive stdout
+        o_captured_output = io.StringIO()  # Create StringIO object
+
+        # Redirecting stdout to the StringIO object
+        with contextlib.redirect_stdout(o_captured_output):
+            install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir, pb_print=True)
+
+        print(f'Captured: {o_captured_output.getvalue()}')
+
+        s_msg = 'The file(s) contained in the install dir is not what was expected.'
+        self.assertEqual(True, False, s_msg)
 
     def test_linked_roms_with_patch(self):
         """
