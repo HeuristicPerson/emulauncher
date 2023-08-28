@@ -76,9 +76,6 @@ class ClassRom(unittest.TestCase):
         # Manually tweaking the ccrc32 of one of the ROMs
         o_rom_b.s_dcrc32 = '00000000'
 
-        print(o_rom_a)
-        print(o_rom_b)
-
         self.assertNotEqual(o_rom_a, o_rom_b)
 
     def test_equality_false_because_csize(self):
@@ -97,9 +94,6 @@ class ClassRom(unittest.TestCase):
         # Manually tweaking the ccrc32 of one of the ROMs
         o_rom_b.i_csize = 0
 
-        print(o_rom_a)
-        print(o_rom_b)
-
         self.assertNotEqual(o_rom_a, o_rom_b)
 
     def test_equality_false_because_dsize(self):
@@ -117,9 +111,6 @@ class ClassRom(unittest.TestCase):
 
         # Manually tweaking the ccrc32 of one of the ROMs
         o_rom_b.i_dsize = 0
-
-        print(o_rom_a)
-        print(o_rom_b)
 
         self.assertNotEqual(o_rom_a, o_rom_b)
 

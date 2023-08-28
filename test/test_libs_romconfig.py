@@ -5,6 +5,7 @@ import unittest
 
 import libs.cons as cons
 import libs.cores as cores
+import libs.files as files
 import libs.roms as roms
 import libs.config as config
 import libs.romconfig as romconfig
@@ -257,66 +258,54 @@ class TestClassRomConfig(unittest.TestCase):
         self.assertEqual(ls_error_msgs_expect, ls_error_msgs_actual, s_msg)
 
     def test_method_save_to_disk(self):
+        """
+        After testing the load for each individual parameter of the RomConfig, we can simply save to disk, load, and
+        compare both configs to ensure they are the same.
 
-        # Preparing a ROM object
-        #-----------------------
-        s_rom_path = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'roms', 'mdr-ctr',
-                                  'Miniplanets (World) (Rev 3) (Aftermarket) (Unl).zip')
-        s_dat_path = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'dats', 'mdr-crt.dat')
-        o_rom = roms.Rom('mdr-crt', s_rom_path)
-        o_rom.populate_from_dat(s_dat_path)
+        :return: Nothing.
+        """
+        # Preparing a ProgramConfig object
+        #---------------------------------
+        #o_prog_cfg = self._load_program_cfg()
+        o_romconfig_original = self._load_config_with_matched_ccrc32_and_patch()
 
-        # Preparing a core object
-        #------------------------
-        s_cores_dir = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'cores')
-        to_cores = cores.get_cores(s_cores_dir, ['picodrive'])
-        o_core = to_cores[0]
-
-        # Creation of a sample RomConfig
-        #-------------------------------
-        o_rom_config = romconfig.RomConfig()
-        o_rom_config.o_rom = o_rom
-        o_rom_config.s_user = 'joe'
-        o_rom_config.s_region = 'japan'
-        o_rom_config.o_core = o_core
-        o_rom_config.f_refresh = 60.0
-
-        # Saving the RomConfig to disk
+        # Saving the ROMconfig to disk
         #-----------------------------
-        s_save_file = '/tmp/romconfig.foo'
-        o_rom_config.save_to_disk(s_save_file)
+        s_test_output_dir = test_tools.get_test_output_dir(self)
+        files.init_dir(s_test_output_dir)
+        s_save_file = os.path.join(s_test_output_dir, 'saved_romconfig.ini')
+        o_romconfig_original.save_to_disk(s_save_file)
 
-        # Reading back the configuration file as a regular .ini file and making the comparison with the expected output
-        #--------------------------------------------------------------------------------------------------------------
-        o_now = datetime.datetime.now()
+        # Now we build a dictionary with all the saved values
+        #----------------------------------------------------
+        o_saved_file = configparser.ConfigParser()
+        o_saved_file.read(s_save_file)
 
-        o_actual_config = configparser.ConfigParser()
-        o_actual_config.read(s_save_file)
-        # I'll replace the date with tht current one, otherwise I won't be able to match it
-        o_actual_config.set('meta', 'date', str(o_now))
+        ddss_actual_data = {}
+        for s_section in o_saved_file.sections():
+            ddss_actual_data[s_section] = {}
+            for s_key, s_value in o_saved_file[s_section].items():
+                ddss_actual_data[s_section][s_key] = s_value
 
-        o_expect_config = configparser.ConfigParser()
-        o_expect_config.add_section('meta')
-        o_expect_config.set('meta', 'builder', cons.s_PRG)
-        o_expect_config.set('meta', 'date', str(o_now))
-        o_expect_config.set('meta', 'user', 'joe')
-        o_expect_config.add_section('rom')
-        o_expect_config.set('rom', 'ps_name', 'Miniplanets (World) (Rev 3) (Aftermarket) (Unl)')
-        o_expect_config.set('rom', 'ccrc32', '8ea40d2f')
-        o_expect_config.set('rom', 'platform', 'mdr-crt')
-        o_expect_config.set('rom', 'patch_file', 'foo')
-        o_expect_config.add_section('settings')
-        o_expect_config.set('settings', 'core', 'picodrive')
-        o_expect_config.set('settings', 'region', 'japan')
-        o_expect_config.set('settings', 'refresh', '60.0')
+        # Creation of the expected data dictionary (everything will be text)
+        #-------------------------------------------------------------------
+        # We have the manually replace the date with the date from the saved file, otherwise they won't match
+        ddss_expect_data = {'meta':
+                                {'builder':  'EmuLaunch v1.0.2023-03-21',
+                                 'date':     ddss_actual_data['meta']['date'],
+                                 'user':     'joe'},
+                            'rom':
+                                {'name':     'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl)',
+                                 'ccrc32':   'd6cf8cdb',
+                                 'platform': 'mdr-crt',
+                                 'patch':    'v0.2 to v0.9'},
+                            'settings':
+                                {'core':     'picodrive',
+                                 'region':   'japan',
+                                 'refresh':  '60.0'}}
 
-        dds_actual = {}
-        dds_expect = {}
-        for s_section in set(o_actual_config.sections() + o_expect_config.sections()):
-            dds_expect[s_section] = dict(o_expect_config[s_section])
-            dds_actual[s_section] = dict(o_actual_config[s_section])
-
-        self.assertEqual(dds_expect, dds_actual, 'The saved configuration doesn\'t contain the right information')
+        s_msg = 'The saved configuration doesn\'t contain the right information'
+        self.assertEqual(ddss_expect_data, ddss_actual_data, s_msg)
 
     @staticmethod
     def _load_program_cfg():

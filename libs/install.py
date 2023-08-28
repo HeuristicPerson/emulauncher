@@ -94,8 +94,8 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
     for i_rom, s_dst_rom in enumerate(ls_dst_roms, start=1):
         s_dst_dir = os.path.dirname(s_dst_rom)
         libs.files.uncompress(ps_file=s_dst_rom, ps_dst_dir=s_dst_dir)
-
         os.remove(s_dst_rom)
+
         if pb_print:
             s_position = f'[{i_rom}/{len(ls_src_roms)}]'
             s_msg = f'  < ROM   {s_position} unzipped | {os.path.basename(s_dst_rom)}'
@@ -114,13 +114,15 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
 
 
 # TODO: Maybe I should make this function public and create unit tests for it.
+# TODO: I just use the path of the patch, so I could use the path of the patch rather than the object itself.
 def _apply_patch(ps_dir, pf_weight_patch_apply, po_patch, po_status, pb_print):
     """
+    Function to apply a patch file to a directory.
 
     :param ps_dir:
     :type ps_dir: Str
 
-    :param pf_weight_patch_apply:
+    :param pf_weight_patch_apply: Relative weight of ROM patching in the entire installation process.
     :type pf_weight_patch_apply: Float
 
     :param po_patch: Patch to be applied.
@@ -132,7 +134,7 @@ def _apply_patch(ps_dir, pf_weight_patch_apply, po_patch, po_status, pb_print):
     :param pb_print:
     :type pb_print: Bool
 
-    :return:
+    :return: Nothing.
     """
     dtis_installed_files = files.index_dir(ps_dir=ps_dir, pts_ignore_exts=('cue',))
 
@@ -159,7 +161,7 @@ def _apply_patch(ps_dir, pf_weight_patch_apply, po_patch, po_status, pb_print):
     # Applying patch_file
     #--------------------
     f_rom_patch_progress = pf_weight_patch_apply / len(dtis_patches)
-    for i_patch, (ti_patch_index, s_patch_file) in enumerate(dtis_patches.items(), start=1):
+    for i_patch, (ti_patch_index, s_patch_file) in enumerate(sorted(dtis_patches.items()), start=1):
         s_rom_file = dtis_installed_files[ti_patch_index]
 
         # ROM file preparation to update progress and/or terminal output. We want to show something legible, so we

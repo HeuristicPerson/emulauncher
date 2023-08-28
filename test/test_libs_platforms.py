@@ -122,11 +122,6 @@ class TestClassPlatform(unittest.TestCase):
         s_msg = 'Not able to get the default frequency when no match available'
         self.assertEqual(f_actual_result, f_expected_result, s_msg)
 
-    def test_foo(self):
-        do_platforms = platforms.read_platforms_file(_u_PLATFORMS_SINGLE_VALID)
-        o_platform = do_platforms['mdr-crt']
-        print(o_platform)
-
 
 # Main code
 #=======================================================================================================================

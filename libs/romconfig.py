@@ -7,6 +7,7 @@ import configparser
 import datetime
 import os
 
+from . import class_to_string
 from . import cons
 from . import config
 from . import cores
@@ -38,17 +39,7 @@ class RomConfig:
         :return: A string representing the object.
         :rtype: Str
         """
-        # TODO: replace with my str method from class_to_string
-        s_out = '<RomConfig>\n'
-        s_out += f'  .s_user:    {self.s_user}\n'
-        s_out += f'  .s_region:  {self.s_region}\n'
-        s_out += f'  .f_refresh: {self.f_refresh}\n'
-
-        # core information
-        s_out += string_helpers.section_generate('  ._o_core:  ', str(self._o_core).splitlines(False))
-        s_out += string_helpers.section_generate('  .o_patch:  ', str(self.o_patch).splitlines(False))
-        s_out += string_helpers.section_generate('  .o_rom:    ', str(self.o_rom).splitlines(False))
-
+        s_out = class_to_string.class_to_string(self)
         return s_out
 
     def nice_format(self):
@@ -187,7 +178,7 @@ class RomConfig:
         o_config.set('meta', 'date', str(datetime.datetime.now()))
         o_config.set('meta', 'user', self.s_user)
         o_config.add_section('rom')
-        o_config.set('rom', 'ps_name', self.o_rom.s_name)
+        o_config.set('rom', 'name', self.o_rom.s_name)
         o_config.set('rom', 'ccrc32', self.o_rom.s_ccrc32)
         o_config.set('rom', 'platform', self.o_rom.o_platform.s_alias)
         o_config.set('rom', 'patch', s_patch)  # TODO: Save name of the patch_file
