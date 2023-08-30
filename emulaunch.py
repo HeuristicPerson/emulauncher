@@ -406,7 +406,7 @@ class MainWindow(pyglet.window.Window):
             s_patch = 'none'
         else:
             s_patch = po_patch.s_title
-        _register_action(f'patch_file: {s_patch}')
+        _register_action(f'patch: {s_patch}')
 
         # Storing the selected patch_file information
         #---------------------------------------
