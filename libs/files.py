@@ -1,31 +1,21 @@
-# -*- coding: utf-8 -*-
-
 """
 Description: Library with file tools.
-    Version: 2017-05-28
-
-        Log: 2017-05-28 - Modification in BackReader to avoid decode error when splitting a two-byte utf8 character in
-                          half when
-                          getting a chunk
-
-             2019-03-02 - Added new file extension filter to FilePath.content() method. It's a quite common operation
-                          and if saves the user iterating over all of them afterwards. Added two properties to get file
-                          size as an integer and also as an human-readable unicode string.
-
-             2019-03-09 - Fixed bug in FilePath initialization so when joining back the elements of an absolute path
-                          (e.g. '/home/john/my_file.txt'), the result would miss the leading dash (e.g.
-                          'home/john/my_file.txt). Added two new methods in FilePath: common_prefix and uncommon_prefix.
 """
 
 import codecs
 import datetime
 import os
+import re
 import shutil
+import subprocess
+import zipfile
 import zlib
+
+from . import cons
 
 
 # Classes
-# =======================================================================================================================
+#=======================================================================================================================
 class BackReader:
     """
     My own class to read a file backwards line by line.
@@ -159,7 +149,7 @@ class BackReader:
         self._o_file.seek(0, 2)
 
 
-class FilePath(object):
+class FilePath():
     """
     Class to handle file information: FilePath ps_name, root, extension, etc...
     """
@@ -192,7 +182,7 @@ class FilePath(object):
         """
 
         # If the path starts in root u"/", the first element is empty, u"". That's perfectly logical but if you try to
-        # build back the FilePath object by doing FilePath(*lu_elements), the first empty element is not understood. So
+        # build back the FilePath object by doing FilePath(*ls_elements), the first empty element is not understood. So
         # the path is relative.
         return self.u_path.split(os.sep)
 
@@ -246,7 +236,7 @@ class FilePath(object):
 
     def _get_size_h(self):
         """
-        Method to get the file size in human readable format.
+        Method to get the file size in human-readable format.
         :return:
         """
         return file_size_format(self.i_size, pi_jump=1024, pu_suffix=u'B')
@@ -385,11 +375,12 @@ class FilePath(object):
         :return: Nothing
         """
         # --- TEST CODE ---
-        print('0: %s' % pu_path)
-        print('1: %s' % self.u_root)
-        print(os.path.join(*pu_path, self.u_root))
-        quit()
+        #print('0: %s' % pu_path)
+        #print('1: %s' % self.u_root)
+        #print(os.path.join(*pu_path, self.u_root))
+        #quit()
         # ------ end ------
+        pass
 
     def has_exts(self, *pu_ext):
         """
@@ -531,7 +522,7 @@ class FilePath(object):
 
     b_exists = property(fget=_get_exists)
     i_size = property(fget=_get_size)
-    lu_elements = property(fget=_get_elems)
+    ls_elements = property(fget=_get_elems)
     o_mod_time = property(fget=_get_mod_time)
     o_root = property(fget=_get_o_root)
     u_root = property(fget=_get_u_root)
@@ -641,8 +632,10 @@ def clean_dir(ps_dir):
 
 def init_dir(ps_dir):
     """
-    Function that "initialises" a directory: a) if it doesn't exist, the function will create it; b) if it exists, the
-    function will remove its content.
+    Function that "initialises" a directory:
+
+        a) if it doesn't exist, the function will create it;
+        b) if it exists, the function will remove its content.
 
     :param ps_dir: Path of the directory to be initialised.
     :type ps_dir: Str
@@ -650,7 +643,6 @@ def init_dir(ps_dir):
     :return: Nothing.
     """
     if os.path.isdir(ps_dir):
-        print('dir exists')
         clean_dir(ps_dir)
     else:
         os.makedirs(ps_dir)
@@ -667,8 +659,327 @@ def compute_crc(ps_file):
     :return:
     :rtype: Str
     """
-    prev = 0
-    for chunk in open(ps_file, "rb"):
-        prev = zlib.crc32(chunk, prev)
-    s_crc32 = "%X" % (prev & 0xFFFFFFFF)
+    i_prev = 0
+
+    with open(ps_file, 'rb') as o_file:
+        # h_chunk is a byte-string, but I use h for "hexa" since I have no better idea about what to use now.
+        for h_chunk in o_file:
+            i_prev = zlib.crc32(h_chunk, i_prev)
+
+    s_crc32 = "%X" % (i_prev & 0xFFFFFFFF)
     return s_crc32.lower()
+
+
+def uncompress(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    s_file = os.path.basename(ps_file)
+    s_name, _, s_ext = s_file.rpartition('.')
+
+    s_ext = s_ext.lower()
+    dsc_decompressors = {'7z': _uncompress_7z, 'rar': _uncompress_rar, 'zip': _uncompress_zip}
+
+    if ps_dst_dir:
+        s_dir = ps_dst_dir
+    else:
+        s_dir = os.path.dirname(ps_file)
+
+    if s_ext in dsc_decompressors:
+        c_decompressor = dsc_decompressors[s_ext]
+        c_decompressor(ps_file=ps_file, ps_dst_dir=s_dir)
+
+
+def _uncompress_7z(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress 7z files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    ls_cmd = ['7z', 'x', ps_file]
+
+    if ps_dst_dir:
+        ls_cmd += [f'-o{ps_dst_dir}']
+
+    o_process = subprocess.Popen(ls_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+    # TODO: Handle error messages
+
+
+def _uncompress_rar(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress rar files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    ls_cmd = ['unrar', 'x', ps_file]
+
+    if ps_dst_dir:
+        ls_cmd += [ps_dst_dir]
+
+    o_process = subprocess.Popen(ls_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+    # TODO: Handle error messages
+
+
+def _uncompress_zip(ps_file, ps_dst_dir=''):
+    """
+    Function to uncompress zip files.
+
+    :param ps_file: Path of the file we want to decompress.
+    :type ps_file: Str
+
+    :param ps_dst_dir: Path of the dir where the uncompressed data will be placed.
+    :type ps_dst_dir: Str
+
+    :return: Nothing.
+    """
+    with zipfile.ZipFile(ps_file, 'r') as o_file:
+        o_file.extractall(ps_dst_dir)
+
+
+def patch_file(ps_file, ps_patch):
+    """
+    Function to patch a file IN PLACE because that's the functionality we require in emulauncher.
+
+    The function will call external tools to perform the patching. When those tools are not compatible with in-place
+    patching, an intermediate patched file will be created and then removed.
+
+    :param ps_file: Path of the file to be patched.
+    :type ps_file: Str
+
+    :param ps_patch: Path of the patch_file to be applied.
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    # Dictionary with patcher per extension
+    dsc_patcher = {'bps':    _patch_flips,
+                   'ips':    _patch_flips,
+                   'ppf':    _patch_ppf,
+                   'xdelta': _patch_xdelta}
+
+    s_ext = os.path.basename(ps_patch).rpartition('.')[2].lower()
+
+    if s_ext not in dsc_patcher:
+        s_msg = f'Unknown patch_file extension "{s_ext}"'
+        raise ValueError(s_msg)
+    else:
+        c_patcher = dsc_patcher[s_ext]
+        c_patcher(ps_file=ps_file, ps_patch=ps_patch)
+
+
+def _patch_flips(ps_file, ps_patch):
+    """
+    Function to patch files using Flips which is compatible with .ips, and .bps patches.
+
+    :param ps_file: Path of the file to be patched.
+    :type ps_file: Str
+
+    :param ps_patch: Path of the patch to be applied.
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    # We use a local compiled version of Flips, I don't know what are its dependencies; I hope it easily works in
+    # any common Linux machine.
+    s_tool_src = os.path.join(cons.s_SCRIPT_ROOT, 'resources', 'tools', 'Flips', 'flips')
+    s_tool_dst = os.path.join('/tmp/flips')
+    shutil.copyfile(s_tool_src, s_tool_dst)
+    os.chmod(s_tool_dst, 0o700)
+
+    ts_cmd = (s_tool_dst, '--apply', '--exact', ps_patch, ps_file)
+    o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+
+def _patch_ppf(ps_file, ps_patch):
+    """
+    Function to apply xdelta3 patches.
+
+    :param ps_file: Path of the file to be patched.
+    :type ps_file: Str
+
+    :param ps_patch: Path of the patch to be applied.
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    # We use a local compiled version of applyppf, I don't know what are its dependencies; I hope it easily works in
+    # any common Linux machine.
+    s_tool_src = os.path.join(cons.s_SCRIPT_ROOT, 'resources', 'tools', 'ApplyPPF', 'applyppf')
+    s_tool_dst = os.path.join('/tmp/applyppf')
+    shutil.copyfile(s_tool_src, s_tool_dst)
+    os.chmod(s_tool_dst, 0o700)
+
+    ts_cmd = (s_tool_dst, 'a', ps_file, ps_patch)
+    o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+
+def _patch_xdelta(ps_file, ps_patch):
+    """
+    Function to apply xdelta3 patches.
+
+    Xdelta3 doesn't allow to patch_file in place, so we have to create an intermediate file.
+
+    :param ps_file: Path of the file to be patched.
+    :type ps_file: Str
+
+    :param ps_patch: Path of the patch to be applied.
+    :type ps_patch: Str
+
+    :return: Nothing.
+    """
+    s_ext = ps_file.rpartition('.')[2]
+    #s_temp_file = os.path.join(f'/tmp/xdelta3_intermediate_file.{s_ext}')
+    s_temp_file = f'{ps_file}.temp'
+
+    ts_cmd = ('xdelta3', '-d', '-s', ps_file, ps_patch, s_temp_file)
+    o_process = subprocess.Popen(ts_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s_stdout, s_stderr = o_process.communicate()
+
+    shutil.move(s_temp_file, ps_file)
+
+
+def index_dir(ps_dir, pdts_index=None, pli_current_level=None, pts_ignore_exts=()):
+    """
+    Function to alphabetically index the files within a directory, so each file path will be indexed by their relative
+    location in the tree structure. Below you can see an example of files within a directory and their index:
+
+        ROOT:
+            [0] file_a.txt
+            [1] file_b.txt
+
+            DIR_A:
+                [0, 0] file_a.txt
+                [0, 1] file_b.txt
+
+            DIR_B:
+                [1, 0] file_a.txt
+                [1, 1] file_b.txt
+
+                DIR_C:
+                    [1, 0, 0] file_a.txt
+                    [1, 0, 1] file_b.txt
+
+    :param ps_dir: Directory to be indexed.
+    :param ps_dir: Str
+
+    :param pdts_index: Index of already indexed files. This parameter should only be used by the function when calling
+                       itself recursively.
+    :type pdts_index: Dict[Tuple:Str]
+
+    :param pli_current_level: Current level of the directory to be scanned. This parameter should only be used by the
+                              function when calling itself recursively.
+    :type pli_current_level: List[Int]
+
+    :param pts_ignore_exts: Tuple with extensions to be ignored (case insensitive).
+    :type pts_ignore_exts: Tuple[Str]
+
+    :return: Dictionary of indexed files. The key is a tuple indicating the numerical "path" of the file, and the value
+             is the actual path of each file.
+    :rtype: Dict[Tuple:Str]
+    """
+    # Initialisation
+    #---------------
+    if pdts_index is None:
+        dts_index = {}
+    else:
+        # I prefer to make a copy, the performance penalty is small for the size of directories I use, and I think the
+        # code is cleaner.
+        dts_index = pdts_index.copy()
+
+    if pli_current_level is None:
+        li_current_level = []
+    else:
+        li_current_level = pli_current_level.copy()
+
+    # Traversing the folder structure
+    i_file_counter = None
+    i_dir_counter = None
+    for s_elem in sorted(os.listdir(ps_dir)):
+        s_full_path = os.path.join(ps_dir, s_elem)
+
+        if os.path.isfile(s_full_path):
+            s_ext = s_elem.rpartition('.')[2].lower()
+            if s_ext not in pts_ignore_exts:
+                if i_file_counter is None:
+                    i_file_counter = 0
+                else:
+                    i_file_counter += 1
+
+                li_file_index = li_current_level + [i_file_counter]
+                dts_index[tuple(li_file_index)] = s_full_path
+
+        elif os.path.isdir(s_full_path):
+            if i_dir_counter is None:
+                i_dir_counter = 0
+            else:
+                i_dir_counter += 1
+
+            li_dir_level = li_current_level + [i_dir_counter]
+            dts_index = index_dir(ps_dir=s_full_path,
+                                  pdts_index=dts_index,
+                                  pli_current_level=li_dir_level,
+                                  pts_ignore_exts=pts_ignore_exts)
+
+    return dts_index
+
+
+def index_patch_dir(ps_dir):
+    """
+    Function to "index" the files of a decompressed patch
+    :param ps_dir:
+    :return:
+    """
+    # The patch naming convention is [CRC32]-[INDEX].[EXTENSION] and we need to capture the [INDEX] part of it that can
+    # be a single number value for single file ROMS (e.g. "00000000-0.ppf") or two numbers for multi-file ROMs (e.g.
+    # "00000000-0-0.ppf"). There is no need to check the CRC32 part, and actually, that can potentially change in the
+    # future to include for example the real name (at the time) of the ROM. So, we will only capture the index values.
+
+    # Dictionary with patches where the key is the
+    s_pattern = r'(.+?)-(\d+)(-(\d+))?'
+    dti_patches = {}
+    for s_elem in os.listdir(ps_dir):
+        s_full_path = os.path.join(ps_dir, s_elem)
+        s_ext = s_elem.rpartition('.')[2].lower()
+
+        if os.path.isfile(s_full_path) and s_ext not in ('txt',):
+            o_match = re.search(s_pattern, s_elem, flags=re.IGNORECASE)
+            if o_match is not None:
+                li_levels = []
+                i_index_0 = int(o_match.group(2))
+                li_levels.append(i_index_0)
+
+                try:
+                    i_index_1 = int(o_match.group(4))
+                    li_levels.append(i_index_1)
+                except TypeError:
+                    pass
+
+                dti_patches[tuple(li_levels)] = s_full_path
+
+    return dti_patches

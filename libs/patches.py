@@ -1,9 +1,10 @@
 """
-Library to work with patch files.
+Library to work with patch_file files.
 """
 
 import natsort
 import os
+import zlib
 
 from . import roms
 from . import string_helpers
@@ -13,16 +14,16 @@ from . import string_helpers
 #=======================================================================================================================
 class Patch:
     """
-    Class to store information about a patch .zip file.
+    Class to store information about a patch_file .zip file.
 
     :ivar s_path: Str
     :ivar s_ccrc32: Str
     :ivar s_title: Str
     """
     def __init__(self, ps_file=''):
-        self.s_path = ''         # Full path of the patch.
-        self.s_ccrc32 = ''       # Clean CRC32 of the ROM the patch can be applied onto. e.g. 'a23f017d'
-        self.s_title = ''        # Title of the patch, short and descriptive.
+        self.s_path = ''         # Full path of the patch_file.
+        self.s_ccrc32 = ''       # Clean CRC32 of the ROM the patch_file can be applied onto. e.g. 'a23f017d'
+        self.s_title = ''        # Title of the patch_file, short and descriptive.
         if ps_file:
             self.load_from_file(ps_file)
 
@@ -36,9 +37,9 @@ class Patch:
 
     def load_from_file(self, ps_file):
         """
-        Method to initialise the patch from a file and, optionally, from a Rom object.
+        Method to initialise the patch_file from a file and, optionally, from a Rom object.
 
-        :param ps_file: Path of the patch.
+        :param ps_file: Path of the patch_file.
         :type ps_file: Str
 
         :return: Nothing, the object will be populated in place.
@@ -50,19 +51,25 @@ class Patch:
 
         s_ccrc32, _, s_title = s_file.partition(' - ')
 
-        # Reading as much information as possible from the patch file
+        # Reading as much information as possible from the patch_file file
         #------------------------------------------------------------
         if string_helpers.is_crc32(s_ccrc32):
             self.s_ccrc32 = s_ccrc32
         else:
-            s_msg = 'The first part of the patch file ps_name is not a valid CRC32.'
+            s_msg = 'The first part of the patch_file file ps_name is not a valid CRC32.'
             raise ValueError(s_msg)
 
         if s_title:
             self.s_title = s_title
         else:
-            s_msg = 'The description of the patch file ps_name is empty.'
+            s_msg = 'The description of the patch_file file ps_name is empty.'
             raise ValueError(s_msg)
+
+    def _get_s_code(self):
+        s_patch_code = hex(zlib.crc32(self.s_title.lower().encode('utf8').lower()) & 0xffffffff)[-8:]
+        return s_patch_code
+
+    s_code = property(fget=_get_s_code, fset=None)
 
 
 # Functions
@@ -111,8 +118,8 @@ def get_patches(ps_dir, po_rom):
 #=======================================================================================================================
 def apply_patch(ps_src_file, ps_patch, ps_dst_file):
     """
-    Function to generalize the application to patch files using different patching programs based on the extension of
-    the patch.
+    Function to generalize the application to patch_file files using different patching programs based on the extension of
+    the patch_file.
 
     :param ps_src_file: Patch of the file to be patched.
     :type ps_src_file: Str

@@ -3,11 +3,12 @@ import unittest
 
 import libs.cons as cons
 import libs.roms as roms
+import test_tools
 
 
 # Test cases
 #=======================================================================================================================
-class TestClassRom(unittest.TestCase):
+class ClassRom(unittest.TestCase):
     def test_initialization_non_existing_platform(self):
         self.assertRaises(KeyError, roms.Rom, 'foo-bar', '/tmp/foo.zip')
 
@@ -75,9 +76,6 @@ class TestClassRom(unittest.TestCase):
         # Manually tweaking the ccrc32 of one of the ROMs
         o_rom_b.s_dcrc32 = '00000000'
 
-        print(o_rom_a)
-        print(o_rom_b)
-
         self.assertNotEqual(o_rom_a, o_rom_b)
 
     def test_equality_false_because_csize(self):
@@ -96,9 +94,6 @@ class TestClassRom(unittest.TestCase):
         # Manually tweaking the ccrc32 of one of the ROMs
         o_rom_b.i_csize = 0
 
-        print(o_rom_a)
-        print(o_rom_b)
-
         self.assertNotEqual(o_rom_a, o_rom_b)
 
     def test_equality_false_because_dsize(self):
@@ -116,9 +111,6 @@ class TestClassRom(unittest.TestCase):
 
         # Manually tweaking the ccrc32 of one of the ROMs
         o_rom_b.i_dsize = 0
-
-        print(o_rom_a)
-        print(o_rom_b)
 
         self.assertNotEqual(o_rom_a, o_rom_b)
 
@@ -158,14 +150,6 @@ class TestClassRom(unittest.TestCase):
         s_msg = 'Safe dirty CRC32 value not matching when a ROM contains a valid clean CRC32.'
         self.assertEqual(s_expect, s_actual, s_msg)
 
-    # Initialisation tests
-    #---------------------
-    def test_init_non_existing_file(self):
-        s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt', 'Non existing.md')
-        o_rom = roms.Rom('mdr-crt', s_rom_file)
-        print(o_rom)
-        self.assertEqual(True, False)
-
     # Tests for linked ROMs
     #----------------------
     def test_linked_rom_from_dat(self):
@@ -174,12 +158,18 @@ class TestClassRom(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_rom = 'X-Files, The (Spain) (Disc 1).zip'
-        s_dat = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'ps1-partial.dat')
+        s_rom = '/home/john_doe/X-Files, The (Spain) (Disc 1).zip'
+        # s_dat = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'ps1-partial.dat')
+        s_dat = os.path.join(test_tools.get_test_input_dir(self), 'dats', 'ps1-partial-xmlgeneric.dat')
         o_rom = roms.Rom(ps_platform='ps1', ps_path=s_rom, ps_dat=s_dat)
 
-        print(o_rom)
-        self.assertEqual(True, False)
+        ls_expect = ['/home/john_doe/X-Files, The (Spain) (Disc 2).zip',
+                     '/home/john_doe/X-Files, The (Spain) (Disc 3).zip',
+                     '/home/john_doe/X-Files, The (Spain) (Disc 4).zip']
+        ls_actual = o_rom.ls_linked_roms
+
+        s_msg = 'Linked ROM paths are not correct.'
+        self.assertEqual(ls_expect, ls_actual, s_msg)
 
     # TODO: Test for non existing ROM file
     # TODO: Test for existing ROM file

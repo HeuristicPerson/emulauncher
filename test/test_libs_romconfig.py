@@ -1,14 +1,16 @@
 import configparser
 import datetime
-import io
 import os
 import unittest
 
 import libs.cons as cons
 import libs.cores as cores
+import libs.files as files
 import libs.roms as roms
 import libs.config as config
 import libs.romconfig as romconfig
+
+import test_tools
 
 
 # Test cases
@@ -28,26 +30,22 @@ class TestClassRomConfig(unittest.TestCase):
 
     def test_method_load_from_disk_with_rom_unmatched_ccrc32_a(self):
         """
-        Test for the load of a RomConfig from disk when the crc32 of the loaded rom is empty but the romconfig ini file
+        Test for the load of a RomConfig from disk when the CRC32 of the loaded rom is empty but the romconfig ini file
         has a ccrc32 defined.
 
         :return: Nothing.
         """
-        # Preparation of a program config that will provide the path of the patches
-        #--------------------------------------------------------------------------
-        s_prog_cfg = os.path.join(cons.s_TEST_DATA_DIR, 'config', 'config-for_romconfig_testing_a.yaml')
-        o_prog_cfg = config.ProgramCfg(ps_file=s_prog_cfg)
+        o_prog_cfg = self._load_program_cfg()
 
         # Preparation of the ROM to be used
         #----------------------------------
-        s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
-                                  'Miniplanets (World) (Rev 3) (Aftermarket) (Unl).zip')
-        o_rom = roms.Rom('mdr-crt', s_rom_file)
+        o_rom = self._load_rom_without_dat_info()
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(cons.s_TEST_DATA_DIR, 'romconfig',
-                                        'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl).ini')
+        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+                                        'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
+                                        'no patch.ini')
         o_config = romconfig.RomConfig()
         o_config.o_rom = o_rom
 
@@ -60,26 +58,17 @@ class TestClassRomConfig(unittest.TestCase):
 
         :return: Nothing.
         """
-        # Preparation of a program config that will provide the path of the patches
-        #--------------------------------------------------------------------------
-        s_prog_cfg = os.path.join(cons.s_TEST_DATA_DIR, 'config', 'config-for_romconfig_testing_a.yaml')
-        o_prog_cfg = config.ProgramCfg(ps_file=s_prog_cfg)
-
-        # Preparation of the ROM to be used
-        #----------------------------------
-        s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
-                                  'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
-        s_dat_file = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
-        o_rom = roms.Rom('mdr-crt', s_rom_file, ps_dat=s_dat_file)
+        o_prog_cfg = self._load_program_cfg()
+        o_rom = self._load_rom_with_dat_info()
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(cons.s_TEST_DATA_DIR, 'romconfig',
+        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
                                         'xxxxxxxx - phantom gear (world) (v0.2) (demo) (aftermarket) (unl).ini')
-        o_config = romconfig.RomConfig()
-        o_config.o_rom = o_rom
+        o_rom_config = romconfig.RomConfig()
+        o_rom_config.o_rom = o_rom
 
-        self.assertRaises(ValueError, o_config.load_from_disk, s_romconfig_file, o_prog_cfg)
+        self.assertRaises(ValueError, o_rom_config.load_from_disk, s_romconfig_file, o_prog_cfg)
 
     def test_method_load_from_disk_with_no_rom_loaded(self):
         """
@@ -90,26 +79,23 @@ class TestClassRomConfig(unittest.TestCase):
         """
         # Preparation of a program config that will provide the path of the patches
         #--------------------------------------------------------------------------
-        s_prog_cfg = os.path.join(cons.s_TEST_DATA_DIR, 'config', 'config-for_romconfig_testing_a.yaml')
-        o_prog_cfg = config.ProgramCfg(ps_file=s_prog_cfg)
+        o_prog_cfg = self._load_program_cfg()
 
         # Trying to load the romconfig from a file
         #-----------------------------------------
-        s_file = os.path.join(cons.s_TEST_DATA_DIR, 'romconfig',
-                              'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl).ini')
+        s_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+                              'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - no patch.ini')
+
         o_config = romconfig.RomConfig()
         self.assertRaises(ValueError, o_config.load_from_disk, s_file, o_prog_cfg)
 
     def test_method_load_from_disk_with_rom_matched_ccrc32_no_patch(self):
         """
-        Test for the load of a RomConfig from disk when the crc32 of the loaded rom and the romconfig ini match.
+        Test for the load of a RomConfig from disk when the CRC32 of the loaded rom and the romconfig .ini match.
 
         :return: Nothing.
         """
-        # Preparation of a program config that will provide the path of the patches
-        #--------------------------------------------------------------------------
-        s_prog_cfg = os.path.join(cons.s_TEST_DATA_DIR, 'config', 'config-for_romconfig_testing_a.yaml')
-        o_prog_cfg = config.ProgramCfg(ps_file=s_prog_cfg)
+        o_prog_cfg = self._load_program_cfg()
 
         # Preparation of the ROM to be used
         #----------------------------------
@@ -120,8 +106,9 @@ class TestClassRomConfig(unittest.TestCase):
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(cons.s_TEST_DATA_DIR, 'romconfig',
-                                        'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl).ini')
+        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+                                        'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
+                                        'no patch.ini')
         o_config = romconfig.RomConfig()
         o_config.o_rom = o_rom
 
@@ -161,7 +148,6 @@ class TestClassRomConfig(unittest.TestCase):
         :return: Nothing.
         """
         o_config = self._load_config_with_matched_ccrc32_and_patch()
-
         s_expect = 'joe'
         s_actual = o_config.s_user
 
@@ -215,16 +201,15 @@ class TestClassRomConfig(unittest.TestCase):
 
         :return: Nothing.
         """
-        o_config = self._load_config_with_matched_ccrc32_and_patch()
+        o_rom_config = self._load_config_with_matched_ccrc32_and_patch()
 
         # Data loading
         #-------------
-        o_core = cores.Core(os.path.join(cons.s_TEST_DATA_DIR, 'cores', 'picodrive_libretro.so'))
+        o_expect = cores.Core(os.path.join(cons.s_TEST_DATA_DIR, 'cores', 'picodrive_libretro.so'))
 
         # Comparison
         #-----------
-        o_expect = o_core
-        o_actual = o_config.o_core
+        o_actual = o_rom_config.o_core
 
         s_msg = 'The core read from the romconfig is not what was expected'
         self.assertEqual(o_expect, o_actual, s_msg)
@@ -237,10 +222,6 @@ class TestClassRomConfig(unittest.TestCase):
         """
         o_config = self._load_config_with_matched_ccrc32_and_patch()
 
-        # Data loading
-        #-------------
-        o_core = cores.Core(os.path.join(cons.s_TEST_DATA_DIR, 'cores', 'picodrive_libretro.so'))
-
         # Comparison
         #-----------
         f_expect = 60.0
@@ -251,123 +232,144 @@ class TestClassRomConfig(unittest.TestCase):
 
     def test_method_load_from_disk_with_rom_matched_ccrc32_and_patch_not_found(self):
         """
-        Test to load a RomConfig from disk with when the specified patch is not found in the current patches dir.
+        Test to load a RomConfig from disk with when the specified patch_file is not found in the current patches' dir.
+
         :return: Nothing.
         """
-        # Preparation of a program config that will provide the path of the patches
-        #--------------------------------------------------------------------------
-        s_prog_cfg = os.path.join(cons.s_TEST_DATA_DIR, 'config', 'config-for_romconfig_testing_a.yaml')
-        o_prog_cfg = config.ProgramCfg(ps_file=s_prog_cfg)
-
-        # Preparation of the ROM to be used
-        #----------------------------------
-        s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
-                                  'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
-        s_dat_file = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
-        o_rom = roms.Rom('mdr-crt', s_rom_file, ps_dat=s_dat_file)
+        o_prog_cfg = self._load_program_cfg()
+        o_rom = self._load_rom_with_dat_info()
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(cons.s_TEST_DATA_DIR, 'romconfig',
-                                        'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl).ini')
+        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+                                        'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
+                                        'non-existing patch.ini')
         o_config = romconfig.RomConfig()
         o_config.o_rom = o_rom
 
-        o_config.load_from_disk(ps_file=s_romconfig_file, po_prog_cfg=o_prog_cfg)
+        # Finally, we try to load a configuration with a non-existing patch
+        #------------------------------------------------------------------
+        ls_error_msgs_actual = o_config.load_from_disk(ps_file=s_romconfig_file, po_prog_cfg=o_prog_cfg)
+
+        s_patches_dir = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'mdr-crt')
+        ls_error_msgs_expect = [f'ERROR: patch "non-existing-patch" not found in "{s_patches_dir}"']
+
+        s_msg = 'The error message returned when loading a non-existing patch differs from expectation.'
+        self.assertEqual(ls_error_msgs_expect, ls_error_msgs_actual, s_msg)
 
     def test_method_save_to_disk(self):
+        """
+        After testing the load for each individual parameter of the RomConfig, we can simply save to disk, load, and
+        compare both configs to ensure they are the same.
 
-        # Preparing a ROM object
-        #-----------------------
-        s_rom_path = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'roms', 'mdr-ctr',
-                                  'Miniplanets (World) (Rev 3) (Aftermarket) (Unl).zip')
-        s_dat_path = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'dats', 'mdr-crt.dat')
-        o_rom = roms.Rom('mdr-crt', s_rom_path)
-        o_rom.populate_from_dat(s_dat_path)
+        :return: Nothing.
+        """
+        # Preparing a ProgramConfig object
+        #---------------------------------
+        #o_prog_cfg = self._load_program_cfg()
+        o_romconfig_original = self._load_config_with_matched_ccrc32_and_patch()
 
-        # Preparing a core object
-        #------------------------
-        s_cores_dir = os.path.join(cons.s_SCRIPT_ROOT, 'test', 'test_data', 'cores')
-        to_cores = cores.get_cores(s_cores_dir, ['picodrive'])
-        o_core = to_cores[0]
-
-        # Creation of a sample RomConfig
-        #-------------------------------
-        o_rom_config = romconfig.RomConfig()
-        o_rom_config.o_rom = o_rom
-        o_rom_config.s_user = 'joe'
-        o_rom_config.s_region = 'japan'
-        o_rom_config.o_core = o_core
-        o_rom_config.f_refresh = 60.0
-
-        # Saving the RomConfig to disk
+        # Saving the ROMconfig to disk
         #-----------------------------
-        s_save_file = '/tmp/romconfig.foo'
-        o_rom_config.save_to_disk(s_save_file)
+        s_test_output_dir = test_tools.get_test_output_dir(self)
+        files.init_dir(s_test_output_dir)
+        s_save_file = os.path.join(s_test_output_dir, 'saved_romconfig.ini')
+        o_romconfig_original.save_to_disk(s_save_file)
 
-        # Reading back the configuration file as a regular .ini file and making the comparison with the expected output
-        #--------------------------------------------------------------------------------------------------------------
-        o_now = datetime.datetime.now()
+        # Now we build a dictionary with all the saved values
+        #----------------------------------------------------
+        o_saved_file = configparser.ConfigParser()
+        o_saved_file.read(s_save_file)
 
-        o_actual_config = configparser.ConfigParser()
-        o_actual_config.read(s_save_file)
-        # I'll replace the date with tht current one, otherwise I won't be able to match it
-        o_actual_config.set('meta', 'date', str(o_now))
+        ddss_actual_data = {}
+        for s_section in o_saved_file.sections():
+            ddss_actual_data[s_section] = {}
+            for s_key, s_value in o_saved_file[s_section].items():
+                ddss_actual_data[s_section][s_key] = s_value
 
-        o_expect_config = configparser.ConfigParser()
-        o_expect_config.add_section('meta')
-        o_expect_config.set('meta', 'builder', cons.s_PRG)
-        o_expect_config.set('meta', 'date', str(o_now))
-        o_expect_config.set('meta', 'user', 'joe')
-        o_expect_config.add_section('rom')
-        o_expect_config.set('rom', 'ps_name', 'Miniplanets (World) (Rev 3) (Aftermarket) (Unl)')
-        o_expect_config.set('rom', 'ccrc32', '8ea40d2f')
-        o_expect_config.set('rom', 'platform', 'mdr-crt')
-        o_expect_config.set('rom', 'patch', 'foo')
-        o_expect_config.add_section('settings')
-        o_expect_config.set('settings', 'core', 'picodrive')
-        o_expect_config.set('settings', 'region', 'japan')
-        o_expect_config.set('settings', 'refresh', '60.0')
+        # Creation of the expected data dictionary (everything will be text)
+        #-------------------------------------------------------------------
+        # We have the manually replace the date with the date from the saved file, otherwise they won't match
+        ddss_expect_data = {'meta':
+                                {'builder':  'EmuLaunch v1.0.2023-03-21',
+                                 'date':     ddss_actual_data['meta']['date'],
+                                 'user':     'joe'},
+                            'rom':
+                                {'name':     'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl)',
+                                 'ccrc32':   'd6cf8cdb',
+                                 'platform': 'mdr-crt',
+                                 'patch':    'v0.2 to v0.9'},
+                            'settings':
+                                {'core':     'picodrive',
+                                 'region':   'japan',
+                                 'refresh':  '60.0'}}
 
-        dds_actual = {}
-        dds_expect = {}
-        for s_section in set(o_actual_config.sections() + o_expect_config.sections()):
-            dds_expect[s_section] = dict(o_expect_config[s_section])
-            dds_actual[s_section] = dict(o_actual_config[s_section])
-
-        self.assertEqual(dds_expect, dds_actual, 'The saved configuration doesn\'t contain the right information')
+        s_msg = 'The saved configuration doesn\'t contain the right information'
+        self.assertEqual(ddss_expect_data, ddss_actual_data, s_msg)
 
     @staticmethod
-    def _load_config_with_matched_ccrc32_and_patch():
+    def _load_program_cfg():
         """
-        Method to fully load a romconfig matching the ROM ccrc32 and specifying a patch. This method is auxiliary for
-        other test methods.
+        Method to load a generic ProgramConfig.
+        :return: A program configuration just with cores path.
+        :rtype: cfg.ProgramCfg
+        """
+        o_prog_cfg = config.ProgramCfg()
+        o_prog_cfg.s_cores_dir = os.path.join(cons.s_TEST_DATA_DIR, 'cores')
+        o_prog_cfg.ds_patch_dirs = {'mdr-crt': os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'mdr-crt')}
+        return o_prog_cfg
+
+    @staticmethod
+    def _load_rom_with_dat_info():
+        """
+        Method to load a ROM object with .dat information.
+
+        :return: A rom object populated with .dat information.
+        :rtype: roms.Rom
+        """
+        s_dat = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
+        s_rom = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
+                             'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
+        o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom, ps_dat=s_dat)
+
+        return o_rom
+
+    @staticmethod
+    def _load_rom_without_dat_info():
+        """
+        Method to load a ROM object with .dat information.
+
+        :return: A rom object populated with .dat information.
+        :rtype: roms.Rom
+        """
+        s_rom = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
+                             'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
+        o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom)
+
+        return o_rom
+
+    def _load_config_with_matched_ccrc32_and_patch(self):
+        """
+        Method to fully load a romconfig matching the ROM ccrc32 and specifying a patch_file. This method is auxiliary
+        for other test methods.
 
         :return:
         :rtype: romconfig.RomConfig
         """
-        # Preparation of a program config that will provide the path of the patches
-        #--------------------------------------------------------------------------
-        s_prog_cfg = os.path.join(cons.s_TEST_DATA_DIR, 'config', 'config-for_romconfig_testing_a.yaml')
-        o_prog_cfg = config.ProgramCfg(ps_file=s_prog_cfg)
+        o_prog_cfg = self._load_program_cfg()
+        o_rom = self._load_rom_with_dat_info()
 
-        # Preparation of the ROM to be used
-        #----------------------------------
-        s_rom_file = os.path.join(cons.s_TEST_DATA_DIR, 'roms', 'mdr-crt',
-                                  'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
-        s_dat_file = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'mdr-crt.dat')
-        o_rom = roms.Rom('mdr-crt', s_rom_file, ps_dat=s_dat_file)
+        # Building ROMconfig and loading settings from disk
+        #--------------------------------------------------
+        o_rom_config = romconfig.RomConfig()
+        o_rom_config.o_rom = o_rom
+        s_rom_config = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+                                    'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
+                                    'with patch.ini')
 
-        # Creation of the RomConfig object
-        #---------------------------------
-        s_romconfig_file = os.path.join(
-                               cons.s_TEST_DATA_DIR, 'romconfig',
-                               'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - with patch.ini')
-        o_config = romconfig.RomConfig()
-        o_config.o_rom = o_rom
+        ls_errors = o_rom_config.load_from_disk(s_rom_config, o_prog_cfg)
 
-        o_config.load_from_disk(ps_file=s_romconfig_file, po_prog_cfg=o_prog_cfg)
-        return o_config
+        return o_rom_config
 
 
 # Main code

@@ -3,9 +3,7 @@ Library to create and manipulate emulauncher paths.
 """
 
 import os
-import zlib
 
-from . import config
 from . import romconfig
 
 
@@ -18,7 +16,7 @@ def build_rom_install_dir_path(po_rom_config, po_program_config):
     The path will be something along "X - Y - Z" where:
 
       X: Safe clean CRC32 of the ROM, "xxxxxxxx" if unknown.
-      Y: CRC32 of the patch ps_name, "xxxxxxxx" if no patch is applied.
+      Y: CRC32 of the patch_file ps_name, "xxxxxxxx" if no patch_file is applied.
       Z: Name of the ROM lower-cased.
 
     :param po_rom_config:
@@ -40,7 +38,7 @@ def build_user_game_dir_path(po_rom_config, po_program_config):
     Function to build the user data directory to store data. The path will be something along "X - Y - Z" where:
 
       X: Clean CRC32 of the ROM, "xxxxxxxx" if unknown.
-      Y: CRC32 of the patch ps_name, "xxxxxxxx" if no patch is applied.
+      Y: CRC32 of the patch_file ps_name, "xxxxxxxx" if no patch_file is applied.
       Z: Name of the ROM lower-cased.
 
     :param po_rom_config:
@@ -59,7 +57,7 @@ def build_user_game_dir_path(po_rom_config, po_program_config):
     return s_full_path
 
 
-def build_user_game_settings(po_rom_config, po_program_config):
+def build_user_game_settings_path(po_rom_config, po_program_config):
     """
     Function to build the settings file path for a user.
 
@@ -96,38 +94,6 @@ def build_rom_install_game_settings(po_rom_config, po_program_config):
     return os.path.join(s_dir, s_file)
 
 
-def build_rom_installed_flag_file_path(po_rom_config, po_program_config):
-    """
-    Empty text file created in the installation directory of ROM+Patch indicating the installation was successful.
-
-    :param po_rom_config:
-    :type po_rom_config: romconfig.RomConfig
-
-    :param po_program_config:
-    :type po_program_config: config.Config
-
-    :return:
-    :rtype: Str
-    """
-    s_dir = build_rom_install_dir_path(po_rom_config=po_rom_config, po_program_config=po_program_config)
-    s_file = 'installed.txt'
-    return os.path.join(s_dir, s_file)
-
-
-def is_rom_installed(po_rom_config, po_program_config):
-    """
-    Function to check whether a ROM+Patch is installed or not.
-
-    Two tests are performed: a) whether the installation directory of the ROM exists, b) whether a game
-    :param po_rom_config:
-    :param po_program_config:
-    :return:
-    """
-    s_install_flag_file = build_rom_installed_flag_file_path(po_rom_config=po_rom_config,
-                                                             po_program_config=po_program_config)
-    return os.path.isfile(s_install_flag_file)
-
-
 # Helper functions
 #=======================================================================================================================
 def _build_romconfig_dir(po_rom_config):
@@ -137,7 +103,7 @@ def _build_romconfig_dir(po_rom_config):
     The path will be something along "X - Y - Z" where:
 
       X: Clean CRC32 of the ROM, "xxxxxxxx" if unknown.
-      Y: CRC32 of the patch ps_name, "xxxxxxxx" if no patch is applied.
+      Y: CRC32 of the patch_file ps_name, "xxxxxxxx" if no patch_file is applied.
       Z: Name of the ROM lower-cased.
 
     :param po_rom_config:
@@ -152,13 +118,12 @@ def _build_romconfig_dir(po_rom_config):
 
     # Patch text
     #-----------
-    # TODO: Add method to patches to produce a safe crc32 of their title
     o_patch = po_rom_config.o_patch
     s_patch_code = 'xxxxxxxx'
     if o_patch is not None:
-        # In order to obtain the CRC32 of the patch title, we need to obtain a chain of bytes, which means we first have
-        # to encode the text into a string of bytes.
-        s_patch_code = hex(zlib.crc32(o_patch.s_title.encode('utf8').lower()) & 0xffffffff)[-8:]
+        # In order to obtain the CRC32 of the patch_file title, we need to obtain a chain of bytes, which means we first
+        # have to encode the text into a string of bytes.
+        s_patch_code = o_patch.s_code
 
     s_dir = '%s - %s+%s - %s' % (o_rom.o_platform.s_alias,
                                  o_rom.s_ccrc32_safe,

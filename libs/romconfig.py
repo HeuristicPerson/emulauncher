@@ -7,6 +7,7 @@ import configparser
 import datetime
 import os
 
+from . import class_to_string
 from . import cons
 from . import config
 from . import cores
@@ -38,18 +39,20 @@ class RomConfig:
         :return: A string representing the object.
         :rtype: Str
         """
-        # TODO: replace with my str method from class_to_string
-        s_out = '<RomConfig>\n'
-        s_out += f'  .s_user:    {self.s_user}\n'
-        s_out += f'  .s_region:  {self.s_region}\n'
-        s_out += f'  .f_refresh: {self.f_refresh}\n'
-
-        # core information
-        s_out += string_helpers.section_generate('  ._o_core:  ', str(self._o_core).splitlines(False))
-        s_out += string_helpers.section_generate('  .o_patch:  ', str(self.o_patch).splitlines(False))
-        s_out += string_helpers.section_generate('  .o_rom:    ', str(self.o_rom).splitlines(False))
-
+        s_out = class_to_string.class_to_string(self)
         return s_out
+
+    def copy_onto(self, po_target):
+        """
+        Method to "copy" the attributes of one instance onto another one's.
+
+        :param po_target:
+        :type po_target: RomConfig
+
+        :return: Nothing, the target instance will be modified in place.
+        """
+        for s_attribute in vars(self).keys():
+            setattr(po_target, s_attribute, getattr(self, s_attribute))
 
     def nice_format(self):
         """
@@ -80,7 +83,7 @@ class RomConfig:
     def load_from_disk(self, ps_file, po_prog_cfg):
         """
         Method to load a rom config from disk. It makes sense to pass the program configuration to this method so when
-        we load a RomConfig from file, we can search for the patch in the right location. So, for example, we can create
+        we load a RomConfig from file, we can search for the patch_file in the right location. So, for example, we can create
         a RomConfig file in the past when the patches where located in '/patches/original_location', then change the
         configuration, so the patches are located in '/patches/new_location', and the RomConfig saves will still work.
 
@@ -129,7 +132,7 @@ class RomConfig:
         self.s_region = o_ini.get('settings', 'region')
         self.f_refresh = o_ini.getfloat('settings', 'refresh')
 
-        # To get the patch, we first find all the patches available for the Rom object, and then we identify the
+        # To get the patch_file, we first find all the patches available for the Rom object, and then we identify the
         # one with the right ps_name.
         s_ini_patch = o_ini.get('rom', 'patch')
         if s_ini_patch:
@@ -141,7 +144,7 @@ class RomConfig:
                     self.o_patch = o_patch
                     break
             else:
-                s_error = f'ERROR: patch "{s_ini_patch}" not found'
+                s_error = f'ERROR: patch "{s_ini_patch}" not found in "{s_patches_dir}"'
                 ls_errors.append(s_error)
 
         # Getting the core object from the core ps_name saved in the file. We will check that a) the core is valid
@@ -162,8 +165,8 @@ class RomConfig:
         """
         Method to load a rom config from disk.
 
-        TODO: Maybe pass program config as parameter so we can save the full path of the patch... NOT NEEDED, the
-        patch already has the full path.
+        TODO: Maybe pass program config as parameter so we can save the full path of the patch_file... NOT NEEDED, the
+        patch_file already has the full path.
 
         :param ps_file: Path of the file to be saved.
         :type ps_file: Str
@@ -187,10 +190,10 @@ class RomConfig:
         o_config.set('meta', 'date', str(datetime.datetime.now()))
         o_config.set('meta', 'user', self.s_user)
         o_config.add_section('rom')
-        o_config.set('rom', 'ps_name', self.o_rom.s_name)
+        o_config.set('rom', 'name', self.o_rom.s_name)
         o_config.set('rom', 'ccrc32', self.o_rom.s_ccrc32)
         o_config.set('rom', 'platform', self.o_rom.o_platform.s_alias)
-        o_config.set('rom', 'patch', s_patch)  # TODO: Save ps_name of the patch
+        o_config.set('rom', 'patch', s_patch)  # TODO: Save name of the patch_file
         o_config.add_section('settings')
         o_config.set('settings', 'core', s_core)
         o_config.set('settings', 'region', self.s_region)
@@ -255,7 +258,7 @@ class RomConfig:
 def generate_default_cfg(po_rom, pto_cores_available):
     """
     Function to generate the default configuration for a ROM, the default configuration doesn't contain a user, nor
-    a patch.
+    a patch_file.
 
     :param po_rom: Rom object to generate a default configuration for.
     :type po_rom: roms.Rom

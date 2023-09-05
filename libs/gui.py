@@ -834,7 +834,7 @@ class _StatusBlock(_GuiElement):
 
     def _set_o_patch(self, po_patch):
         """
-        Method to set the patch of the StatusBlock.
+        Method to set the patch_file of the StatusBlock.
 
         :param po_patch:
         :type po_patch: patches.Patch

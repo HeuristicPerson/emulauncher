@@ -1,0 +1,196 @@
+clrmamepro (
+	name "Sony - PlayStation"
+	description "Sony - PlayStation - Discs (10201) (2020-02-10 11-41-26)"
+	version "2020-02-10 11-41-26"
+	date "2020-02-10 11-41-26"
+	author redump.org
+	homepage redump.org
+	url "http://redump.org/"
+)
+
+game (
+	name "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It)"
+	description "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It)"
+	rom ( name "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It).cue" size 120 crc 92b3ff37 sha1 5cc0e2d25792ae13ec7dab7b2ee8974c700c3337 )
+	rom ( name "Ace Combat 3 - Electrosphere (Europe) (En,Fr,De,Es,It).bin" size 470999760 crc 91cad2df sha1 8c215d983ad7d7f5f8aa122981cbd79d846532ec )
+)
+
+game (
+	name "Dino Crisis (USA)"
+	description "Dino Crisis (USA)"
+	rom ( name "Dino Crisis (USA).cue" size 204 crc d300424f sha1 6496a64bf92d4f6aca185d55e7214f877b3608bd )
+	rom ( name "Dino Crisis (USA) (Track 1).bin" size 379984416 crc bd09f6d5 sha1 0f1dc456c40bd0839afd0c0947a71ebb4e16d836 )
+	rom ( name "Dino Crisis (USA) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis 2 (USA)"
+	description "Dino Crisis 2 (USA)"
+	rom ( name "Dino Crisis 2 (USA).cue" size 208 crc 9a29d877 sha1 44e5321c90ed97d9e249439468e5738d5a8b4c79 )
+	rom ( name "Dino Crisis 2 (USA) (Track 1).bin" size 473676336 crc 47435b81 sha1 f7c71427c4c8726c9114514746c42f10928fbaee )
+	rom ( name "Dino Crisis 2 (USA) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (USA) (Rev 1)"
+	description "Dino Crisis (USA) (Rev 1)"
+	rom ( name "Dino Crisis (USA) (Rev 1).cue" size 220 crc 0cd4a32e sha1 cd236f1442e99168d4f2159880729da4a2522718 )
+	rom ( name "Dino Crisis (USA) (Rev 1) (Track 1).bin" size 379986768 crc 358ad1eb sha1 0ef3326f26f1d97f4ab467023ac6be5e1189a6d3 )
+	rom ( name "Dino Crisis (USA) (Rev 1) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (Europe)"
+	description "Dino Crisis (Europe)"
+	rom ( name "Dino Crisis (Europe).cue" size 210 crc f3ec9bc5 sha1 cbc1c5f03cdff22e3f0b0dbe7c92bf21c3da3a14 )
+	rom ( name "Dino Crisis (Europe) (Track 1).bin" size 387790704 crc 2af669d1 sha1 3d0bd7aa7689cf14190b6b1bee12ce1eaeb0eca6 )
+	rom ( name "Dino Crisis (Europe) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis 2 (Europe)"
+	description "Dino Crisis 2 (Europe)"
+	rom ( name "Dino Crisis 2 (Europe).cue" size 214 crc d56e79a0 sha1 0f5106ad51f5d2eaf0097bb598a6632518502402 )
+	rom ( name "Dino Crisis 2 (Europe) (Track 1).bin" size 479330544 crc 9b084347 sha1 00a57dad2c42c6633a18529604a34ac1ea356f97 )
+	rom ( name "Dino Crisis 2 (Europe) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (Japan)"
+	description "Dino Crisis (Japan)"
+	rom ( name "Dino Crisis (Japan).cue" size 208 crc 90e7a18d sha1 79b1da631ff9f0fbae6295e1397eccddae86fa80 )
+	rom ( name "Dino Crisis (Japan) (Track 1).bin" size 381127488 crc dcfef36e sha1 8ebbc21f04a33c6ab04f0da0ec86c509daa623e8 )
+	rom ( name "Dino Crisis (Japan) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis 2 (Japan)"
+	description "Dino Crisis 2 (Japan)"
+	rom ( name "Dino Crisis 2 (Japan).cue" size 212 crc 7c1b5a4a sha1 0ddbe01064c59d36e53f3c812eaf467912abacbb )
+	rom ( name "Dino Crisis 2 (Japan) (Track 1).bin" size 466403952 crc 100401a9 sha1 614316bfaa7e2a8a566249868635c7468a44bcef )
+	rom ( name "Dino Crisis 2 (Japan) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (USA) (Demo)"
+	description "Dino Crisis (USA) (Demo)"
+	rom ( name "Dino Crisis (USA) (Demo).cue" size 90 crc af5ede50 sha1 8cdfd5c04e7b71edf8383a10528e5c292442b34b )
+	rom ( name "Dino Crisis (USA) (Demo).bin" size 27638352 crc a247c98b sha1 c426d1edd161b328bce63de77e2a5176b4023e10 )
+)
+
+game (
+	name "Dino Crisis 2 (Japan) (Demo)"
+	description "Dino Crisis 2 (Japan) (Demo)"
+	rom ( name "Dino Crisis 2 (Japan) (Demo).cue" size 226 crc e4322e06 sha1 35090930c339581b6ef6a356f2b70b3e54877e58 )
+	rom ( name "Dino Crisis 2 (Japan) (Demo) (Track 1).bin" size 309017520 crc af86d440 sha1 34b569441e609b7b4f79760d8a3d551ef62be869 )
+	rom ( name "Dino Crisis 2 (Japan) (Demo) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (Germany)"
+	description "Dino Crisis (Germany)"
+	rom ( name "Dino Crisis (Germany).cue" size 212 crc d2a10808 sha1 47c8a9c14ab2477c2b85cb7375bfc236fd254e46 )
+	rom ( name "Dino Crisis (Germany) (Track 1).bin" size 387334416 crc 3bbb9b8f sha1 d323a7f2b2603aefd1e286f260dd2bc0b2e2695f )
+	rom ( name "Dino Crisis (Germany) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis 2 (Germany)"
+	description "Dino Crisis 2 (Germany)"
+	rom ( name "Dino Crisis 2 (Germany).cue" size 216 crc a75655bb sha1 cf4681352c912df35b165db6275b11022406b5f8 )
+	rom ( name "Dino Crisis 2 (Germany) (Track 1).bin" size 475927200 crc 410033bf sha1 b3d49636fd03f8fd46a1274710cdbbd6ad7b80ee )
+	rom ( name "Dino Crisis 2 (Germany) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (France)"
+	description "Dino Crisis (France)"
+	rom ( name "Dino Crisis (France).cue" size 210 crc 9540a9d6 sha1 b9e55ce3a8307c4d983dd3bd136022b20225cfe7 )
+	rom ( name "Dino Crisis (France) (Track 1).bin" size 387325008 crc 37f0d3c7 sha1 acc49b4c4a7c283122b9f70ba8a0e2381a4724c6 )
+	rom ( name "Dino Crisis (France) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (Spain)"
+	description "Dino Crisis (Spain)"
+	rom ( name "Dino Crisis (Spain).cue" size 208 crc c22a92c7 sha1 4468e06546e14ef7cf31869388a5932e5b306119 )
+	rom ( name "Dino Crisis (Spain) (Track 1).bin" size 387317952 crc be3bc2ea sha1 29cda9847ddfb85e0b8c4f016654d171741798b7 )
+	rom ( name "Dino Crisis (Spain) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis 2 (Spain)"
+	description "Dino Crisis 2 (Spain)"
+	rom ( name "Dino Crisis 2 (Spain).cue" size 212 crc 3432c9e8 sha1 8b5ce5129d19dd5965e29cab4022cc583fea09f8 )
+	rom ( name "Dino Crisis 2 (Spain) (Track 1).bin" size 475915440 crc ad0333db sha1 2e98a79d60f04e035501d2d508f7270ddaf2c437 )
+	rom ( name "Dino Crisis 2 (Spain) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (Italy)"
+	description "Dino Crisis (Italy)"
+	rom ( name "Dino Crisis (Italy).cue" size 208 crc f59f1e0f sha1 feec79f6f73c3ff39d5819bf18c27c4419425fb5 )
+	rom ( name "Dino Crisis (Italy) (Track 1).bin" size 387332064 crc bba9d858 sha1 4d4085c007f6dd587cf49f214f7cf2b884ae5444 )
+	rom ( name "Dino Crisis (Italy) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis 2 (France)"
+	description "Dino Crisis 2 (France)"
+	rom ( name "Dino Crisis 2 (France).cue" size 214 crc f97e060d sha1 b60d286e3100a31b396c1450c34d38657bde8e60 )
+	rom ( name "Dino Crisis 2 (France) (Track 1).bin" size 475901328 crc 6a4246e4 sha1 dd675012906ca32eabbb6b47fa599466dc3a00e9 )
+	rom ( name "Dino Crisis 2 (France) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis (Europe) (Demo)"
+	description "Dino Crisis (Europe) (Demo)"
+	rom ( name "Dino Crisis (Europe) (Demo).cue" size 224 crc cf795827 sha1 c171ffc257bcae470364f740618b47f469139996 )
+	rom ( name "Dino Crisis (Europe) (Demo) (Track 1).bin" size 33906432 crc beb18f61 sha1 801ee00475033a07905740f18f10392c5de4b2ab )
+	rom ( name "Dino Crisis (Europe) (Demo) (Track 2).bin" size 37399152 crc c31ce2a4 sha1 3bbb3bbdfa93f6a7d7fa489c4bee03927c7d7460 )
+)
+
+game (
+	name "Dino Crisis 2 (Italy)"
+	description "Dino Crisis 2 (Italy)"
+	rom ( name "Dino Crisis 2 (Italy).cue" size 212 crc 2eb7a331 sha1 3fa2ba0884b89c2da7cdda5cc557f980e4ab7bbb )
+	rom ( name "Dino Crisis 2 (Italy) (Track 1).bin" size 477183168 crc 917d4acb sha1 baecdbb248388fb7d1c43d120c3fc33b028e79a4 )
+	rom ( name "Dino Crisis 2 (Italy) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "Dino Crisis 2 (USA) (En,Ja) (Demo)"
+	description "Dino Crisis 2 (USA) (En,Ja) (Demo)"
+	rom ( name "Dino Crisis 2 (USA) (En,Ja) (Demo).cue" size 238 crc 284622a2 sha1 a42544b89e37d7eebafc52597cddfb1a8e32ad6c )
+	rom ( name "Dino Crisis 2 (USA) (En,Ja) (Demo) (Track 1).bin" size 309038688 crc 0d05db10 sha1 feb59027c309b005d5607adf2832b3aa8ce94e40 )
+	rom ( name "Dino Crisis 2 (USA) (En,Ja) (Demo) (Track 2).bin" size 37396800 crc 7976083e sha1 d9f92af296360772e62caa4cb276de3fa74f5538 )
+)
+
+game (
+	name "X-Files, The (Spain) (Disc 1)"
+	description "X-Files, The (Spain) (Disc 1)"
+	rom ( name "X-Files, The (Spain) (Disc 1).cue" size 95 crc 15fcc0df sha1 fea960a465eacb30e8fc70011b99660de3caddba )
+	rom ( name "X-Files, The (Spain) (Disc 1).bin" size 614208336 crc 47826ba3 sha1 46a378f2cece0868cb414020cd53f1a59f544c14 )
+)
+
+game (
+	name "X-Files, The (Spain) (Disc 2)"
+	description "X-Files, The (Spain) (Disc 2)"
+	rom ( name "X-Files, The (Spain) (Disc 2).cue" size 95 crc 14a1e60e sha1 cd4d4dbd73e15998f619c2014c82fb6208590fba )
+	rom ( name "X-Files, The (Spain) (Disc 2).bin" size 720257664 crc 2add1305 sha1 85ebdf49d0695f1f16d536610a91b58903a6ce62 )
+)
+
+game (
+	name "X-Files, The (Spain) (Disc 3)"
+	description "X-Files, The (Spain) (Disc 3)"
+	rom ( name "X-Files, The (Spain) (Disc 3).cue" size 95 crc a2ba067e sha1 48c9a971dcc45784082a67680e3b2e203e89b3ed )
+	rom ( name "X-Files, The (Spain) (Disc 3).bin" size 609306768 crc f0b839b2 sha1 9d24b802686722ecd941bbd2e6b53c2d22c43bd3 )
+)
+
+game (
+	name "X-Files, The (Spain) (Disc 4)"
+	description "X-Files, The (Spain) (Disc 4)"
+	rom ( name "X-Files, The (Spain) (Disc 4).cue" size 95 crc 161babac sha1 762203e553b4aec64c263bede1dd4ffe7f5c5138 )
+	rom ( name "X-Files, The (Spain) (Disc 4).bin" size 731086272 crc ab44714c sha1 f60a2117defcab093ec73b811879cd020804789f )
+)
+
