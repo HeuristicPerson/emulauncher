@@ -42,6 +42,18 @@ class RomConfig:
         s_out = class_to_string.class_to_string(self)
         return s_out
 
+    def copy_onto(self, po_target):
+        """
+        Method to "copy" the attributes of one instance onto another one's.
+
+        :param po_target:
+        :type po_target: RomConfig
+
+        :return: Nothing, the target instance will be modified in place.
+        """
+        for s_attribute in vars(self).keys():
+            setattr(po_target, s_attribute, getattr(self, s_attribute))
+
     def nice_format(self):
         """
         Method to generate a string representation of the instance in a nice human-readable format.

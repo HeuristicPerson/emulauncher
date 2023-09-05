@@ -7,6 +7,7 @@ import unittest
 
 import libs.config as config
 import libs.cons as cons
+import libs.install
 import libs.paths as paths  # <= The library we're testing
 import libs.roms as roms
 import libs.romconfig as romconfig
@@ -399,7 +400,7 @@ class TestFunctionBuildRomInstalledFlagFilePath(unittest.TestCase):
         o_rom_cfg.o_rom = o_rom
         o_rom_cfg.s_user = 'joe'
 
-        s_actual_file = paths.build_rom_installed_flag_file_path(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
+        s_actual_file = libs.install._build_rom_installed_flag_file_path(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
         s_expect_file = '/tmp/this_dir/games/mdr-crt - 1a1a1a1a+xxxxxxxx - this game/installed.txt'
 
         s_msg = 'The installed flag file path is different from the expected result.'
@@ -419,7 +420,7 @@ class TestFunctionBuildRomInstalledFlagFilePath(unittest.TestCase):
         o_rom_cfg.o_rom = o_rom
         o_rom_cfg.s_user = 'joe'
 
-        s_actual_file = paths.build_rom_installed_flag_file_path(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
+        s_actual_file = libs.install._build_rom_installed_flag_file_path(po_rom_config=o_rom_cfg, po_program_config=o_prog_cfg)
         s_expect_file = '/tmp/this_dir/games/mdr-crt - xxxxxxxx+xxxxxxxx - this game/installed.txt'
 
         s_msg = 'The installed flag file path is different from the expected result.'

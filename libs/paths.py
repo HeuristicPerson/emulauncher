@@ -4,7 +4,6 @@ Library to create and manipulate emulauncher paths.
 
 import os
 
-from . import config
 from . import romconfig
 
 
@@ -93,41 +92,6 @@ def build_rom_install_game_settings(po_rom_config, po_program_config):
     s_dir = build_rom_install_dir_path(po_rom_config=po_rom_config, po_program_config=po_program_config)
     s_file = 'settings.ini'
     return os.path.join(s_dir, s_file)
-
-
-# TODO: What's the reason behind this function?
-# Maybe it's a cheesy way to check before launching a game that everything went well, hence we can proceed to play or
-# reinstall.
-def build_rom_installed_flag_file_path(po_rom_config, po_program_config):
-    """
-    Empty text file created in the installation directory of ROM+Patch indicating the installation was successful.
-
-    :param po_rom_config:
-    :type po_rom_config: romconfig.RomConfig
-
-    :param po_program_config:
-    :type po_program_config: config.Config
-
-    :return: The full path of the "installation complete" file.
-    :rtype: Str
-    """
-    s_dir = build_rom_install_dir_path(po_rom_config=po_rom_config, po_program_config=po_program_config)
-    s_file = 'installed.txt'
-    return os.path.join(s_dir, s_file)
-
-
-def is_rom_installed(po_rom_config, po_program_config):
-    """
-    Function to check whether a ROM+Patch is installed or not.
-
-    Two tests are performed: a) whether the installation directory of the ROM exists, b) whether a game
-    :param po_rom_config:
-    :param po_program_config:
-    :return:
-    """
-    s_install_flag_file = build_rom_installed_flag_file_path(po_rom_config=po_rom_config,
-                                                             po_program_config=po_program_config)
-    return os.path.isfile(s_install_flag_file)
 
 
 # Helper functions

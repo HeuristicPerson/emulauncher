@@ -3,14 +3,11 @@ Library with functions related to the installation of ROMs.
 """
 
 import os
-import re
 import shutil
-import time
-import zipfile
 
 import libs.files
 from . import files
-from . import cli_tools
+from .paths import build_rom_install_dir_path
 
 
 # Main functions
@@ -107,10 +104,13 @@ def install(po_rom_cfg, ps_dir, po_status=None, pb_print=False):
     if po_rom_cfg.o_patch is not None:
         _apply_patch(ps_dir, f_weight_patch_apply, po_rom_cfg.o_patch, po_status, pb_print)
 
-    # TODO: Create a patching completed file or maybe it's not needed
-    # TODO: Create an install completed file or maybe it's not needed
-    # The reason I want those files is because I want the user to be aware of the issues without the program crashing,
-    # but maybe raising an exception with information about the error is good enough.
+    # Creating an "install complete" file, so we can skip installation next time
+    #---------------------------------------------------------------------------
+    # The reason I want this file, so users are aware of the issues without the program crashing, but maybe raising an
+    # exception with information about the error is good enough.
+    s_installed_tag_file = _build_rom_installed_flag_file_path(ps_dir)
+    with open(s_installed_tag_file, 'w') as o_file:
+        pass
 
 
 # TODO: Maybe I should make this function public and create unit tests for it.
@@ -185,3 +185,42 @@ def _apply_patch(ps_dir, pf_weight_patch_apply, po_patch, po_status, pb_print):
             print(s_msg)
 
     shutil.rmtree(s_patch_dir)
+
+
+def _build_rom_installed_flag_file_path(ps_dir):
+    """
+    Empty text file created in the installation directory of ROM+Patch indicating the installation was successful.
+
+    :param ps_dir:
+    :type ps_dir: romconfig.RomConfig
+
+    :return: The full path of the "installation complete" file.
+    :rtype: Str
+    """
+    s_file = 'installed.txt'
+    return os.path.join(ps_dir, s_file)
+
+
+def is_rom_installed(ps_dir):
+    """
+    Function to check whether a ROM+Patch is installed or not.
+
+    Two tests are performed: a) whether the installation directory of the ROM exists, b) whether a game
+    :param ps_dir:
+    :type ps_dir: Str
+
+    :return: A boolean indicating whether the game is correctly installed or not.
+    :rtype: Bool
+    """
+    s_install_flag_file = _build_rom_installed_flag_file_path(ps_dir)
+    return os.path.isfile(s_install_flag_file)
+
+
+def utime_install_dir(ps_dir):
+    """
+    Method to update the update time of a game installation dir, by updating the time of the install.txt
+    :param ps_dir:
+    :return:
+    """
+    s_file = _build_rom_installed_flag_file_path(ps_dir)
+    os.utime(ps_dir)

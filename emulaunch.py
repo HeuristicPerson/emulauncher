@@ -11,6 +11,7 @@ import time
 
 import pyglet
 
+import libs.install
 from libs import cons
 from libs import config
 from libs import cores
@@ -18,6 +19,7 @@ from libs import gui
 from libs import install
 from libs import paths
 from libs import patches
+from libs import romconfig
 from libs import roms
 from libs.parallel import ParallelTask
 
@@ -65,16 +67,19 @@ class _CmdArgs:
 
 
 class MainWindow(pyglet.window.Window):
-    def __init__(self, po_rom, po_cfg):
+    def __init__(self, po_rom, po_prog_cfg, po_rom_cfg):
         """
         :param po_rom:
         :type po_rom: roms.Rom
 
-        :param po_cfg:
-        :type po_cfg: config.ProgramCfg
+        :param po_prog_cfg:
+        :type po_prog_cfg: config.ProgramCfg
+
+        :param po_rom_cfg: Rom configuration, it'll be used to "return" the configuration to be launched.
+        :type po_rom_cfg: romconfig.RomConfig
         """
 
-        s_theme_yaml = os.path.join(cons.s_SCRIPT_ROOT, 'themes', po_cfg.s_theme, 'theme.yaml')
+        s_theme_yaml = os.path.join(cons.s_SCRIPT_ROOT, 'themes', po_prog_cfg.s_theme, 'theme.yaml')
         self._o_theme = gui.Theme(s_theme_yaml, po_rom)
         pyglet.window.Window.__init__(self,
                                       width=self._o_theme.i_width,
@@ -83,8 +88,11 @@ class MainWindow(pyglet.window.Window):
                                       resizable=True,
                                       vsync=True)
 
-        self.o_cfg = po_cfg
+        self.o_cfg = po_prog_cfg
         self.o_rom = po_rom
+        # --- test code ---
+        self._o_launch_cfg = po_rom_cfg
+        # ------ end ------
 
         # Initialization
         #---------------
@@ -319,12 +327,25 @@ class MainWindow(pyglet.window.Window):
         self._o_status_block.o_config.save_to_disk(s_user_settings_file)
 
         # Then we check whether the game is already installed and, in that case, whether it has the same configuration
-        b_installed = paths.is_rom_installed(po_rom_config=o_romconfig,
-                                             po_program_config=self.o_cfg)
+        s_install_dir = paths.build_rom_install_dir_path(po_rom_config=o_romconfig,
+                                                         po_program_config=self.o_cfg)
+        b_installed = libs.install.is_rom_installed(s_install_dir)
 
-        # TODO: Probably the same applies to running the game but that queue is ran out of the menu system.
-        # If the games is not installed, we install it
-        if not b_installed:
+        # If the games is installed, we simply kill the menu and set the GUI to be closed
+        if b_installed:
+            print(f'  < Game already installed')
+
+            install.utime_install_dir(s_install_dir)
+
+            if self._o_menu is not None:
+                self._o_menu.kill()
+
+            o_parallel_task_definition = ParallelTask(po_callback=None,
+                                                      pb_close_gui=True)
+            self._lo_parallel_tasks.append(o_parallel_task_definition)
+
+        # Otherwise, we kill the menu, and we set up the installation task
+        else:
             print(f'  < Installing with options')
             for s_line in o_romconfig.nice_format().splitlines(False):
                 print(f'  <   {s_line}')
@@ -338,11 +359,6 @@ class MainWindow(pyglet.window.Window):
             # object, so the installation can update the progress and message because the progress bar contains some
             # pyglet objects (Label, rectangles, background color...) that are not compatible with threading. Instead,
             # we pass a pure text Status object that will be updated by the installation process.
-            s_install_dir = paths.build_rom_install_dir_path(po_rom_config=o_romconfig,
-                                                             po_program_config=self.o_cfg)
-            # TODO: We need to create the install directory
-            # TODO: We
-
             o_parallel_task_definition = ParallelTask(po_callback=install.install,
                                                       plx_args=[self._o_status_block.o_config, s_install_dir],
                                                       pb_close_gui=True)
@@ -355,11 +371,15 @@ class MainWindow(pyglet.window.Window):
             #  3. activate controls (actually, not needed, because we're just running the game after
             #  ------- end -------
 
-        # If the game is installed including the wanted patch_file, we simply need to replace the settings file for the user
-        # settings
+        # "Returning" the configuration to be launched
+        self._o_status_block.o_config.copy_onto(self._o_launch_cfg)
+
+        # If the game is installed including the wanted patch_file, we simply need to replace the settings file for the
+        # user settings
         #s_install_settings_file = paths.build_rom_install_game_settings(po_rom_config=o_romconfig,
         #                                                                po_program_config=self.o_cfg)
         #shutil.copyfile(s_user_settings_file, s_install_settings_file)
+        print('STILL INSIDE')
 
     @staticmethod
     def callback_menu_1_exit():
@@ -385,6 +405,10 @@ class MainWindow(pyglet.window.Window):
             print('  < User config found, loading')
             ls_errors = self._o_status_block.o_config.load_from_disk(ps_file=s_user_saved_settings,
                                                                      po_prog_cfg=self.o_cfg)
+
+            for s_line in self._o_status_block.o_config.nice_format().splitlines(False):
+                print(f'  <   {s_line}')
+
             if ls_errors:
                 for s_error in ls_errors:
                     print(f'  < {s_error}')
@@ -546,15 +570,20 @@ def main():
     o_rom = roms.Rom(ps_platform=o_cmd_args.s_system, ps_path=o_cmd_args.s_rom, ps_dat=s_dat_path)
     print(o_rom.nice_format())
 
-    # TODO: Add an output object to be updated with the info for the rom to be launched.
-    o_window = MainWindow(po_rom=o_rom, po_cfg=o_main_cfg)
+    # --- test code ---
+    o_rom_config = romconfig.RomConfig()
+    # ------ end ------
 
-    # TODO: Maybe it's better to simply have one update schedule and from it, calling other methods for cleaner code.
+    # TODO: Add an output object to be updated with the info for the rom to be launched.
+    o_window = MainWindow(po_rom=o_rom, po_prog_cfg=o_main_cfg, po_rom_cfg=o_rom_config)
+
     pyglet.clock.schedule_interval(o_window.schedule_updater, 0.2)
     pyglet.app.run(1/30)
 
+
     # TODO: Run launching of the installed ROM here.
     print('AFTER CLOSING PYGLET')
+    print(o_rom_config)
 
 
 # Main code
