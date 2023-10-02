@@ -19,6 +19,7 @@ from libs import gui
 from libs import install
 from libs import paths
 from libs import patches
+from libs import retroarch
 from libs import romconfig
 from libs import roms
 from libs.parallel import ParallelTask
@@ -322,13 +323,11 @@ class MainWindow(pyglet.window.Window):
 
         # When the user launches the game, the configuration is saved in the user's directory. It will overwrite
         # anything already existing with no questions.
-        s_user_settings_file = paths.build_user_game_settings_path(po_rom_config=o_romconfig,
-                                                                   po_program_config=self.o_cfg)
+        s_user_settings_file = self.o_cfg.build_user_game_settings_path(o_romconfig)
         self._o_status_block.o_config.save_to_disk(s_user_settings_file)
 
         # Then we check whether the game is already installed and, in that case, whether it has the same configuration
-        s_install_dir = paths.build_rom_install_dir_path(po_rom_config=o_romconfig,
-                                                         po_program_config=self.o_cfg)
+        s_install_dir = self.o_cfg.build_rom_install_dir_path(o_romconfig)
         b_installed = libs.install.is_rom_installed(s_install_dir)
 
         # If the games is installed, we simply kill the menu and set the GUI to be closed
@@ -398,9 +397,9 @@ class MainWindow(pyglet.window.Window):
         self._o_status_block.s_user = ps_user
 
         # When the user is selected, we check whether it already had a configuration created for the game and load it.
-        s_user_saved_settings = paths.build_user_game_settings_path(po_rom_config=self._o_status_block.o_config,
-                                                                    po_program_config=self.o_cfg)
-
+        #s_user_saved_settings = paths.build_user_game_settings_path(po_rom_config=self._o_status_block.o_config,
+        #                                                            po_program_config=self.o_cfg)
+        s_user_saved_settings = self.o_cfg.build_user_game_settings_path(po_rom_config=self._o_status_block.o_config)
         if os.path.isfile(s_user_saved_settings):
             print('  < User config found, loading')
             ls_errors = self._o_status_block.o_config.load_from_disk(ps_file=s_user_saved_settings,
@@ -580,10 +579,10 @@ def main():
     pyglet.clock.schedule_interval(o_window.schedule_updater, 0.2)
     pyglet.app.run(1/30)
 
-
     # TODO: Run launching of the installed ROM here.
     print('AFTER CLOSING PYGLET')
-    print(o_rom_config)
+
+    retroarch.retroarch_launch(o_rom_config)
 
 
 # Main code

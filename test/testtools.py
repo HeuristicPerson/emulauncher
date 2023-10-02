@@ -93,10 +93,13 @@ class Dircmp(filecmp.dircmp):
 
 def are_dirs_same(ps_dir1, ps_dir2):
     """
-        Compare two directory trees content.
-        Return False if they differ, True is they are the same.
+    Compare two directory trees content.
+
+    :return: False if they differ, True is they are the same.
+    :rtype: Bool
     """
     compared = Dircmp(ps_dir1, ps_dir2)
+
     if (compared.left_only or compared.right_only or compared.diff_files
             or compared.funny_files):
         return False

@@ -5,7 +5,7 @@ import unittest
 import libs.cons as cons
 import libs.files as files
 
-import test_tools
+import testtools
 
 
 # Tests
@@ -19,12 +19,12 @@ class TestFunctionUncompress(unittest.TestCase):
         """
         # Creating a directory for the output data
         #-----------------------------------------
-        s_out_dir = test_tools.get_test_output_dir(self)
+        s_out_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_out_dir)
 
         # Decompressing the file
         #-----------------------
-        s_7z_file = os.path.join(test_tools.get_test_input_dir(self), 'patch_a.7z')
+        s_7z_file = os.path.join(testtools.get_test_input_dir(self), 'patch_a.7z')
 
         files.uncompress(s_7z_file, ps_dst_dir=s_out_dir)
 
@@ -46,12 +46,12 @@ class TestFunctionUncompress(unittest.TestCase):
         """
         # Creating a directory for the output data
         #-----------------------------------------
-        s_out_dir = test_tools.get_test_output_dir(self)
+        s_out_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_out_dir)
 
         # Decompressing the file
         #-----------------------
-        s_rar_file = os.path.join(test_tools.get_test_input_dir(self), 'patch_a.rar')
+        s_rar_file = os.path.join(testtools.get_test_input_dir(self), 'patch_a.rar')
         files.uncompress(s_rar_file, ps_dst_dir=s_out_dir)
 
         # Getting the CRC32 of the decompressed file
@@ -72,12 +72,12 @@ class TestFunctionUncompress(unittest.TestCase):
         """
         # Creating a directory for the output data
         #-----------------------------------------
-        s_out_dir = test_tools.get_test_output_dir(self)
+        s_out_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_out_dir)
 
         # Decompressing the file
         #-----------------------
-        s_zip_file = os.path.join(test_tools.get_test_input_dir(self), 'patch_a.zip')
+        s_zip_file = os.path.join(testtools.get_test_input_dir(self), 'patch_a.zip')
         files.uncompress(s_zip_file, ps_dst_dir=s_out_dir)
 
         # Getting the CRC32 of the decompressed file
@@ -98,7 +98,7 @@ class TestFunctionPatchFile(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_results_dir = test_tools.get_test_output_dir(self)
+        s_results_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_results_dir)
 
         s_src_file = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'uncompressed', 'file_a.txt')
@@ -122,7 +122,7 @@ class TestFunctionPatchFile(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_results_dir = test_tools.get_test_output_dir(self)
+        s_results_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_results_dir)
 
         s_src_file = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'uncompressed', 'file_a.txt')
@@ -145,7 +145,7 @@ class TestFunctionPatchFile(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_results_dir = test_tools.get_test_output_dir(self)
+        s_results_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_results_dir)
 
         s_src_file = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'uncompressed', 'file_a.txt')
@@ -168,7 +168,7 @@ class TestFunctionPatchFile(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_results_dir = test_tools.get_test_output_dir(self)
+        s_results_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_results_dir)
 
         s_src_file = os.path.join(cons.s_TEST_DATA_DIR, 'patches', 'uncompressed', 'file_a.txt')
@@ -196,7 +196,7 @@ class TestFunctionIndexDir(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_dir = os.path.join(test_tools.get_test_input_dir(self), 'test_full_tree')
+        s_dir = os.path.join(testtools.get_test_input_dir(self), 'test_full_tree')
 
         dts_actual = files.index_dir(s_dir)
 
@@ -223,7 +223,7 @@ class TestFunctionIndexDir(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_dir = os.path.join(test_tools.get_test_input_dir(self), 'test_full_ignoring_extension')
+        s_dir = os.path.join(testtools.get_test_input_dir(self), 'test_full_ignoring_extension')
         dts_actual = files.index_dir(s_dir, pts_ignore_exts=('foo',))
 
         # Relative paths
@@ -254,7 +254,7 @@ class TestFunctionIndexPatchDir(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_input_dir = os.path.join(test_tools.get_test_input_dir(self), 'multi_patch_dir')
+        s_input_dir = os.path.join(testtools.get_test_input_dir(self), 'multi_patch_dir')
 
         # Actual result
         #--------------

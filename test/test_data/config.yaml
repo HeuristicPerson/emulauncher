@@ -16,6 +16,8 @@ cache:
 
 data:
   dats_dir: test/test_data/dats
+  # Folder with long-storage user data
+  user_data: test/test_data/user_data
 
 roms:
   # ROM directories for each platform

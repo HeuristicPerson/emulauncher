@@ -10,7 +10,7 @@ import libs.roms as roms
 import libs.config as config
 import libs.romconfig as romconfig
 
-import test_tools
+import testtools
 
 
 # Test cases
@@ -43,7 +43,7 @@ class TestClassRomConfig(unittest.TestCase):
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+        s_romconfig_file = os.path.join(testtools.get_test_input_dir(self), 'ini_files',
                                         'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
                                         'no patch.ini')
         o_config = romconfig.RomConfig()
@@ -63,7 +63,7 @@ class TestClassRomConfig(unittest.TestCase):
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+        s_romconfig_file = os.path.join(testtools.get_test_input_dir(self), 'ini_files',
                                         'xxxxxxxx - phantom gear (world) (v0.2) (demo) (aftermarket) (unl).ini')
         o_rom_config = romconfig.RomConfig()
         o_rom_config.o_rom = o_rom
@@ -83,7 +83,7 @@ class TestClassRomConfig(unittest.TestCase):
 
         # Trying to load the romconfig from a file
         #-----------------------------------------
-        s_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+        s_file = os.path.join(testtools.get_test_input_dir(self), 'ini_files',
                               'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - no patch.ini')
 
         o_config = romconfig.RomConfig()
@@ -106,7 +106,7 @@ class TestClassRomConfig(unittest.TestCase):
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+        s_romconfig_file = os.path.join(testtools.get_test_input_dir(self), 'ini_files',
                                         'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
                                         'no patch.ini')
         o_config = romconfig.RomConfig()
@@ -241,7 +241,7 @@ class TestClassRomConfig(unittest.TestCase):
 
         # Creation of the RomConfig object
         #---------------------------------
-        s_romconfig_file = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+        s_romconfig_file = os.path.join(testtools.get_test_input_dir(self), 'ini_files',
                                         'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
                                         'non-existing patch.ini')
         o_config = romconfig.RomConfig()
@@ -271,7 +271,7 @@ class TestClassRomConfig(unittest.TestCase):
 
         # Saving the ROMconfig to disk
         #-----------------------------
-        s_test_output_dir = test_tools.get_test_output_dir(self)
+        s_test_output_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_test_output_dir)
         s_save_file = os.path.join(s_test_output_dir, 'saved_romconfig.ini')
         o_romconfig_original.save_to_disk(s_save_file)
@@ -363,7 +363,7 @@ class TestClassRomConfig(unittest.TestCase):
         #--------------------------------------------------
         o_rom_config = romconfig.RomConfig()
         o_rom_config.o_rom = o_rom
-        s_rom_config = os.path.join(test_tools.get_test_input_dir(self), 'ini_files',
+        s_rom_config = os.path.join(testtools.get_test_input_dir(self), 'ini_files',
                                     'd6cf8cdb - phantom gear (world) (v0.2) (demo) (aftermarket) (unl) - '
                                     'with patch.ini')
 

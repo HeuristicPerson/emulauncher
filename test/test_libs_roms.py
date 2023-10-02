@@ -3,7 +3,7 @@ import unittest
 
 import libs.cons as cons
 import libs.roms as roms
-import test_tools
+import testtools
 
 
 # Test cases
@@ -160,7 +160,7 @@ class ClassRom(unittest.TestCase):
         """
         s_rom = '/home/john_doe/X-Files, The (Spain) (Disc 1).zip'
         # s_dat = os.path.join(cons.s_TEST_DATA_DIR, 'dats', 'ps1-partial.dat')
-        s_dat = os.path.join(test_tools.get_test_input_dir(self), 'dats', 'ps1-partial-xmlgeneric.dat')
+        s_dat = os.path.join(testtools.get_test_input_dir(self), 'dats', 'ps1-partial-xmlgeneric.dat')
         o_rom = roms.Rom(ps_platform='ps1', ps_path=s_rom, ps_dat=s_dat)
 
         ls_expect = ['/home/john_doe/X-Files, The (Spain) (Disc 2).zip',

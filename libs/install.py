@@ -7,7 +7,6 @@ import shutil
 
 import libs.files
 from . import files
-from .paths import build_rom_install_dir_path
 
 
 # Main functions

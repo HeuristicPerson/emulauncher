@@ -667,6 +667,7 @@ def compute_crc(ps_file):
             i_prev = zlib.crc32(h_chunk, i_prev)
 
     s_crc32 = "%X" % (i_prev & 0xFFFFFFFF)
+    s_crc32 = s_crc32.rjust(8, '0')
     return s_crc32.lower()
 
 

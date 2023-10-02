@@ -1,0 +1,9 @@
+#==============================================================================#
+# Test configuration to be used in the tests of for romconfig library          #
+#------------------------------------------------------------------------------#
+# This is an incomplete configuration file and it's designed just to test the  #
+# "data" section.                                                              #
+#==============================================================================#
+data:
+  dats_dir: ../dats
+  user_data:  /tmp/users

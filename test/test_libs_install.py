@@ -12,7 +12,7 @@ import libs.roms as roms
 import libs.romconfig as romconfig
 import libs.files as files
 
-import test_tools
+import testtools
 
 
 # Tests
@@ -26,7 +26,7 @@ class FunctionInstall(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_out_dir = test_tools.get_test_output_dir(self)
+        s_out_dir = testtools.get_test_output_dir(self)
 
         o_rom_cfg = self._build_rom_config_single_file()
         o_rom_cfg.s_user = 'anna'
@@ -38,7 +38,8 @@ class FunctionInstall(unittest.TestCase):
             install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_out_dir, pb_print=True)
         s_printed_msg = o_captured_output.getvalue()
 
-        ds_expect_files = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': 'd6cf8cdb'}
+        ds_expect_files = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': 'd6cf8cdb',
+                           'installed.txt': '00000000'}
 
         ds_actual_files = {}
         for s_elem in os.listdir(s_out_dir):
@@ -82,9 +83,9 @@ class FunctionInstall(unittest.TestCase):
 
         :return: Nothing.
         """
-        s_out_dir = test_tools.get_test_output_dir(self)
+        s_out_dir = testtools.get_test_output_dir(self)
 
-        s_patch = os.path.join(test_tools.get_test_input_dir(self), 'mdr-crt-phantom_gear',
+        s_patch = os.path.join(testtools.get_test_input_dir(self), 'mdr-crt-phantom_gear',
                                'd6cf8cdb - v0.2 to v0.9.zip')
         o_patch = patches.Patch(ps_file=s_patch)
 
@@ -101,7 +102,8 @@ class FunctionInstall(unittest.TestCase):
 
         # If the patching is correct, we will obtain the original ROM name (because patching won't change the name at
         # all) with the CRC32 of the v0.9 because that's the intent of the applied patch_file.
-        ds_expect_files = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': '3df43d25'}
+        ds_expect_files = {'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).md': '3df43d25',
+                           'installed.txt': '00000000'}
 
         ds_actual_files = {}
         for s_elem in os.listdir(s_out_dir):
@@ -150,9 +152,9 @@ class FunctionInstall(unittest.TestCase):
         """
         # "Creating" a ROM object
         #------------------------
-        s_rom_1st = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+        s_rom_1st = os.path.join(testtools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
                                  'game x - disc 1 of 2.zip')
-        s_rom_2nd = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+        s_rom_2nd = os.path.join(testtools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
                                  'game x - disc 2 of 2')
 
         # The platform itself is not relevant for this test, so I'll use Playstation 1 (ps1) because it's already
@@ -169,7 +171,7 @@ class FunctionInstall(unittest.TestCase):
 
         # Creating output directory
         #--------------------------
-        s_install_dir = test_tools.get_test_output_dir(self)
+        s_install_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_install_dir)
 
         # Finally we can install the game capturing the printed message
@@ -181,7 +183,7 @@ class FunctionInstall(unittest.TestCase):
             install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_install_dir, pb_print=True)
         s_printed_msg = o_captured_output.getvalue()
 
-        s_expect_dir = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'mod_game')
+        s_expect_dir = os.path.join(testtools.get_test_input_dir(self), 'fake-multi_disc', 'mod_game')
 
         return s_install_dir, s_expect_dir, s_printed_msg
 
@@ -193,7 +195,7 @@ class FunctionInstall(unittest.TestCase):
         :return: Nothing.
         """
         s_actual_dir, s_expect_dir, _ = self._install_linked_roms_with_patch()
-        b_equal = test_tools.are_dirs_same(s_actual_dir, s_expect_dir)
+        b_equal = testtools.are_dirs_same(s_actual_dir, s_expect_dir)
 
         s_msg = 'Installed dir content differs from expectation.'
         self.assertTrue(b_equal, s_msg)
@@ -226,9 +228,9 @@ class FunctionInstall(unittest.TestCase):
         """
         # "Creating" a ROM object
         #------------------------
-        s_rom_1st = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+        s_rom_1st = os.path.join(testtools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
                                  'game x - disc 1 of 2.zip')
-        s_rom_2nd = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+        s_rom_2nd = os.path.join(testtools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
                                  'game x - disc 2 of 2')
 
         # The platform itself is not relevant for this test, so I'll use Playstation 1 (ps1) because it's already
@@ -241,7 +243,7 @@ class FunctionInstall(unittest.TestCase):
 
         # Creating a patch object
         #------------------------
-        s_patch = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
+        s_patch = os.path.join(testtools.get_test_input_dir(self), 'fake-multi_disc', 'game+patch',
                                '00000000 - my patch.zip')
         o_patch = patches.Patch(s_patch)
 
@@ -252,7 +254,7 @@ class FunctionInstall(unittest.TestCase):
 
         # Creating output directory
         #--------------------------
-        s_install_dir = test_tools.get_test_output_dir(self)
+        s_install_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_install_dir)
 
         # Finally we can install the game capturing the printed message
@@ -264,7 +266,7 @@ class FunctionInstall(unittest.TestCase):
             install.install(po_rom_cfg=o_rom_cfg, ps_dir=s_install_dir, pb_print=True)
         s_printed_msg = o_captured_output.getvalue()
 
-        s_expect_dir = os.path.join(test_tools.get_test_input_dir(self), 'fake-multi_disc', 'mod_game')
+        s_expect_dir = os.path.join(testtools.get_test_input_dir(self), 'fake-multi_disc', 'mod_game')
 
         return s_install_dir, s_expect_dir, s_printed_msg
 
@@ -276,7 +278,7 @@ class FunctionInstall(unittest.TestCase):
         :return: Nothing.
         """
         s_actual_dir, s_expect_dir, _ = self._install_linked_roms_with_patch()
-        b_equal = test_tools.are_dirs_same(s_actual_dir, s_expect_dir)
+        b_equal = testtools.are_dirs_same(s_actual_dir, s_expect_dir)
 
         s_msg = 'Installed+patched dir is different from expectation.'
         self.assertTrue(b_equal, s_msg)
@@ -311,7 +313,7 @@ class FunctionInstall(unittest.TestCase):
         """
         # "Creating" a a ROM object
         #--------------------------
-        s_rom = os.path.join(test_tools.get_test_input_dir(self), 'mdr-crt-phantom_gear',
+        s_rom = os.path.join(testtools.get_test_input_dir(self), 'mdr-crt-phantom_gear',
                              'Phantom Gear (World) (v0.2) (Demo) (Aftermarket) (Unl).zip')
         o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom)
         o_rom_cfg = romconfig.generate_default_cfg(po_rom=o_rom, pto_cores_available=())
@@ -325,11 +327,11 @@ class FunctionInstall(unittest.TestCase):
         # "Creating" a a ROM object
         #--------------------------
         # Notice the first ROM is "real" file, so it has extension...
-        s_rom_1st = os.path.join(test_tools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
+        s_rom_1st = os.path.join(testtools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
                                  'Strider Hiryuu 1 & 2 (Japan) (Disc 1) (Strider Hiryuu).zip')
         #...while the second one (which is read from a .dat file in a real case), doesn't have extension because it'll
         # assume the same extension as the main ROM.
-        s_rom_2nd = os.path.join(test_tools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
+        s_rom_2nd = os.path.join(testtools.get_test_input_dir(self), 'ps1-strider_hiryuu_2',
                                  'Strider Hiryuu 1 & 2 (Japan) (Disc 2) (Strider Hiryuu 2)')
 
         o_rom = roms.Rom(ps_platform='mdr-crt', ps_path=s_rom_1st)
@@ -360,12 +362,12 @@ class FunctionPatchDir(unittest.TestCase):
 
         # The patcher works in-place, so we have to create a copy of the test data
         #-------------------------------------------------------------------------
-        s_rom_src_dir = os.path.join(test_tools.get_test_input_dir(self), 'multi_rom', 'raw_game')
-        s_rom_dst_dir = test_tools.get_test_output_dir(self)
+        s_rom_src_dir = os.path.join(testtools.get_test_input_dir(self), 'multi_rom', 'raw_game')
+        s_rom_dst_dir = testtools.get_test_output_dir(self)
         files.init_dir(s_rom_dst_dir)
         shutil.copytree(s_rom_src_dir, s_rom_dst_dir, dirs_exist_ok=True)
 
-        s_patch_dir = os.path.join(test_tools.get_test_input_dir(self), 'multi_rom', 'patch')
+        s_patch_dir = os.path.join(testtools.get_test_input_dir(self), 'multi_rom', 'patch')
 
         install.patch_dir(ps_dir=s_rom_src_dir, ps_patch=s_patch_dir)
 
